@@ -169,6 +169,8 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   const { data: miembrosData } = useQuery(MIEMBROS_QUERY);
 
   const [createVisita, { loading: creating }] = useMutation(CREATE_VISITA_MUTATION, {
+    refetchQueries: ['Visitas'],
+    awaitRefetchQueries: true,
     onCompleted: () => {
       onSuccess();
       handleClose();
@@ -179,6 +181,8 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   });
 
   const [updateVisita, { loading: updating }] = useMutation(UPDATE_VISITA_MUTATION, {
+    refetchQueries: ['Visitas'],
+    awaitRefetchQueries: true,
     onCompleted: () => {
       onSuccess();
       handleClose();
