@@ -253,8 +253,6 @@ export const visitaResolvers = {
           additionalNotes: input.additionalNotes,
 
           // Legacy fields (para compatibilidad)
-          fecha: input.visitDate,  // Deprecated
-          tipo: input.visitType,   // Deprecated
           completada: visitStatus === 'realizada',
         },
         include: {
@@ -318,10 +316,7 @@ export const visitaResolvers = {
       if (input.barrioOtro !== undefined) dataToUpdate.barrioOtro = input.barrioOtro;
       if (input.nucleoId !== undefined) dataToUpdate.nucleoId = input.nucleoId;
       if (input.visitorUserIds !== undefined) dataToUpdate.visitorUserIds = input.visitorUserIds;
-      if (input.visitType !== undefined) {
-        dataToUpdate.visitType = input.visitType;
-        dataToUpdate.tipo = input.visitType; // Legacy field
-      }
+      if (input.visitType !== undefined) dataToUpdate.visitType = input.visitType;
       if (input.motivoNoVisita !== undefined) dataToUpdate.motivoNoVisita = input.motivoNoVisita;
       if (input.motivoNoVisitaOtra !== undefined) dataToUpdate.motivoNoVisitaOtra = input.motivoNoVisitaOtra;
       if (input.visitActivities !== undefined) dataToUpdate.visitActivities = input.visitActivities;
@@ -338,11 +333,6 @@ export const visitaResolvers = {
       // Siempre actualizar el visitStatus
       dataToUpdate.visitStatus = visitStatus;
       dataToUpdate.completada = visitStatus === 'realizada'; // Legacy field
-
-      // Si se actualiza la fecha, también actualizar el campo legacy
-      if (input.visitDate !== undefined) {
-        dataToUpdate.fecha = input.visitDate;
-      }
 
       const visita = await prisma.visita.update({
         where: { id },
