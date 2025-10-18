@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
+import { AlertTriangle, Lightbulb, Info } from 'lucide-react';
 
 const MIEMBROS_QUERY = gql`
   query Miembros {
@@ -1038,9 +1039,12 @@ export function MiembrosPage() {
 
       {/* Help text */}
       <div className="card mt-4 bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-800">
-          💡 <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Enter</kbd> para guardar, <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Tab</kbd> para ir a la siguiente celda, o <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Escape</kbd> para cancelar.
-        </p>
+        <div className="flex items-start gap-3 text-sm text-blue-800">
+          <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <p>
+            <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Enter</kbd> para guardar, <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Tab</kbd> para ir a la siguiente celda, o <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Escape</kbd> para cancelar.
+          </p>
+        </div>
       </div>
 
       {/* Modal de Invitación */}
@@ -1063,7 +1067,10 @@ export function MiembrosPage() {
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Guarda estas credenciales</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                    <p className="text-sm font-semibold text-yellow-800">Guarda estas credenciales</p>
+                  </div>
                   <p className="text-xs text-yellow-700 mb-3">Esta es la única vez que verás la contraseña. Cópiala y envíala al usuario de forma segura.</p>
 
                   <div className="space-y-2 bg-white rounded p-3 border border-yellow-300">
@@ -1083,9 +1090,12 @@ export function MiembrosPage() {
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-                  <p className="text-xs text-blue-800">
-                    💡 <strong>Próximos pasos:</strong> Envía estas credenciales al usuario por email o mensaje seguro. El usuario podrá cambiar su contraseña en el primer inicio de sesión.
-                  </p>
+                  <div className="flex items-start gap-2 text-xs text-blue-800">
+                    <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p>
+                      <strong>Próximos pasos:</strong> Envía estas credenciales al usuario por email o mensaje seguro. El usuario podrá cambiar su contraseña en el primer inicio de sesión.
+                    </p>
+                  </div>
                 </div>
 
                 <button

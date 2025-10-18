@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, gql } from '@apollo/client';
+import { Lightbulb, CheckCircle, Info } from 'lucide-react';
 
 // GraphQL Queries
 const BARRIOS_QUERY = gql`
@@ -469,9 +470,10 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <p className="text-sm text-blue-700">
-                  💡 Si la familia no aparece en la lista, deberás crearla desde el módulo de Familias primero.
-                </p>
+                <div className="flex items-start gap-2 text-sm text-blue-700">
+                  <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p>Si la familia no aparece en la lista, deberás crearla desde el módulo de Familias primero.</p>
+                </div>
               </div>
             </div>
           )}
@@ -546,9 +548,10 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <p className="text-sm text-blue-700">
-                  💡 Seleccionados: {formData.visitorUserIds.length} visitador(es)
-                </p>
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Info className="w-4 h-4 flex-shrink-0" />
+                  <p>Seleccionados: {formData.visitorUserIds.length} visitador(es)</p>
+                </div>
               </div>
             </div>
           )}
@@ -839,9 +842,10 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
               </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-                <p className="text-sm text-gray-600">
-                  💡 Este paso es opcional. Si no se dejó ningún material, simplemente continúa al siguiente paso.
-                </p>
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p>Este paso es opcional. Si no se dejó ningún material, simplemente continúa al siguiente paso.</p>
+                </div>
               </div>
             </div>
           )}
@@ -978,9 +982,10 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
               </div>
 
               <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <p className="text-sm text-green-700 font-medium">
-                  ✓ ¡Último paso! Revisa los datos y haz clic en "Guardar Visita" para finalizar.
-                </p>
+                <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <p>¡Último paso! Revisa los datos y haz clic en "Guardar Visita" para finalizar.</p>
+                </div>
               </div>
             </div>
           )}

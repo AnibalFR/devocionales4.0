@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { Lightbulb } from 'lucide-react';
 
 const MIEMBROS_CON_DEVOCIONAL = gql`
   query MiembrosConDevocional {
@@ -629,9 +630,12 @@ export function DevocionalesPage() {
 
       {/* Help text */}
       <div className="card mt-4 bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-800">
-          💡 <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Enter</kbd> para guardar, <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Tab</kbd> para ir a la siguiente celda, o <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Escape</kbd> para cancelar.
-        </p>
+        <div className="flex items-start gap-3 text-sm text-blue-800">
+          <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <p>
+            <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Enter</kbd> para guardar, <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Tab</kbd> para ir a la siguiente celda, o <kbd className="px-1 py-0.5 bg-white border border-blue-300 rounded text-xs">Escape</kbd> para cancelar.
+          </p>
+        </div>
       </div>
 
       {/* Modal de Acompañantes */}

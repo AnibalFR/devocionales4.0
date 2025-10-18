@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import ExcelJS from 'exceljs';
+import { AlertTriangle, Trash2, Clock } from 'lucide-react';
 
 // ============================================
 // GRAPHQL QUERIES Y MUTATIONS
@@ -2084,18 +2085,24 @@ export function ExportarImportarPage() {
 
       {/* Limpiar Data Section */}
       <div>
-        <h3 className="text-red-600 text-2xl font-semibold mb-2">🗑️ Limpiar Toda la Data</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <Trash2 className="w-8 h-8 text-red-600 flex-shrink-0" />
+          <h3 className="text-red-600 text-2xl font-semibold">Limpiar Toda la Data</h3>
+        </div>
         <p className="text-gray-600 text-sm mb-5">
           Elimina TODOS los datos de la aplicación. Solo se mantendrá tu usuario administrador. Esta acción es irreversible.
         </p>
 
         <div className="flex justify-center">
           <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-600 rounded-lg p-5 max-w-xl w-full flex gap-4 hover:shadow-lg transition-all hover:-translate-y-1">
-            <div className="text-4xl flex-shrink-0">⚠️</div>
+            <AlertTriangle className="w-12 h-12 text-red-600 flex-shrink-0" />
             <div className="flex-1">
-              <h4 className="text-red-700 text-lg font-semibold mb-2">
-                ⚠️ ZONA PELIGROSA - Eliminar Todos los Datos
-              </h4>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-red-700 flex-shrink-0" />
+                <h4 className="text-red-700 text-lg font-semibold">
+                  ZONA PELIGROSA - Eliminar Todos los Datos
+                </h4>
+              </div>
               <p className="text-gray-600 text-sm mb-4 leading-snug">
                 Esta acción eliminará permanentemente TODAS las visitas, miembros, familias, núcleos, barrios y metas.
                 Solo se conservará tu usuario CEA para poder iniciar sesión. Se recomienda exportar los datos antes de continuar.
@@ -2103,9 +2110,19 @@ export function ExportarImportarPage() {
               <button
                 onClick={handleClearAllData}
                 disabled={importing}
-                className="bg-gradient-to-r from-red-600 to-red-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-red-700 hover:to-red-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-red-600 to-red-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-red-700 hover:to-red-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {importing ? '⏳ Limpiando...' : '🗑️ Limpiar Toda la Data'}
+                {importing ? (
+                  <>
+                    <Clock className="w-5 h-5 flex-shrink-0 animate-spin" />
+                    Limpiando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-5 h-5 flex-shrink-0" />
+                    Limpiar Toda la Data
+                  </>
+                )}
               </button>
             </div>
           </div>
