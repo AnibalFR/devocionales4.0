@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
-import { AlertTriangle, Lightbulb, Info } from 'lucide-react';
+import { AlertTriangle, Lightbulb, Info, CheckCircle, Lock, Mail, XCircle } from 'lucide-react';
 
 const MIEMBROS_QUERY = gql`
   query Miembros {
@@ -182,7 +182,7 @@ export function MiembrosPage() {
   // MEM-001: Validación de barrios al crear nuevo miembro
   const handleNuevoMiembro = async () => {
     if (barrios.length === 0) {
-      alert('⚠ Primero debes crear al menos un barrio.\n\nVe al Catálogo de Barrios y crea un barrio antes de agregar miembros.');
+      alert('Primero debes crear al menos un barrio.\n\nVe al Catálogo de Barrios y crea un barrio antes de agregar miembros.');
       return;
     }
 
@@ -339,7 +339,7 @@ export function MiembrosPage() {
   const handleInvitar = (miembro: any) => {
     // Validar que el miembro tenga email
     if (!miembro.email) {
-      alert('⚠️ Este miembro no tiene un email.\n\nAgrega un email antes de enviar la invitación.');
+      alert('Este miembro no tiene un email.\n\nAgrega un email antes de enviar la invitación.');
       return;
     }
 
@@ -370,7 +370,7 @@ export function MiembrosPage() {
 
       await refetch();
     } catch (err: any) {
-      alert(`❌ Error al crear usuario: ${err.message}`);
+      alert(`Error al crear usuario: ${err.message}`);
       setShowInviteModal(false);
     }
   };
@@ -608,22 +608,18 @@ export function MiembrosPage() {
                           {!miembro.familiaId && (
                             <span
                               title="Sin familia asignada. Ligar en: Catálogo de Familias"
-                              className="inline-flex items-center justify-center w-5 h-5 rounded-full cursor-help bg-yellow-100 text-yellow-600"
+                              className="inline-flex items-center justify-center w-6 h-6 rounded-full cursor-help bg-yellow-100 text-yellow-600"
                             >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
+                              <AlertTriangle className="w-4 h-4" />
                             </span>
                           )}
                           {/* Badge gris: miembro inactivo */}
                           {miembro.activo === false && (
                             <span
                               title="Miembro inactivo. Cambiar estatus en: Catálogo de Miembros"
-                              className="inline-flex items-center justify-center w-5 h-5 rounded-full cursor-help bg-gray-200 text-gray-600"
+                              className="inline-flex items-center justify-center w-6 h-6 rounded-full cursor-help bg-gray-200 text-gray-600"
                             >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                              </svg>
+                              <XCircle className="w-4 h-4" />
                             </span>
                           )}
                         </div>
@@ -789,12 +785,14 @@ export function MiembrosPage() {
                     {/* Estado de Cuenta */}
                     <td className="px-4 py-2">
                       {miembro.usuario ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          ✅ {miembro.usuario.rol}
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          {miembro.usuario.rol}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          🔒 Sin acceso
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+                          Sin acceso
                         </span>
                       )}
                     </td>
@@ -937,10 +935,11 @@ export function MiembrosPage() {
                         {(user?.rol === 'CEA' || user?.rol === 'COLABORADOR') && !miembro.usuario && (
                           <button
                             onClick={() => handleInvitar(miembro)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
                             title="Enviar invitación"
                           >
-                            📧 Invitar
+                            <Mail className="w-4 h-4" />
+                            Invitar
                           </button>
                         )}
 
@@ -1133,11 +1132,14 @@ export function MiembrosPage() {
                     <option value="COLABORADOR">COLABORADOR (Puede crear y editar)</option>
                     <option value="VISITANTE">VISITANTE (Solo lectura)</option>
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {selectedRol === 'CEA' && '✓ Acceso completo a todas las funciones'}
-                    {selectedRol === 'COLABORADOR' && '✓ Puede crear, editar y enviar invitaciones'}
-                    {selectedRol === 'VISITANTE' && '✓ Solo puede ver información, sin editar'}
-                  </p>
+                  <div className="flex items-start gap-1.5 text-xs text-gray-500 mt-1">
+                    <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <p>
+                      {selectedRol === 'CEA' && 'Acceso completo a todas las funciones'}
+                      {selectedRol === 'COLABORADOR' && 'Puede crear, editar y enviar invitaciones'}
+                      {selectedRol === 'VISITANTE' && 'Solo puede ver información, sin editar'}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
