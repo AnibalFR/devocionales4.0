@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { Trash2 } from 'lucide-react';
 
 const METAS_QUERY = gql`
   query Metas {
@@ -591,9 +592,10 @@ export function MetasPage() {
                     <td className="px-4 py-2 whitespace-nowrap text-sm">
                       <button
                         onClick={() => handleDelete(meta.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs font-semibold"
+                        className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs font-semibold"
                       >
-                        🗑️ Eliminar
+                        <Trash2 className="w-4 h-4" />
+                        Eliminar
                       </button>
                     </td>
                   </tr>

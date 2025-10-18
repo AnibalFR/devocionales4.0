@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, CheckCircle, Info } from 'lucide-react';
 
 const MIEMBROS_CON_DEVOCIONAL = gql`
   query MiembrosConDevocional {
@@ -316,11 +316,11 @@ export function DevocionalesPage() {
 
   const handleNuevaDevocional = () => {
     if (todosMiembros.length === 0) {
-      alert('⚠ Primero debes crear al menos un miembro.\n\nVe al Catálogo de Miembros y crea un miembro antes de agregar devocionales.');
+      alert('Primero debes crear al menos un miembro.\n\nVe al Catálogo de Miembros y crea un miembro antes de agregar devocionales.');
       return;
     }
 
-    alert('ℹ Para agregar una nueva devocional, ve al Catálogo de Miembros y marca el checkbox "Reunión Devocional" en el miembro que será el anfitrión.');
+    alert('Para agregar una nueva devocional, ve al Catálogo de Miembros y marca el checkbox "Reunión Devocional" en el miembro que será el anfitrión.');
   };
 
   return (
@@ -457,8 +457,9 @@ export function DevocionalesPage() {
                           <button
                             onClick={() => saveEdit(miembro.id)}
                             className="text-green-600 hover:text-green-800"
+                            title="Guardar"
                           >
-                            ✓
+                            <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
                             onClick={cancelEdit}
@@ -506,8 +507,9 @@ export function DevocionalesPage() {
                           <button
                             onClick={() => saveEdit(miembro.id)}
                             className="text-green-600 hover:text-green-800"
+                            title="Guardar"
                           >
-                            ✓
+                            <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
                             onClick={cancelEdit}
@@ -576,8 +578,9 @@ export function DevocionalesPage() {
                           <button
                             onClick={() => saveEdit(miembro.id)}
                             className="text-green-600 hover:text-green-800"
+                            title="Guardar"
                           >
-                            ✓
+                            <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
                             onClick={cancelEdit}

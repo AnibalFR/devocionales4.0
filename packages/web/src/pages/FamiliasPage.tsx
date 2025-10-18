@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { AlertTriangle, Lightbulb, CheckCircle } from 'lucide-react';
 
 const GET_FAMILIAS = gql`
   query GetFamilias {
@@ -254,7 +255,7 @@ export function FamiliasPage() {
 
     // FAM-001: Validar que existan barrios
     if (barrios.length === 0) {
-      alert('⚠️ Primero debes crear al menos un barrio.');
+      alert('Primero debes crear al menos un barrio.');
       return;
     }
 
@@ -374,17 +375,17 @@ export function FamiliasPage() {
 
     // Validaciones
     if (!modal.selectedAddress) {
-      alert('⚠️ Por favor selecciona una dirección para la familia.');
+      alert('Por favor selecciona una dirección para la familia.');
       return;
     }
 
     if (!modal.selectedBarrioId) {
-      alert('⚠️ Por favor selecciona un barrio para la familia.');
+      alert('Por favor selecciona un barrio para la familia.');
       return;
     }
 
     if (modal.selectedMiembros.size === 0) {
-      alert('⚠️ Selecciona al menos un miembro para ligar a la familia.');
+      alert('Selecciona al menos un miembro para ligar a la familia.');
       return;
     }
 
@@ -637,10 +638,12 @@ export function FamiliasPage() {
         {/* Warning if no barrios */}
         {barrios.length === 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              ⚠️ <strong>No hay barrios registrados.</strong> Necesitas crear al menos un
-              barrio antes de crear familias.
-            </p>
+            <div className="flex items-start gap-3 text-sm text-yellow-800">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>No hay barrios registrados.</strong> Necesitas crear al menos un barrio antes de crear familias.
+              </p>
+            </div>
           </div>
         )}
 
@@ -1036,8 +1039,9 @@ export function FamiliasPage() {
                                     </span>
                                   )}
                                   {miembro.tieneDevocional && (
-                                    <span className="text-green-600 text-xs font-semibold">
-                                      ✓ Devocional
+                                    <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Devocional
                                     </span>
                                   )}
                                 </div>
@@ -1130,10 +1134,12 @@ export function FamiliasPage() {
 
         {/* Help text */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            💡 <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Usa Tab para
-            navegar entre celdas. Presiona ▶ para ver los miembros de cada familia.
-          </p>
+          <div className="flex items-start gap-3 text-sm text-blue-800">
+            <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p>
+              <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Usa Tab para navegar entre celdas. Presiona ▶ para ver los miembros de cada familia.
+            </p>
+          </div>
         </div>
       </div>
 

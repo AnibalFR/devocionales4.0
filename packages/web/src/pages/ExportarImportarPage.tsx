@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import ExcelJS from 'exceljs';
-import { AlertTriangle, Trash2, Clock } from 'lucide-react';
+import { AlertTriangle, Trash2, Clock, Download, Upload } from 'lucide-react';
 
 // ============================================
 // GRAPHQL QUERIES Y MUTATIONS
@@ -220,7 +220,7 @@ export function ExportarImportarPage() {
 
   const handleClearAllData = async () => {
     const confirmation = window.confirm(
-      '⚠️ ADVERTENCIA: Esta acción eliminará TODA la información de la aplicación:\n\n' +
+      'ADVERTENCIA: Esta acción eliminará TODA la información de la aplicación:\n\n' +
       '• Todas las visitas\n' +
       '• Todos los miembros\n' +
       '• Todas las familias\n' +
@@ -234,7 +234,7 @@ export function ExportarImportarPage() {
     if (!confirmation) return;
 
     const doubleConfirmation = window.confirm(
-      '⚠️ SEGUNDA CONFIRMACIÓN: ¿Realmente deseas eliminar TODOS los datos? Esta es tu última oportunidad para cancelar.'
+      'SEGUNDA CONFIRMACIÓN: ¿Realmente deseas eliminar TODOS los datos? Esta es tu última oportunidad para cancelar.'
     );
 
     if (!doubleConfirmation) return;
@@ -246,7 +246,7 @@ export function ExportarImportarPage() {
 
       setFeedback({
         type: 'success',
-        title: '✅ Datos Eliminados Exitosamente',
+        title: 'Datos Eliminados Exitosamente',
         message: result.data.clearAllData.message,
         details: [
           `📊 Estadísticas:`,
@@ -266,7 +266,7 @@ export function ExportarImportarPage() {
     } catch (error: any) {
       setFeedback({
         type: 'error',
-        title: '❌ Error al Limpiar Datos',
+        title: 'Error al Limpiar Datos',
         message: error.message,
       });
     } finally {
@@ -282,7 +282,7 @@ export function ExportarImportarPage() {
     if (!data) {
       setFeedback({
         type: 'error',
-        title: '❌ Error',
+        title: 'Error',
         message: 'No hay datos disponibles para exportar.',
       });
       return;
@@ -1074,14 +1074,14 @@ export function ExportarImportarPage() {
 
       setFeedback({
         type: 'success',
-        title: '✅ Exportación Exitosa',
+        title: 'Exportación Exitosa',
         message: `Se exportaron ${miembros.length} miembros, ${familias.length} familias, ${visitas.length} visitas, ${barrios.length} barrios, ${nucleos.length} núcleos, ${metas.length} metas en 7 pestañas (incluye Referencia con valores válidos).`,
       });
     } catch (error: any) {
       console.error('Error al exportar:', error);
       setFeedback({
         type: 'error',
-        title: '❌ Error al Exportar',
+        title: 'Error al Exportar',
         message: error.message || 'Ocurrió un error inesperado.',
       });
     } finally {
@@ -1106,7 +1106,7 @@ export function ExportarImportarPage() {
       if (errores.length > 0) {
         setFeedback({
           type: 'error',
-          title: '❌ Errores Críticos Detectados',
+          title: 'Errores Críticos Detectados',
           message: 'No se puede importar porque contiene errores que violan las reglas de negocio:',
           details: [...errores, ...(advertencias.length > 0 ? ['', 'ADVERTENCIAS ADICIONALES:', ...advertencias] : [])],
         });
@@ -1118,11 +1118,11 @@ export function ExportarImportarPage() {
         setPendingWorkbook(workbook);
         setFeedback({
           type: 'warning',
-          title: '⚠️ Advertencias Detectadas',
+          title: 'Advertencias Detectadas',
           message: 'Se detectaron advertencias. El sistema puede aplicar correcciones automáticas. ¿Continuar?',
           details: advertencias,
           buttons: [
-            { label: '✓ Continuar con Importación', class: 'btn-primary', onClick: () => continueImport() },
+            { label: 'Continuar con Importación', class: 'btn-primary', onClick: () => continueImport() },
             { label: 'Cancelar', class: 'btn-secondary', onClick: () => setFeedback(null) }
           ]
         });
@@ -1136,7 +1136,7 @@ export function ExportarImportarPage() {
       console.error('Error importing:', error);
       setFeedback({
         type: 'error',
-        title: '❌ Error al Importar',
+        title: 'Error al Importar',
         message: error.message || 'Ocurrió un error inesperado.',
       });
     }
@@ -1592,14 +1592,14 @@ export function ExportarImportarPage() {
       if (errores.length > 0) {
         setFeedback({
           type: 'warning',
-          title: '⚠️ Importación Completada con Advertencias',
+          title: 'Importación Completada con Advertencias',
           message: `Agregados: ${barriosAdded} barrios, ${nucleosAdded} núcleos, ${familiasAdded} familias, ${miembrosAdded} miembros, ${visitasAdded} visitas, ${metasAdded} metas.\nActualizados: ${barriosUpdated} barrios, ${nucleosUpdated} núcleos, ${familiasUpdated} familias, ${miembrosUpdated} miembros, ${visitasUpdated} visitas, ${metasUpdated} metas.\n\nSe encontraron algunos errores:`,
           details: errores
         });
       } else {
         setFeedback({
           type: 'success',
-          title: '✅ Importación Completada Exitosamente',
+          title: 'Importación Completada Exitosamente',
           message: `Agregados: ${barriosAdded} barrios, ${nucleosAdded} núcleos, ${familiasAdded} familias, ${miembrosAdded} miembros, ${visitasAdded} visitas, ${metasAdded} metas.\nActualizados: ${barriosUpdated} barrios, ${nucleosUpdated} núcleos, ${familiasUpdated} familias, ${miembrosUpdated} miembros, ${visitasUpdated} visitas, ${metasUpdated} metas.`,
         });
       }
@@ -1608,7 +1608,7 @@ export function ExportarImportarPage() {
       console.error('Error ejecutando importación:', error);
       setFeedback({
         type: 'error',
-        title: '❌ Error en Importación',
+        title: 'Error en Importación',
         message: error.message || 'Ocurrió un error durante la importación.',
       });
     } finally {
@@ -1668,7 +1668,7 @@ export function ExportarImportarPage() {
 
           // Validar que el núcleo tenga barrio (NUC-001)
           if (!barrioRef) {
-            errores.push(`❌ Núcleo "${nucleoStr}" (fila ${rowNumber}): No tiene Barrio asignado. Regla NUC-001 requiere barrio obligatorio.`);
+            errores.push(`Núcleo "${nucleoStr}" (fila ${rowNumber}): No tiene Barrio asignado. Regla NUC-001 requiere barrio obligatorio.`);
           } else {
             // Buscar si el barrio existe
             const barrioStr = String(barrioRef).trim();
@@ -1678,7 +1678,7 @@ export function ExportarImportarPage() {
             );
 
             if (!barrioExiste) {
-              errores.push(`❌ Núcleo "${nucleoStr}" (fila ${rowNumber}): Barrio "${barrioStr}" no existe. Debe crear el barrio primero.`);
+              errores.push(`Núcleo "${nucleoStr}" (fila ${rowNumber}): Barrio "${barrioStr}" no existe. Debe crear el barrio primero.`);
             }
           }
 
@@ -1710,7 +1710,7 @@ export function ExportarImportarPage() {
               b.id === barrioStr
             );
             if (!barrioExiste) {
-              advertencias.push(`⚠️ Familia "${nombre}" (fila ${rowNumber}): Barrio "${barrioStr}" no existe.`);
+              advertencias.push(`Familia "${nombre}" (fila ${rowNumber}): Barrio "${barrioStr}" no existe.`);
             }
           }
 
@@ -1722,7 +1722,7 @@ export function ExportarImportarPage() {
               n.id === nucleoStr
             );
             if (!nucleoExiste) {
-              advertencias.push(`⚠️ Familia "${nombre}" (fila ${rowNumber}): Núcleo "${nucleoStr}" no existe.`);
+              advertencias.push(`Familia "${nombre}" (fila ${rowNumber}): Núcleo "${nucleoStr}" no existe.`);
             }
           }
 
@@ -1751,7 +1751,7 @@ export function ExportarImportarPage() {
 
           // Validar que el miembro tenga barrio (MEM-001)
           if (!barrioNombre) {
-            errores.push(`❌ Miembro "${nombre}" (fila ${rowNumber}): No tiene Barrio asignado. Regla MEM-001 requiere barrio obligatorio.`);
+            errores.push(`Miembro "${nombre}" (fila ${rowNumber}): No tiene Barrio asignado. Regla MEM-001 requiere barrio obligatorio.`);
           }
 
           // Validar núcleo si está definido
@@ -1761,7 +1761,7 @@ export function ExportarImportarPage() {
               n.nombre.toLowerCase() === nucleoStr.toLowerCase()
             );
             if (!nucleoExiste) {
-              advertencias.push(`⚠️ Miembro "${nombre}" (fila ${rowNumber}): Núcleo "${nucleoStr}" no existe.`);
+              advertencias.push(`Miembro "${nombre}" (fila ${rowNumber}): Núcleo "${nucleoStr}" no existe.`);
             }
           }
 
@@ -1789,13 +1789,13 @@ export function ExportarImportarPage() {
           // Verificar direcciones
           const direcciones = [...new Set(miembros.map(m => m.direccion).filter(a => a))];
           if (direcciones.length > 1) {
-            advertencias.push(`⚠️ Familia "${familiaNombre}": Los miembros tienen diferentes direcciones. Regla FAM-004 requiere dirección compartida.`);
+            advertencias.push(`Familia "${familiaNombre}": Los miembros tienen diferentes direcciones. Regla FAM-004 requiere dirección compartida.`);
           }
 
           // Verificar barrios
           const barrios = [...new Set(miembros.map(m => m.barrioNombre).filter(b => b))];
           if (barrios.length > 1) {
-            advertencias.push(`⚠️ Familia "${familiaNombre}": Los miembros tienen diferentes barrios. Regla FAM-004 requiere barrio compartido.`);
+            advertencias.push(`Familia "${familiaNombre}": Los miembros tienen diferentes barrios. Regla FAM-004 requiere barrio compartido.`);
           }
         }
       });
@@ -1821,7 +1821,7 @@ export function ExportarImportarPage() {
 
           // Validación 1: Familia (nombre) es obligatorio
           if (!familiaNombre) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Nombre de Familia es obligatorio.`);
+            errores.push(`Visita (fila ${rowNumber}): Nombre de Familia es obligatorio.`);
             continue;
           }
 
@@ -1831,42 +1831,42 @@ export function ExportarImportarPage() {
             f.nombre.toLowerCase() === familiaStr.toLowerCase()
           );
           if (!familiaExiste) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Familia "${familiaStr}" no existe.`);
+            errores.push(`Visita (fila ${rowNumber}): Familia "${familiaStr}" no existe.`);
           }
 
           // Validación 3: Campos requeridos
           if (!visitType) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Tipo de visita es obligatorio.`);
+            errores.push(`Visita (fila ${rowNumber}): Tipo de visita es obligatorio.`);
           }
           if (!visitDate) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Fecha de visita es obligatoria.`);
+            errores.push(`Visita (fila ${rowNumber}): Fecha de visita es obligatoria.`);
           }
           if (!visitTime) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Hora de visita es obligatoria.`);
+            errores.push(`Visita (fila ${rowNumber}): Hora de visita es obligatoria.`);
           }
           if (!visitStatus) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Estatus de visita es obligatorio.`);
+            errores.push(`Visita (fila ${rowNumber}): Estatus de visita es obligatorio.`);
           }
 
           // Validación 4: Si no se pudo realizar, debe tener motivo
           if ((visitType === 'no_se_pudo_realizar' || visitType === 'No se pudo realizar') && !motivoNoVisita) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Si la visita no se pudo realizar, debe especificar el motivo.`);
+            errores.push(`Visita (fila ${rowNumber}): Si la visita no se pudo realizar, debe especificar el motivo.`);
           }
 
           // Validación 5: Si motivo es "otra", debe especificar
           if ((motivoNoVisita === 'otra' || motivoNoVisita === 'Otra razón') && !motivoNoVisitaOtra) {
-            errores.push(`❌ Visita (fila ${rowNumber}): Si el motivo es "otra", debe especificar la razón.`);
+            errores.push(`Visita (fila ${rowNumber}): Si el motivo es "otra", debe especificar la razón.`);
           }
 
           // Validación 6: Si estudio instituto marcado, debe especificar
           if (estudioInstituto === 'SI' && !estudioInstitutoEsp) {
-            advertencias.push(`⚠️ Visita (fila ${rowNumber}): Estudio del Instituto marcado pero sin especificar qué libro.`);
+            advertencias.push(`Visita (fila ${rowNumber}): Estudio del Instituto marcado pero sin especificar qué libro.`);
           }
         }
       }
 
     } catch (error: any) {
-      errores.push(`❌ Error al validar el archivo: ${error.message}`);
+      errores.push(`Error al validar el archivo: ${error.message}`);
     }
 
     return { errores, advertencias };
@@ -1883,7 +1883,7 @@ export function ExportarImportarPage() {
     if (!file.name.endsWith('.xlsx')) {
       setFeedback({
         type: 'error',
-        title: '❌ Archivo Inválido',
+        title: 'Archivo Inválido',
         message: 'Por favor selecciona un archivo Excel (.xlsx)',
       });
       return;
@@ -2027,7 +2027,7 @@ export function ExportarImportarPage() {
 
         <div className="flex justify-center">
           <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-primary-600 rounded-lg p-5 max-w-xl w-full flex gap-4 hover:shadow-lg transition-all hover:-translate-y-1">
-            <div className="text-4xl flex-shrink-0">▼</div>
+            <Download className="w-12 h-12 text-primary-600 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="text-primary-600 text-lg font-semibold mb-2">
                 Exportar Todos los Catálogos
@@ -2038,9 +2038,19 @@ export function ExportarImportarPage() {
               <button
                 onClick={exportAll}
                 disabled={exporting}
-                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-primary-700 hover:to-primary-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {exporting ? '⏳ Exportando...' : '▼ Exportar Todo'}
+                {exporting ? (
+                  <>
+                    <Clock className="w-5 h-5 flex-shrink-0 animate-spin" />
+                    Exportando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5 flex-shrink-0" />
+                    Exportar Todo
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -2056,7 +2066,7 @@ export function ExportarImportarPage() {
 
         <div className="flex justify-center">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-600 rounded-lg p-5 max-w-xl w-full flex gap-4 hover:shadow-lg transition-all hover:-translate-y-1">
-            <div className="text-4xl flex-shrink-0">▲</div>
+            <Upload className="w-12 h-12 text-blue-600 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="text-blue-700 text-lg font-semibold mb-2">
                 Importar Todos los Catálogos
@@ -2074,9 +2084,19 @@ export function ExportarImportarPage() {
               />
               <label
                 htmlFor="file-upload"
-                className={`inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg ${importing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-none px-6 py-3 rounded-md text-base font-semibold cursor-pointer transition-all hover:from-blue-700 hover:to-blue-800 hover:-translate-y-0.5 shadow-md hover:shadow-lg ${importing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {importing ? '⏳ Importando...' : '▲ Seleccionar Archivo Excel'}
+                {importing ? (
+                  <>
+                    <Clock className="w-5 h-5 flex-shrink-0 animate-spin" />
+                    Importando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5 flex-shrink-0" />
+                    Seleccionar Archivo Excel
+                  </>
+                )}
               </label>
             </div>
           </div>

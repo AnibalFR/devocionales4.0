@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { AlertTriangle, Lightbulb } from 'lucide-react';
 
 // Helper para formatear fechas de forma segura
 const formatDate = (dateInput: string | number | null | undefined): string => {
@@ -175,7 +176,7 @@ export function NucleosPage() {
 
     // NUC-001: Validar que existe al menos un barrio
     if (barrios.length === 0) {
-      alert('⚠️ Primero debes crear al menos un barrio antes de crear núcleos.');
+      alert('Primero debes crear al menos un barrio antes de crear núcleos.');
       return;
     }
 
@@ -255,9 +256,12 @@ export function NucleosPage() {
         {/* Warning if no barrios */}
         {barrios.length === 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              ⚠️ <strong>No hay barrios registrados.</strong> Necesitas crear al menos un barrio antes de crear núcleos.
-            </p>
+            <div className="flex items-start gap-3 text-sm text-yellow-800">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>No hay barrios registrados.</strong> Necesitas crear al menos un barrio antes de crear núcleos.
+              </p>
+            </div>
           </div>
         )}
 
@@ -401,9 +405,12 @@ export function NucleosPage() {
 
         {/* Help text */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            💡 <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona Enter para guardar, Tab para ir a la siguiente celda, o Escape para cancelar.
-          </p>
+          <div className="flex items-start gap-3 text-sm text-blue-800">
+            <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p>
+              <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona Enter para guardar, Tab para ir a la siguiente celda, o Escape para cancelar.
+            </p>
+          </div>
         </div>
       </div>
   );

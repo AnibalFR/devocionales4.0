@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { Lightbulb } from 'lucide-react';
 
 // Helper para formatear fechas de forma segura
 const formatDate = (dateInput: string | number | null | undefined): string => {
@@ -326,9 +327,12 @@ export function BarriosPage() {
 
         {/* Help text */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            💡 <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona Enter para guardar, Tab para ir a la siguiente celda, o Escape para cancelar.
-          </p>
+          <div className="flex items-start gap-3 text-sm text-blue-800">
+            <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p>
+              <strong>Tip:</strong> Haz clic en cualquier celda para editarla. Presiona Enter para guardar, Tab para ir a la siguiente celda, o Escape para cancelar.
+            </p>
+          </div>
         </div>
       </div>
   );

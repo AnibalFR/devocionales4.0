@@ -3,6 +3,7 @@ import { useQuery, useMutation, gql } from '@apollo/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { VisitaWizard } from '../components/VisitaWizard';
+import { Lightbulb } from 'lucide-react';
 import { VisitaDetallesModal } from '../components/VisitaDetallesModal';
 
 // Helper para formatear fechas de forma segura
@@ -671,9 +672,12 @@ export function VisitasPage() {
 
       {/* Help text */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          💡 <strong>Tip:</strong> Usa los filtros para buscar visitas específicas. Puedes ordenar por fecha, familia o tipo de visita.
-        </p>
+        <div className="flex items-start gap-3 text-sm text-blue-800">
+          <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <p>
+            <strong>Tip:</strong> Usa los filtros para buscar visitas específicas. Puedes ordenar por fecha, familia o tipo de visita.
+          </p>
+        </div>
       </div>
 
       {/* Modal de Detalles */}
