@@ -1,0 +1,19 @@
+{
+  "name": "devocionales4.0",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Sistema de registro de visitas y devocionales - Versión 4.0 con MFA",
+  "scripts": {
+    "dev": "echo 'Use pnpm dev in individual packages'",
+    "docker:dev": "./scripts/docker-dev.sh",
+    "docker:down": "docker-compose -f docker-compose.full.yml down",
+    "docker:clean": "docker-compose -f docker-compose.full.yml down -v"
+  },
+  "keywords": ["devocionales", "visitas", "graphql", "prisma", "react", "react-native"],
+  "author": "Devocionales Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

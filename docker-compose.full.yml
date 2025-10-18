@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: devocionales-postgres
+    environment:
+      POSTGRES_USER: devocionales
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: devocionales_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devocionales"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devocionales-network
+
+  # Redis para caché y rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: devocionales-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devocionales-network
+
+  # MailHog - SMTP testing (para ver emails en desarrollo)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: devocionales-mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - devocionales-network
+
+  # pgAdmin - GUI para PostgreSQL (opcional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: devocionales-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@devocionales.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - devocionales-network
+
+networks:
+  devocionales-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:

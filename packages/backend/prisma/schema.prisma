@@ -1,0 +1,351 @@
+// Devocionales 4.0 - Prisma Schema
+// Backend: PostgreSQL
+// Versión: 4.0.0 - Schema Completo (sin MFA)
+// Migrado desde Devocionales 3.0 con todas las reglas de negocio
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// COMUNIDAD
+// ============================================
+
+model Comunidad {
+  id        String   @id @default(uuid())
+  nombre    String
+  descripcion String?
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  usuarios  Usuario[]
+  familias  Familia[]
+  barrios   Barrio[]
+  nucleos   Nucleo[]
+  metas     Meta[]
+
+  @@map("comunidades")
+}
+
+// ============================================
+// USUARIOS
+// ============================================
+
+model Usuario {
+  id          String   @id @default(uuid())
+  comunidadId String
+  email       String   @unique
+  password    String
+  nombre      String
+  apellidos   String?
+  rol         RolUsuario
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  comunidad      Comunidad @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+  miembro        Miembro?  // 1-1 opcional
+  visitasCreadas Visita[]  @relation("VisitaCreator")
+
+  @@index([comunidadId])
+  @@index([email])
+  @@index([activo])
+  @@map("usuarios")
+}
+
+enum RolUsuario {
+  CEA           // Comité de Enseñanza de Agrupación - ROL ADMIN
+  COLABORADOR
+  VISITANTE
+}
+
+// ============================================
+// BARRIOS
+// ============================================
+
+model Barrio {
+  id          String   @id @default(uuid())
+  comunidadId String
+  nombre      String
+  descripcion String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  comunidad Comunidad @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+  nucleos   Nucleo[]   // Núcleos pertenecen a un barrio
+  familias  Familia[]
+  miembros  Miembro[]  // Miembros pueden tener barrio directamente
+  visitas   Visita[]   // Visitas se filtran por barrio
+
+  @@index([comunidadId])
+  @@map("barrios")
+}
+
+// ============================================
+// NUCLEOS
+// ============================================
+
+model Nucleo {
+  id          String   @id @default(uuid())
+  comunidadId String
+  barrioId    String   // Núcleo DEBE pertenecer a un barrio (NUC-001)
+  nombre      String
+  descripcion String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  comunidad Comunidad @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+  barrio    Barrio    @relation(fields: [barrioId], references: [id], onDelete: Cascade)
+  familias  Familia[]
+  miembros  Miembro[]  // Miembros pueden tener núcleo directamente
+  visitas   Visita[]   // Visitas se filtran por núcleo
+
+  @@index([comunidadId])
+  @@index([barrioId])
+  @@map("nucleos")
+}
+
+// ============================================
+// FAMILIAS
+// ============================================
+
+model Familia {
+  id              String   @id @default(uuid())
+  comunidadId     String
+  nombre          String
+  direccion       String?
+  telefono        String?
+  email           String?
+  barrio          String?
+  barrioId        String?
+  nucleoId        String?
+
+  // Ubicación
+  latitud         Float?
+  longitud        Float?
+
+  // Estado
+  estatus         String   @default("active")  // 'active' | 'inactive'
+  activa          Boolean  @default(true)
+  notas           String?
+
+  // Campos calculados (se actualizan automáticamente)
+  miembroCount    Int      @default(0)  // Calculado desde miembros ligados
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  comunidad   Comunidad @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+  barrioRel   Barrio?   @relation(fields: [barrioId], references: [id], onDelete: SetNull)
+  nucleoRel   Nucleo?   @relation(fields: [nucleoId], references: [id], onDelete: SetNull)
+  miembros    Miembro[]
+  visitas     Visita[]
+
+  @@index([comunidadId])
+  @@index([barrioId])
+  @@index([nucleoId])
+  @@index([activa])
+  @@index([estatus])
+  @@map("familias")
+}
+
+// ============================================
+// MIEMBROS
+// ============================================
+
+model Miembro {
+  id              String    @id @default(uuid())
+  familiaId       String?   // Ahora opcional - puede no estar ligado a familia
+  usuarioId       String?   @unique
+  nombre          String
+  apellidos       String?
+
+  // Campos de ubicación (se sincronizan con familia si está ligado)
+  direccion       String?
+  barrioId        String?
+  nucleoId        String?
+
+  // Edad - Sistema dual según MEM-003
+  fechaNacimiento DateTime?  // Si existe → edad exacta calculada (no editable)
+  edadAproximada  Int?       // Si NO hay fechaNacimiento → se usa esto (editable)
+  fechaActualizacionEdad DateTime?  // Fecha de última actualización manual de edad
+
+  telefono        String?
+  email           String?
+
+  // Roles
+  rol             String    @default("MIEMBRO")  // 'CEA' | 'COLABORADOR' | 'MIEMBRO' (rol en comunidad)
+  rolFamiliar     String?   // 'Padre' | 'Madre' | 'Hijo' | 'Hija' | 'Abuelo' | 'Abuela'
+  parentesco      String?   // Deprecated - usar rolFamiliar
+
+  // Reuniones Devocionales (MEM-006, DEV-001, DEV-002)
+  tieneDevocional Boolean   @default(false)
+  devocionalDia   String?   // 'Lunes' - 'Domingo'
+  devocionalHora  String?   // 'HH:mm'
+  devocionalParticipantes Int?
+  devocionalMiembros String[] @default([])  // Array de IDs de miembros acompañantes
+
+  // Estado
+  activo          Boolean   @default(true)
+  notas           String?
+
+  fechaRegistro   DateTime  @default(now())  // Para ordenamiento por defecto
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  familia Familia?  @relation(fields: [familiaId], references: [id], onDelete: SetNull)
+  usuario Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  barrio  Barrio?   @relation(fields: [barrioId], references: [id], onDelete: SetNull)
+  nucleo  Nucleo?   @relation(fields: [nucleoId], references: [id], onDelete: SetNull)
+
+  @@index([familiaId])
+  @@index([usuarioId])
+  @@index([barrioId])
+  @@index([nucleoId])
+  @@index([tieneDevocional])
+  @@index([fechaRegistro])
+  @@map("miembros")
+}
+
+// ============================================
+// VISITAS - Modelo Completo según VIS-001 a VIS-011
+// ============================================
+
+model Visita {
+  id           String   @id @default(uuid())
+  familiaId    String
+  creadoPorId  String
+
+  // BÁSICO - Fecha y Hora (Paso 3)
+  visitDate    String   // YYYY-MM-DD (almacenado como string sin timezone)
+  visitTime    String   // HH:mm
+
+  // UBICACIÓN (Paso 1)
+  barrioId     String?
+  barrioOtro   String?  // Si seleccionó "Otro" en lugar de barrio del catálogo
+  nucleoId     String?  // Solo si barrio = "Santa Mónica"
+
+  // VISITADORES (Paso 4) - Array de IDs de miembros
+  visitorUserIds String[] @default([])
+
+  // TIPO Y ESTATUS (Paso 5)
+  visitType    String   // 'primera_visita' | 'visita_seguimiento' | 'no_se_pudo_realizar'
+  visitStatus  String   // 'programada' | 'realizada' | 'cancelada' (DERIVADO AUTOMÁTICAMENTE según VIS-002)
+
+  // NO SE PUDO REALIZAR (Paso 5 - condicional)
+  motivoNoVisita     String?  // 'no_abrieron' | 'sin_tiempo' | 'otra'
+  motivoNoVisitaOtra String?  // Especificación si motivo = 'otra'
+
+  // ACTIVIDADES (Paso 5 - condicional si visitType != no_se_pudo_realizar)
+  // Almacenado como JSON con estructura específica
+  visitActivities Json?  @db.Json
+  // {
+  //   conversacion_preocupaciones: boolean,
+  //   oraciones: boolean,
+  //   estudio_instituto: boolean,
+  //   estudio_instituto_especificar: string | null,
+  //   otro_estudio: boolean,
+  //   otro_estudio_especificar: string | null,
+  //   invitacion_actividad: boolean,
+  //   invitacion_especificar: string | null
+  // }
+
+  // MATERIALES (Paso 6)
+  materialDejado Json?  @db.Json
+  // {
+  //   libro_oraciones: boolean,
+  //   otro: boolean,
+  //   otro_especificar: string | null
+  // }
+
+  // SEGUIMIENTO (Paso 7)
+  seguimientoVisita Boolean @default(false)
+  tipoSeguimiento   String?  // 'por_agendar' | 'agendado' | null
+  seguimientoFecha  String?  // YYYY-MM-DD
+  seguimientoHora   String?  // HH:mm
+  seguimientoActividadBasica Boolean @default(false)
+  seguimientoActividadBasicaEspecificar String?
+  seguimientoNinguno Boolean @default(false)
+
+  // NOTAS (Paso 8)
+  additionalNotes String?
+
+  // LEGACY FIELDS (mantener compatibilidad)
+  proposito    String?
+  tema         String?
+  asistentes   Int?
+  notas        String?
+  completada   Boolean @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  familia    Familia @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+  creadoPor  Usuario @relation("VisitaCreator", fields: [creadoPorId], references: [id], onDelete: Cascade)
+  barrio     Barrio? @relation(fields: [barrioId], references: [id], onDelete: SetNull)
+  nucleo     Nucleo? @relation(fields: [nucleoId], references: [id], onDelete: SetNull)
+
+  @@index([familiaId])
+  @@index([creadoPorId])
+  @@index([visitDate])
+  @@index([visitStatus])
+  @@index([visitType])
+  @@index([barrioId])
+  @@index([nucleoId])
+  @@map("visitas")
+}
+
+// Enum ya no se usa - visitType y visitStatus son strings para máxima flexibilidad
+// Los valores válidos se validan en la lógica de negocio
+
+// ============================================
+// METAS DEL COMITÉ - Según META-001 a META-011
+// ============================================
+
+model Meta {
+  id          String   @id @default(uuid())
+  comunidadId String
+
+  // Período
+  trimestre   String   // "Oct 2025 - Ene 2026" (generado automáticamente o editable)
+  fechaInicio String   // YYYY-MM-DD (string sin timezone)
+  fechaFin    String   // YYYY-MM-DD (string sin timezone)
+
+  // Metas numéricas (4 métricas principales)
+  metaNucleos             Int @default(0)
+  metaVisitas             Int @default(0)
+  metaPersonasVisitando   Int @default(0)
+  metaDevocionales        Int @default(0)
+
+  // Estado (calculado dinámicamente según META-003)
+  // 'activa' - fecha actual entre fechaInicio y fechaFin
+  // 'completada' - fecha actual > fechaFin
+  // 'futura' - fecha actual < fechaInicio
+  // NO se almacena, se calcula en tiempo real
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relación
+  comunidad   Comunidad @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+
+  @@index([comunidadId])
+  @@index([fechaInicio])
+  @@index([fechaFin])
+  @@map("metas")
+}

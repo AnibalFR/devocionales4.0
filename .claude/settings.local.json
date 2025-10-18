@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/anibalfigueroaramirez/XYZ/devocionales3.0/**)",
+      "Bash(cat:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dev)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

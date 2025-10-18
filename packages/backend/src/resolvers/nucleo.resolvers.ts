@@ -1,0 +1,199 @@
+import { GraphQLError } from 'graphql';
+import type { Context } from '../context';
+
+interface CreateNucleoInput {
+  nombre: string;
+  barrioId: string;
+  descripcion?: string;
+}
+
+interface UpdateNucleoInput {
+  nombre?: string;
+  barrioId?: string;
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export const nucleoResolvers = {
+  Query: {
+    nucleos: async (_parent: unknown, _args: unknown, { prisma, userId }: Context) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      return prisma.nucleo.findMany({
+        where: { activo: true },
+        orderBy: { createdAt: 'desc' }, // Más recientes primero
+        include: {
+          barrio: true,
+        },
+      });
+    },
+
+    nucleo: async (_parent: unknown, { id }: { id: string }, { prisma, userId }: Context) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      const nucleo = await prisma.nucleo.findUnique({
+        where: { id },
+        include: {
+          barrio: true,
+        },
+      });
+
+      if (!nucleo) {
+        throw new GraphQLError('Núcleo no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      return nucleo;
+    },
+  },
+
+  Mutation: {
+    createNucleo: async (
+      _parent: unknown,
+      { input }: { input: CreateNucleoInput },
+      { prisma, userId }: Context
+    ) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      // Obtener comunidadId del usuario autenticado
+      const user = await prisma.usuario.findUnique({
+        where: { id: userId },
+        select: { comunidadId: true },
+      });
+
+      if (!user) {
+        throw new GraphQLError('Usuario no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // NUC-001: Validar que existe el barrio
+      const barrio = await prisma.barrio.findUnique({
+        where: { id: input.barrioId },
+      });
+
+      if (!barrio) {
+        throw new GraphQLError('El barrio especificado no existe', {
+          extensions: { code: 'BAD_REQUEST' },
+        });
+      }
+
+      const nucleo = await prisma.nucleo.create({
+        data: {
+          nombre: input.nombre,
+          barrioId: input.barrioId,
+          descripcion: input.descripcion || null,
+          activo: true,
+          comunidadId: user.comunidadId,
+        },
+        include: {
+          barrio: true,
+        },
+      });
+
+      return nucleo;
+    },
+
+    updateNucleo: async (
+      _parent: unknown,
+      { id, input }: { id: string; input: UpdateNucleoInput },
+      { prisma, userId }: Context
+    ) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      const nucleoExistente = await prisma.nucleo.findUnique({ where: { id } });
+      if (!nucleoExistente) {
+        throw new GraphQLError('Núcleo no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // NUC-001: Si se está cambiando el barrio, validar que existe
+      if (input.barrioId) {
+        const barrio = await prisma.barrio.findUnique({
+          where: { id: input.barrioId },
+        });
+
+        if (!barrio) {
+          throw new GraphQLError('El barrio especificado no existe', {
+            extensions: { code: 'BAD_REQUEST' },
+          });
+        }
+      }
+
+      const nucleo = await prisma.nucleo.update({
+        where: { id },
+        data: input,
+        include: {
+          barrio: true,
+        },
+      });
+
+      return nucleo;
+    },
+
+    deleteNucleo: async (
+      _parent: unknown,
+      { id }: { id: string },
+      { prisma, userId }: Context
+    ) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      const nucleo = await prisma.nucleo.findUnique({ where: { id } });
+      if (!nucleo) {
+        throw new GraphQLError('Núcleo no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // Soft delete
+      await prisma.nucleo.update({
+        where: { id },
+        data: { activo: false },
+      });
+
+      return true;
+    },
+  },
+
+  Nucleo: {
+    barrio: async (parent: any, _args: unknown, { prisma }: Context) => {
+      if (parent.barrio) return parent.barrio;
+
+      return prisma.barrio.findUnique({
+        where: { id: parent.barrioId },
+      });
+    },
+    createdAt: (parent: any) => {
+      return parent.createdAt instanceof Date
+        ? parent.createdAt.toISOString()
+        : parent.createdAt;
+    },
+    updatedAt: (parent: any) => {
+      return parent.updatedAt instanceof Date
+        ? parent.updatedAt.toISOString()
+        : parent.updatedAt;
+    },
+  },
+};
