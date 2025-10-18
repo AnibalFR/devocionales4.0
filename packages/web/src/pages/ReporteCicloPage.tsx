@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Users, Home, Calendar, Award } from 'lucide-react';
+import { Users, Home, Calendar, Award, Clock, MapPin, User, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 
 const VISITAS_POR_CICLO_QUERY = gql`
   query VisitasPorCiclo($fechaInicio: String!, $fechaFin: String!) {
@@ -1053,53 +1053,235 @@ export function ReporteCicloPage() {
       {/* Modal de Detalles de Familia */}
       {familiaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
-                Historial de Visitas - {familiaModal.nombre}
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {familiaModal.direccion} | {familiaModal.barrio} | {familiaModal.telefono}
-              </p>
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header Mejorado */}
+            <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold mb-2">
+                    {familiaModal.nombre}
+                  </h2>
+                  <div className="flex flex-wrap gap-4 text-sm opacity-90">
+                    {familiaModal.telefono && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {familiaModal.telefono}
+                      </div>
+                    )}
+                    {familiaModal.direccion && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {familiaModal.direccion}
+                      </div>
+                    )}
+                    {familiaModal.barrio && (
+                      <div className="flex items-center gap-1">
+                        <Home className="w-4 h-4" />
+                        {familiaModal.barrio}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setModalFamiliaId(null)}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Estadísticas Rápidas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-xs opacity-90">Total Visitas</div>
+                  <div className="text-2xl font-bold">{familiaModal.totalVisitas}</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-xs opacity-90">Visitadores</div>
+                  <div className="text-2xl font-bold">{familiaModal.visitadoresFrecuentes.length}</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                  <div className="text-xs opacity-90">Estado</div>
+                  <div className="text-sm font-semibold mt-1">{getEstadoLabel(familiaModal.estado)}</div>
+                </div>
+                {familiaModal.ultimaVisita && (
+                  <div className="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div className="text-xs opacity-90">Última Visita</div>
+                    <div className="text-sm font-semibold mt-1">
+                      Hace {familiaModal.ultimaVisita.diasTranscurridos} días
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {familiaModal.visitasDetalle.length === 0 ? (
-                <p className="text-gray-600 text-center py-8">No hay visitas registradas en este ciclo</p>
+                <div className="text-center py-12">
+                  <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-600 text-lg">No hay visitas registradas en este ciclo</p>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {familiaModal.visitasDetalle.map((visita: any) => (
-                    <div key={visita.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {format(new Date(visita.visitDate), 'dd MMM yyyy', { locale: es })} - {visita.visitTime}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Tipo: {visita.visitType} | Estado: {visita.visitStatus}
-                          </div>
-                        </div>
-                      </div>
+                  {/* Timeline de Visitas */}
+                  <div className="relative">
+                    {familiaModal.visitasDetalle.map((visita: any, index: number) => {
+                      const getStatusBadge = (status: string) => {
+                        if (status === 'realizada') {
+                          return {
+                            icon: <CheckCircle className="w-5 h-5" />,
+                            className: 'bg-green-100 text-green-700 border-green-300',
+                            label: 'Realizada'
+                          };
+                        } else if (status === 'programada') {
+                          return {
+                            icon: <Clock className="w-5 h-5" />,
+                            className: 'bg-blue-100 text-blue-700 border-blue-300',
+                            label: 'Programada'
+                          };
+                        } else if (status === 'cancelada') {
+                          return {
+                            icon: <XCircle className="w-5 h-5" />,
+                            className: 'bg-red-100 text-red-700 border-red-300',
+                            label: 'Cancelada'
+                          };
+                        }
+                        return {
+                          icon: <AlertCircle className="w-5 h-5" />,
+                          className: 'bg-gray-100 text-gray-700 border-gray-300',
+                          label: status
+                        };
+                      };
 
-                      {visita.additionalNotes && (
-                        <div className="mt-2">
-                          <div className="text-xs font-medium text-gray-700 mb-1">Notas:</div>
-                          <div className="text-sm text-gray-600">{visita.additionalNotes}</div>
+                      const statusBadge = getStatusBadge(visita.visitStatus);
+
+                      return (
+                        <div key={visita.id} className="relative pl-8 pb-6 last:pb-0">
+                          {/* Timeline Line */}
+                          {index < familiaModal.visitasDetalle.length - 1 && (
+                            <div className="absolute left-2.5 top-6 bottom-0 w-0.5 bg-gray-200"></div>
+                          )}
+
+                          {/* Timeline Dot */}
+                          <div className={`absolute left-0 top-1 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            visita.visitStatus === 'realizada' ? 'bg-green-500 border-green-600' :
+                            visita.visitStatus === 'programada' ? 'bg-blue-500 border-blue-600' :
+                            visita.visitStatus === 'cancelada' ? 'bg-red-500 border-red-600' :
+                            'bg-gray-400 border-gray-500'
+                          }`}>
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+
+                          {/* Visita Card */}
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            {/* Header de la Visita */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Calendar className="w-4 h-4 text-gray-600" />
+                                  <span className="font-semibold text-gray-900">
+                                    {format(new Date(visita.visitDate), 'EEEE, dd MMMM yyyy', { locale: es })}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Clock className="w-4 h-4" />
+                                  <span>{visita.visitTime}</span>
+                                  <span className="mx-2">•</span>
+                                  <span className="capitalize">{visita.visitType}</span>
+                                </div>
+                              </div>
+                              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border font-medium text-sm ${statusBadge.className}`}>
+                                {statusBadge.icon}
+                                {statusBadge.label}
+                              </div>
+                            </div>
+
+                            {/* Visitadores */}
+                            {visita.visitadores && visita.visitadores.length > 0 && (
+                              <div className="mb-3 pb-3 border-b border-gray-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Users className="w-4 h-4 text-gray-600" />
+                                  <span className="text-sm font-medium text-gray-700">Visitadores:</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {visita.visitadores.map((visitador: any) => (
+                                    <span
+                                      key={visitador.id}
+                                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm"
+                                    >
+                                      <User className="w-3 h-3" />
+                                      {visitador.nombre}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Seguimiento */}
+                            {visita.seguimientoVisita && (
+                              <div className="mb-3 pb-3 border-b border-gray-200">
+                                <div className="flex items-start gap-2">
+                                  <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Seguimiento: </span>
+                                    {visita.tipoSeguimiento === 'agendado' && visita.seguimientoFecha && (
+                                      <span className="text-sm text-blue-700">
+                                        Visita agendada para {format(new Date(visita.seguimientoFecha), 'dd MMM yyyy', { locale: es })}
+                                        {visita.seguimientoHora && ` a las ${visita.seguimientoHora}`}
+                                      </span>
+                                    )}
+                                    {visita.tipoSeguimiento === 'por_agendar' && (
+                                      <span className="text-sm text-orange-700">Visita por agendar</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {visita.seguimientoActividadBasica && (
+                              <div className="mb-3 pb-3 border-b border-gray-200">
+                                <div className="flex items-start gap-2">
+                                  <AlertCircle className="w-4 h-4 text-purple-600 mt-0.5" />
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Actividad Básica: </span>
+                                    <span className="text-sm text-purple-700">
+                                      {visita.seguimientoActividadBasicaEspecificar || 'Actividad básica programada'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Notas */}
+                            {visita.additionalNotes && (
+                              <div className="bg-white rounded-md p-3">
+                                <div className="flex items-start gap-2">
+                                  <FileText className="w-4 h-4 text-gray-600 mt-0.5" />
+                                  <div className="flex-1">
+                                    <div className="text-xs font-medium text-gray-700 mb-1">Notas:</div>
+                                    <div className="text-sm text-gray-900 whitespace-pre-wrap">{visita.additionalNotes}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Total de {familiaModal.visitasDetalle.length} {familiaModal.visitasDetalle.length === 1 ? 'visita' : 'visitas'} en este ciclo
+              </div>
               <button
                 onClick={() => setModalFamiliaId(null)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 Cerrar
               </button>
