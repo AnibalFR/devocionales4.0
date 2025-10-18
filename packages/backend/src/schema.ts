@@ -19,6 +19,7 @@ export const typeDefs = `#graphql
     apellidos: String
     rol: RolUsuario!
     activo: Boolean!
+    mustChangePassword: Boolean!
     comunidad: Comunidad!
     createdAt: String!
     updatedAt: String!
@@ -276,6 +277,11 @@ export const typeDefs = `#graphql
     password: String!
   }
 
+  input ChangePasswordInput {
+    currentPassword: String!
+    newPassword: String!
+  }
+
   # Familia Inputs
   input CreateFamiliaInput {
     nombre: String!
@@ -523,6 +529,7 @@ export const typeDefs = `#graphql
   type Mutation {
     # Auth (básico sin MFA por ahora)
     login(input: LoginInput!): AuthPayload!
+    changePassword(input: ChangePasswordInput!): Usuario!
 
     # Familias
     createFamilia(input: CreateFamiliaInput!): Familia!

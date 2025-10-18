@@ -7,12 +7,13 @@ interface User {
   nombre: string;
   apellidos?: string;
   rol: 'CEA' | 'COLABORADOR' | 'VISITANTE';
+  mustChangePassword: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -29,6 +30,7 @@ const LOGIN_MUTATION = gql`
         nombre
         apellidos
         rol
+        mustChangePassword
       }
     }
   }
@@ -69,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setToken(newToken);
       setUser(newUser);
+
+      return newUser;
     } catch (error) {
       console.error('Error en login:', error);
       throw error;

@@ -142,6 +142,7 @@ export const usuarioResolvers = {
           rol: input.rol as 'CEA' | 'COLABORADOR' | 'VISITANTE',
           comunidadId: currentUser.comunidadId,
           activo: true,
+          mustChangePassword: true, // Forzar cambio de contraseña en primer login
         },
         include: {
           comunidad: true,

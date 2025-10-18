@@ -16,14 +16,14 @@ Esta guía te llevará paso a paso para desplegar la aplicación en Digital Ocea
 ### 1.1 Conectarse al Droplet
 
 ```bash
-ssh root@TU_IP_DEL_DROPLET
+ssh root@64.227.96.34
 ```
 
 ### 1.2 Copiar y ejecutar el script de setup
 
 ```bash
 # Descargar el script de setup
-wget https://raw.githubusercontent.com/TU_USUARIO/devocionales4.0/main/scripts/setup-production.sh
+wget https://raw.githubusercontent.com/AnibalFR/devocionales4.0/main/scripts/setup-production.sh
 
 # Darle permisos de ejecución
 chmod +x setup-production.sh
@@ -46,7 +46,7 @@ sudo su - devocionales
 cd /var/www
 
 # Clonar el repositorio (cambiar URL por tu repositorio)
-git clone https://github.com/TU_USUARIO/devocionales4.0.git
+git clone https://github.com/AnibalFR/devocionales4.0.git
 
 cd devocionales4.0
 ```
