@@ -4,7 +4,8 @@
       "Read(//Users/anibalfigueroaramirez/XYZ/devocionales3.0/**)",
       "Bash(cat:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(ssh root@64.227.96.34 'systemctl disable pm2-devocionales 2>/dev/null || true && pm2 restart devocionales-api')"
     ],
     "deny": [],
     "ask": []

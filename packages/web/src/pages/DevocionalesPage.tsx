@@ -739,7 +739,11 @@ export function DevocionalesPage() {
                               <input
                                 type="checkbox"
                                 checked={isSelected}
-                                onChange={() => toggleAcompanante(miembro.id)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleAcompanante(miembro.id);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
                                 className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                               />
                             </td>
