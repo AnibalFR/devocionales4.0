@@ -39,13 +39,19 @@ export const utilsResolvers = {
       });
       const familiaIds = familias.map(f => f.id);
 
-      // Eliminar TODOS los miembros que pertenecen a familias de esta comunidad
-      // o que tienen un usuario de esta comunidad
+      // Eliminar TODOS los miembros:
+      // - Los que pertenecen a familias de esta comunidad
+      // - Los que tienen un usuario de esta comunidad
+      // - Los que están huérfanos (sin familia ni usuario) - estos quedaron de limpiezas anteriores
       const miembrosResult = await prisma.miembro.deleteMany({
         where: {
           OR: [
-            { familiaId: { in: familiaIds } },
-            { usuario: { comunidadId } }
+            // Miembros con familia de esta comunidad
+            ...(familiaIds.length > 0 ? [{ familiaId: { in: familiaIds } }] : []),
+            // Miembros con usuario de esta comunidad
+            { usuario: { comunidadId } },
+            // Miembros huérfanos (sin familia ni usuario) - limpiar residuos
+            { AND: [{ familiaId: null }, { usuarioId: null }] }
           ]
         },
       });
