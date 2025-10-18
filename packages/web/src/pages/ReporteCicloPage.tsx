@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Users, Home, Calendar, Award } from 'lucide-react';
 
 const VISITAS_POR_CICLO_QUERY = gql`
   query VisitasPorCiclo($fechaInicio: String!, $fechaFin: String!) {
@@ -103,6 +104,9 @@ interface VisitadorStats {
   nombre: string;
   familiasVisitadas: Set<string>;
   totalVisitas: number;
+  realizadas: number;
+  programadas: number;
+  canceladas: number;
   porcentaje: number;
 }
 
@@ -203,14 +207,22 @@ export function ReporteCicloPage() {
     const visitadoresMap = new Map<string, VisitadorStats>();
 
     visitas.forEach((visita: any) => {
-      if (visita.visitStatus === 'realizada' && visita.visitorUserIds) {
+      if (visita.visitorUserIds) {
         visita.visitorUserIds.forEach((userId: string) => {
           if (!visitadoresMap.has(userId)) {
+            // Buscar el nombre del visitador en el array de visitadores
+            const visitadorNombre = visita.visitadores?.find((v: any) => v.id === userId)?.nombre
+              || visita.creadoPor?.nombre
+              || 'Desconocido';
+
             visitadoresMap.set(userId, {
               userId,
-              nombre: visita.creadoPor?.nombre || 'Desconocido',
+              nombre: visitadorNombre,
               familiasVisitadas: new Set(),
               totalVisitas: 0,
+              realizadas: 0,
+              programadas: 0,
+              canceladas: 0,
               porcentaje: 0,
             });
           }
@@ -218,11 +230,15 @@ export function ReporteCicloPage() {
           const stats = visitadoresMap.get(userId)!;
           stats.familiasVisitadas.add(visita.familia.id);
           stats.totalVisitas++;
+
+          if (visita.visitStatus === 'realizada') stats.realizadas++;
+          else if (visita.visitStatus === 'programada') stats.programadas++;
+          else if (visita.visitStatus === 'cancelada') stats.canceladas++;
         });
       }
     });
 
-    const totalVisitas = visitas.filter((v: any) => v.visitStatus === 'realizada').length;
+    const totalVisitas = visitas.length;
     const statsArray = Array.from(visitadoresMap.values());
 
     statsArray.forEach(stats => {
@@ -648,29 +664,86 @@ export function ReporteCicloPage() {
         </div>
       )}
 
-      {/* Análisis de Visitadores */}
+      {/* Análisis de Visitadores del Ciclo */}
       <div className="card mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Top 5 Visitadores del Ciclo</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Users className="w-6 h-6 text-primary-600" />
+            Análisis de Visitadores del Ciclo
+          </h2>
+          <div className="text-sm text-gray-600">
+            Total: <span className="font-semibold text-gray-900">{visitas.length}</span> visitas
+          </div>
+        </div>
 
         {topVisitadores.length === 0 ? (
           <p className="text-gray-600 text-center py-8">No hay visitadores en este ciclo</p>
         ) : (
-          <div className="space-y-3">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {topVisitadores.map((visitador, idx) => (
-              <div key={visitador.userId} className="flex items-center space-x-4">
-                <div className="text-2xl font-bold text-gray-400 w-8">{idx + 1}</div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-gray-900">{visitador.nombre}</span>
-                    <span className="text-sm text-gray-600">
-                      {visitador.totalVisitas} visitas ({visitador.porcentaje.toFixed(1)}%) | {visitador.familiasVisitadas.size} familias
-                    </span>
+              <div
+                key={visitador.userId}
+                className="relative bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow"
+              >
+                {/* Ranking Badge */}
+                <div className="absolute -top-3 -left-3 w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                  #{idx + 1}
+                </div>
+
+                {/* Nombre del Visitador */}
+                <div className="mt-2 mb-3">
+                  <h3 className="font-semibold text-gray-900 text-lg">{visitador.nombre}</h3>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Home className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium">{visitador.familiasVisitadas.size}</span>
+                    <span className="text-gray-500">familias</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                    <span className="font-medium">{visitador.totalVisitas}</span>
+                    <span className="text-gray-500">visitas</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Award className="w-4 h-4 text-yellow-600" />
+                    <span className="font-medium">{visitador.porcentaje.toFixed(1)}%</span>
+                    <span className="text-gray-500">del total</span>
+                  </div>
+                </div>
+
+                {/* Barra de Progreso con Subdivisión */}
+                <div className="mt-3">
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
-                      className="h-2 rounded-full bg-primary-500"
+                      className="h-full bg-gradient-to-r from-gray-300 to-gray-400 relative"
                       style={{ width: `${Math.min(visitador.porcentaje, 100)}%` }}
-                    ></div>
+                    >
+                      {/* Barra interna de visitas realizadas */}
+                      <div
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 to-green-600"
+                        style={{
+                          width: `${visitador.totalVisitas > 0 ? (visitador.realizadas / visitador.totalVisitas) * 100 : 0}%`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span className="text-green-600 font-medium">
+                      {visitador.realizadas} realizadas
+                    </span>
+                    {visitador.programadas > 0 && (
+                      <span className="text-blue-600">
+                        {visitador.programadas} programadas
+                      </span>
+                    )}
+                    {visitador.canceladas > 0 && (
+                      <span className="text-red-600">
+                        {visitador.canceladas} canceladas
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -679,14 +752,21 @@ export function ReporteCicloPage() {
         )}
       </div>
 
-      {/* Resumen de Devocionales */}
+      {/* Análisis de Reuniones Devocionales */}
       <div className="card mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-          </svg>
-          Resumen de Devocionales
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+            </svg>
+            Análisis de Reuniones Devocionales
+          </h2>
+          <div className="text-sm text-gray-600">
+            <span className="font-semibold text-purple-700">{devocionalesStats.totalDevocionales}</span> de{' '}
+            <span className="font-semibold text-gray-900">{familiasStats.length}</span> familias{' '}
+            <span className="text-purple-600">({devocionalesStats.porcentajeFamilias.toFixed(1)}%)</span>
+          </div>
+        </div>
 
         <div className="grid md:grid-cols-4 gap-4">
           <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
