@@ -31,11 +31,20 @@ export const utilsResolvers = {
         where: { creadoPor: { comunidadId } },
       });
 
-      // 2. Eliminar miembros
+      // 2. Eliminar miembros (incluyendo sus devocionales)
+      // Obtener IDs de todas las familias de esta comunidad
+      const familias = await prisma.familia.findMany({
+        where: { comunidadId },
+        select: { id: true },
+      });
+      const familiaIds = familias.map(f => f.id);
+
+      // Eliminar TODOS los miembros que pertenecen a familias de esta comunidad
+      // o que tienen un usuario de esta comunidad
       const miembrosResult = await prisma.miembro.deleteMany({
         where: {
           OR: [
-            { familia: { comunidadId } },
+            { familiaId: { in: familiaIds } },
             { usuario: { comunidadId } }
           ]
         },
