@@ -32,6 +32,9 @@ export const utilsResolvers = {
       });
 
       // 2. Eliminar miembros (incluyendo sus devocionales)
+      // IMPORTANTE: NO eliminar miembros que tienen un usuario vinculado,
+      // ya que estos representan a los usuarios del sistema y deben preservarse
+
       // Obtener IDs de todas las familias de esta comunidad
       const familias = await prisma.familia.findMany({
         where: { comunidadId },
@@ -39,19 +42,17 @@ export const utilsResolvers = {
       });
       const familiaIds = familias.map(f => f.id);
 
-      // Eliminar TODOS los miembros:
-      // - Los que pertenecen a familias de esta comunidad
-      // - Los que tienen un usuario de esta comunidad
-      // - Los que están huérfanos (sin familia ni usuario) - estos quedaron de limpiezas anteriores
+      // Eliminar solo los miembros que NO tienen usuario vinculado:
+      // - Los que pertenecen a familias de esta comunidad y no tienen usuario
+      // - Los que están huérfanos (sin familia ni usuario)
       const miembrosResult = await prisma.miembro.deleteMany({
         where: {
+          usuarioId: null, // Solo eliminar miembros sin usuario
           OR: [
             // Miembros con familia de esta comunidad
             ...(familiaIds.length > 0 ? [{ familiaId: { in: familiaIds } }] : []),
-            // Miembros con usuario de esta comunidad
-            { usuario: { comunidadId } },
             // Miembros huérfanos (sin familia ni usuario) - limpiar residuos
-            { AND: [{ familiaId: null }, { usuarioId: null }] }
+            { familiaId: null }
           ]
         },
       });
@@ -76,6 +77,34 @@ export const utilsResolvers = {
         where: { comunidadId },
       });
 
+      // 7. IMPORTANTE: Asegurar que todos los usuarios tengan su miembro correspondiente
+      // Esto es necesario porque los usuarios deben aparecer en el catálogo de miembros
+      // para poder editar su información (nombre, correo, etc.)
+      const usuariosSinMiembro = await prisma.usuario.findMany({
+        where: {
+          comunidadId,
+          miembro: null,
+        },
+      });
+
+      let miembrosCreados = 0;
+      for (const usuario of usuariosSinMiembro) {
+        await prisma.miembro.create({
+          data: {
+            usuarioId: usuario.id,
+            nombre: usuario.nombre,
+            apellidos: usuario.apellidos,
+            email: usuario.email,
+            rol: usuario.rol,
+            tieneDevocional: false,
+            devocionalMiembros: [],
+            activo: usuario.activo,
+            fechaRegistro: new Date(),
+          },
+        });
+        miembrosCreados++;
+      }
+
       return {
         visitasEliminadas: visitasResult.count,
         miembrosEliminados: miembrosResult.count,
@@ -83,7 +112,8 @@ export const utilsResolvers = {
         nucleosEliminados: nucleosResult.count,
         barriosEliminados: barriosResult.count,
         metasEliminadas: metasResult.count,
-        message: `Se eliminaron ${visitasResult.count} visitas, ${miembrosResult.count} miembros, ${familiasResult.count} familias, ${nucleosResult.count} núcleos, ${barriosResult.count} barrios y ${metasResult.count} metas exitosamente.`,
+        miembrosCreados,
+        message: `Se eliminaron ${visitasResult.count} visitas, ${miembrosResult.count} miembros, ${familiasResult.count} familias, ${nucleosResult.count} núcleos, ${barriosResult.count} barrios y ${metasResult.count} metas exitosamente. Se crearon ${miembrosCreados} miembros para usuarios existentes.`,
       };
     },
   },

@@ -279,9 +279,10 @@ export const miembroResolvers = {
         });
       }
 
-      // Proteger eliminación de miembros vinculados a usuarios CEA
-      if (miembro.usuario && miembro.usuario.rol === 'CEA') {
-        throw new GraphQLError('No se puede eliminar el miembro de un usuario administrador (CEA)', {
+      // Proteger eliminación de miembros vinculados a usuarios del sistema
+      // Los usuarios del sistema deben aparecer en el catálogo para poder editar su información
+      if (miembro.usuarioId) {
+        throw new GraphQLError('No se puede eliminar un miembro que tiene una cuenta de usuario vinculada. Para eliminar este registro, primero debe desvincular o eliminar la cuenta de usuario.', {
           extensions: { code: 'FORBIDDEN' },
         });
       }

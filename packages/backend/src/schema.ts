@@ -260,6 +260,7 @@ export const typeDefs = `#graphql
     nucleosEliminados: Int!
     barriosEliminados: Int!
     metasEliminadas: Int!
+    miembrosCreados: Int!
     message: String!
   }
 
