@@ -103,6 +103,19 @@ const CREATE_USUARIO_FROM_MIEMBRO = gql`
   }
 `;
 
+const REGENERAR_CREDENCIALES = gql`
+  mutation RegenerarCredenciales($input: RegenerarCredencialesInput!) {
+    regenerarCredenciales(input: $input) {
+      usuario {
+        id
+        email
+        rol
+      }
+      passwordTemporal
+    }
+  }
+`;
+
 const ROLES = ['CEA', 'COLABORADOR', 'MIEMBRO'];
 const ROLES_FAMILIARES = ['Padre', 'Madre', 'Hijo', 'Hija', 'Abuelo', 'Abuela', 'Otro'];
 
@@ -161,6 +174,7 @@ export function MiembrosPage() {
   // Modal de invitación
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [invitingMiembro, setInvitingMiembro] = useState<any>(null);
+  const [isRegenerar, setIsRegenerar] = useState(false); // true = regenerar, false = crear nuevo
   const [selectedRol, setSelectedRol] = useState<'CEA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
   const [credencialesGeneradas, setCredencialesGeneradas] = useState<{ email: string; password: string; rol: string } | null>(null);
 
@@ -174,6 +188,7 @@ export function MiembrosPage() {
   const [updateMiembro] = useMutation(UPDATE_MIEMBRO);
   const [deleteMiembro] = useMutation(DELETE_MIEMBRO);
   const [createUsuarioFromMiembro] = useMutation(CREATE_USUARIO_FROM_MIEMBRO);
+  const [regenerarCredenciales] = useMutation(REGENERAR_CREDENCIALES);
 
   const miembros = data?.miembros || [];
   const barrios = barriosData?.barrios || [];
@@ -344,7 +359,15 @@ export function MiembrosPage() {
     }
 
     setInvitingMiembro(miembro);
+    setIsRegenerar(false); // Crear nuevo usuario
     setSelectedRol('COLABORADOR');
+    setCredencialesGeneradas(null);
+    setShowInviteModal(true);
+  };
+
+  const handleRegenerar = (miembro: any) => {
+    setInvitingMiembro(miembro);
+    setIsRegenerar(true); // Regenerar credenciales
     setCredencialesGeneradas(null);
     setShowInviteModal(true);
   };
@@ -353,24 +376,42 @@ export function MiembrosPage() {
     if (!invitingMiembro) return;
 
     try {
-      const { data } = await createUsuarioFromMiembro({
-        variables: {
-          input: {
-            miembroId: invitingMiembro.id,
-            rol: selectedRol,
+      if (isRegenerar) {
+        // Regenerar credenciales para usuario existente
+        const { data } = await regenerarCredenciales({
+          variables: {
+            input: {
+              miembroId: invitingMiembro.id,
+            },
           },
-        },
-      });
+        });
 
-      setCredencialesGeneradas({
-        email: data.createUsuarioFromMiembro.usuario.email,
-        password: data.createUsuarioFromMiembro.passwordTemporal,
-        rol: data.createUsuarioFromMiembro.usuario.rol,
-      });
+        setCredencialesGeneradas({
+          email: data.regenerarCredenciales.usuario.email,
+          password: data.regenerarCredenciales.passwordTemporal,
+          rol: data.regenerarCredenciales.usuario.rol,
+        });
+      } else {
+        // Crear nuevo usuario
+        const { data } = await createUsuarioFromMiembro({
+          variables: {
+            input: {
+              miembroId: invitingMiembro.id,
+              rol: selectedRol,
+            },
+          },
+        });
+
+        setCredencialesGeneradas({
+          email: data.createUsuarioFromMiembro.usuario.email,
+          password: data.createUsuarioFromMiembro.passwordTemporal,
+          rol: data.createUsuarioFromMiembro.usuario.rol,
+        });
+      }
 
       await refetch();
     } catch (err: any) {
-      alert(`Error al crear usuario: ${err.message}`);
+      alert(`Error al ${isRegenerar ? 'regenerar credenciales' : 'crear usuario'}: ${err.message}`);
       setShowInviteModal(false);
     }
   };
@@ -600,7 +641,7 @@ export function MiembrosPage() {
                         <div className="flex items-center gap-2">
                           <span
                             className="cursor-pointer hover:underline text-sm"
-                            onClick={(e) => startEdit(miembro.id, 'nombre', miembro.nombre)}
+                            onClick={() => startEdit(miembro.id, 'nombre', miembro.nombre)}
                           >
                             {miembro.nombre}
                           </span>
@@ -931,16 +972,31 @@ export function MiembrosPage() {
                     {/* Acciones */}
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        {/* Botón Invitar - Solo visible para CEA y COLABORADOR, y si el miembro no tiene usuario */}
-                        {(user?.rol === 'CEA' || user?.rol === 'COLABORADOR') && !miembro.usuario && (
-                          <button
-                            onClick={() => handleInvitar(miembro)}
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            title="Enviar invitación"
-                          >
-                            <Mail className="w-4 h-4" />
-                            Invitar
-                          </button>
+                        {/* Botón Invitar / Reenviar - Solo visible para CEA y COLABORADOR */}
+                        {(user?.rol === 'CEA' || user?.rol === 'COLABORADOR') && (
+                          <>
+                            {!miembro.usuario ? (
+                              // Botón "Invitar" cuando no tiene usuario
+                              <button
+                                onClick={() => handleInvitar(miembro)}
+                                className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                title="Enviar invitación"
+                              >
+                                <Mail className="w-4 h-4" />
+                                Invitar
+                              </button>
+                            ) : (
+                              // Botón "Reenviar" cuando ya tiene usuario
+                              <button
+                                onClick={() => handleRegenerar(miembro)}
+                                className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm font-medium"
+                                title="Regenerar credenciales y reenviar invitación"
+                              >
+                                <Mail className="w-4 h-4" />
+                                Reenviar
+                              </button>
+                            )}
+                          </>
                         )}
 
                         {/* Botón Eliminar */}
@@ -1059,9 +1115,14 @@ export function MiembrosPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">¡Usuario Creado Exitosamente!</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {isRegenerar ? '¡Credenciales Regeneradas!' : '¡Usuario Creado Exitosamente!'}
+                  </h3>
                   <p className="text-sm text-gray-600 mt-2">
-                    Se ha creado la cuenta para <strong>{invitingMiembro?.nombre}</strong>
+                    {isRegenerar
+                      ? `Se han regenerado las credenciales para ${invitingMiembro?.nombre}`
+                      : `Se ha creado la cuenta para ${invitingMiembro?.nombre}`
+                    }
                   </p>
                 </div>
 
@@ -1105,42 +1166,65 @@ export function MiembrosPage() {
                 </button>
               </>
             ) : (
-              // Vista de selección de rol
+              // Vista de selección de rol (solo para nuevos usuarios) o confirmación (para regenerar)
               <>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Enviar Invitación</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {isRegenerar ? 'Regenerar Credenciales' : 'Enviar Invitación'}
+                </h3>
 
                 <div className="mb-4">
                   <p className="text-sm text-gray-600 mb-2">
-                    Vas a crear una cuenta de acceso para:
+                    {isRegenerar
+                      ? 'Vas a regenerar la contraseña para:'
+                      : 'Vas a crear una cuenta de acceso para:'
+                    }
                   </p>
                   <div className="bg-gray-50 rounded p-3 border border-gray-200">
                     <p className="font-semibold text-gray-900">{invitingMiembro?.nombre} {invitingMiembro?.apellidos}</p>
                     <p className="text-sm text-gray-600">{invitingMiembro?.email}</p>
+                    {isRegenerar && invitingMiembro?.usuario && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Rol actual: <span className="font-semibold">{invitingMiembro.usuario.rol}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Selecciona el rol de acceso:
-                  </label>
-                  <select
-                    value={selectedRol}
-                    onChange={(e) => setSelectedRol(e.target.value as any)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  >
-                    <option value="CEA">CEA (Administrador total)</option>
-                    <option value="COLABORADOR">COLABORADOR (Puede crear y editar)</option>
-                    <option value="VISITANTE">VISITANTE (Solo lectura)</option>
-                  </select>
-                  <div className="flex items-start gap-1.5 text-xs text-gray-500 mt-1">
-                    <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                    <p>
-                      {selectedRol === 'CEA' && 'Acceso completo a todas las funciones'}
-                      {selectedRol === 'COLABORADOR' && 'Puede crear, editar y enviar invitaciones'}
-                      {selectedRol === 'VISITANTE' && 'Solo puede ver información, sin editar'}
-                    </p>
+                {isRegenerar && (
+                  <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2 text-xs text-blue-800">
+                      <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <p>
+                        Se generará una nueva contraseña temporal. El usuario deberá cambiarla en su primer inicio de sesión.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {!isRegenerar && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selecciona el rol de acceso:
+                    </label>
+                    <select
+                      value={selectedRol}
+                      onChange={(e) => setSelectedRol(e.target.value as any)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    >
+                      <option value="CEA">CEA (Administrador total)</option>
+                      <option value="COLABORADOR">COLABORADOR (Puede crear y editar)</option>
+                      <option value="VISITANTE">VISITANTE (Solo lectura)</option>
+                    </select>
+                    <div className="flex items-start gap-1.5 text-xs text-gray-500 mt-1">
+                      <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      <p>
+                        {selectedRol === 'CEA' && 'Acceso completo a todas las funciones'}
+                        {selectedRol === 'COLABORADOR' && 'Puede crear, editar y enviar invitaciones'}
+                        {selectedRol === 'VISITANTE' && 'Solo puede ver información, sin editar'}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3">
                   <button
@@ -1153,7 +1237,7 @@ export function MiembrosPage() {
                     onClick={handleConfirmInvitar}
                     className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
                   >
-                    Crear Usuario
+                    {isRegenerar ? 'Regenerar Contraseña' : 'Crear Usuario'}
                   </button>
                 </div>
               </>

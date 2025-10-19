@@ -488,6 +488,10 @@ export const typeDefs = `#graphql
     rol: RolUsuario!
   }
 
+  input RegenerarCredencialesInput {
+    miembroId: ID!
+  }
+
   # ============================================
   # QUERIES
   # ============================================
@@ -567,5 +571,6 @@ export const typeDefs = `#graphql
 
     # Gestión de Usuarios
     createUsuarioFromMiembro(input: CreateUsuarioFromMiembroInput!): CreateUsuarioFromMiembroResult!
+    regenerarCredenciales(input: RegenerarCredencialesInput!): CreateUsuarioFromMiembroResult!
   }
 `;

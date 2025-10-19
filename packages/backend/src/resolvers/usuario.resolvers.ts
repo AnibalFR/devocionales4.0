@@ -160,6 +160,69 @@ export const usuarioResolvers = {
         passwordTemporal,
       };
     },
+
+    regenerarCredenciales: async (
+      _parent: unknown,
+      { input }: { input: { miembroId: string } },
+      { prisma, userId }: Context
+    ) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      // Verificar que el usuario actual sea CEA o COLABORADOR
+      const currentUser = await prisma.usuario.findUnique({
+        where: { id: userId },
+      });
+
+      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'COLABORADOR')) {
+        throw new GraphQLError('Solo usuarios CEA y COLABORADOR pueden regenerar credenciales', {
+          extensions: { code: 'FORBIDDEN' },
+        });
+      }
+
+      // Buscar el miembro
+      const miembro = await prisma.miembro.findUnique({
+        where: { id: input.miembroId },
+        include: { usuario: true },
+      });
+
+      if (!miembro) {
+        throw new GraphQLError('Miembro no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // Verificar que el miembro tenga un usuario vinculado
+      if (!miembro.usuarioId || !miembro.usuario) {
+        throw new GraphQLError('Este miembro no tiene una cuenta de usuario', {
+          extensions: { code: 'BAD_REQUEST' },
+        });
+      }
+
+      // Generar nueva contraseña temporal segura
+      const passwordTemporal = generarPasswordSegura();
+      const hashedPassword = await bcrypt.hash(passwordTemporal, 10);
+
+      // Actualizar contraseña del usuario y forzar cambio en próximo login
+      const usuario = await prisma.usuario.update({
+        where: { id: miembro.usuarioId },
+        data: {
+          password: hashedPassword,
+          mustChangePassword: true,
+        },
+        include: {
+          comunidad: true,
+        },
+      });
+
+      return {
+        usuario,
+        passwordTemporal,
+      };
+    },
   },
 
   Usuario: {

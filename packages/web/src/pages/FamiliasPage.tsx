@@ -289,7 +289,7 @@ export function FamiliasPage() {
 
   const openLigarMiembrosModal = (familiaId: string, familia: any) => {
     // Pre-select already linked members and their roles
-    const selectedMiembros = new Set(familia.miembros.map((m: any) => m.id));
+    const selectedMiembros = new Set<string>(familia.miembros.map((m: any) => m.id));
     const roles: Record<string, string> = {};
     familia.miembros.forEach((m: any) => {
       roles[m.id] = m.rolFamiliar || '';
@@ -341,7 +341,7 @@ export function FamiliasPage() {
 
     // Auto-select address if only one unique
     if (uniqueAddresses.length === 1 && !modal.selectedAddress) {
-      setModal(prev => ({ ...prev, selectedAddress: uniqueAddresses[0] }));
+      setModal(prev => ({ ...prev, selectedAddress: uniqueAddresses[0] as string }));
     }
 
     // Auto-select barrio if only one unique
@@ -350,7 +350,7 @@ export function FamiliasPage() {
       .filter((id: string) => id);
     const uniqueBarrios = [...new Set(barrioIds)];
     if (uniqueBarrios.length === 1 && !modal.selectedBarrioId) {
-      setModal(prev => ({ ...prev, selectedBarrioId: uniqueBarrios[0] }));
+      setModal(prev => ({ ...prev, selectedBarrioId: uniqueBarrios[0] as string }));
     }
 
     // Auto-select nucleo if only one unique
@@ -359,7 +359,7 @@ export function FamiliasPage() {
       .filter((id: string) => id);
     const uniqueNucleos = [...new Set(nucleoIds)];
     if (uniqueNucleos.length === 1 && !modal.selectedNucleoId) {
-      setModal(prev => ({ ...prev, selectedNucleoId: uniqueNucleos[0] }));
+      setModal(prev => ({ ...prev, selectedNucleoId: uniqueNucleos[0] as string }));
     }
   };
 
@@ -492,7 +492,7 @@ export function FamiliasPage() {
     modal.selectedMiembros.has(m.id)
   );
   const uniqueAddresses = [
-    ...new Set(
+    ...new Set<string>(
       selectedMiembrosData
         .map((m: any) => m.direccion)
         .filter((addr: string) => addr)

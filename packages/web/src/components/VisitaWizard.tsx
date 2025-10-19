@@ -360,7 +360,7 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
         {/* Progress Indicator */}
         <div className="px-6 py-4 border-b">
           <div className="flex items-center justify-between mb-2">
-            {steps.map((step, index) => (
+            {steps.map((_step, index) => (
               <div
                 key={index}
                 className={`flex-1 ${index < steps.length - 1 ? 'mr-2' : ''}`}

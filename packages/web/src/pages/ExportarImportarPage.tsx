@@ -147,11 +147,12 @@ const CLEAR_ALL_DATA_MUTATION = gql`
   }
 `;
 
-const UPDATE_META_MUTATION = gql`
-  mutation UpdateMeta($id: ID!, $input: UpdateMetaInput!) {
-    updateMeta(id: $id, input: $input) { id }
-  }
-`;
+// Reserved for future use
+// const UPDATE_META_MUTATION = gql`
+//   mutation UpdateMeta($id: ID!, $input: UpdateMetaInput!) {
+//     updateMeta(id: $id, input: $input) { id }
+//   }
+// `;
 
 // ============================================
 // TYPES
@@ -183,9 +184,10 @@ const getCurrentDateTime = (): string => {
   return new Date().toISOString();
 };
 
-const generateId = (prefix: string): string => {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
+// Reserved for future use
+// const generateId = (prefix: string): string => {
+//   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+// };
 
 // ============================================
 // COMPONENT
@@ -211,7 +213,7 @@ export function ExportarImportarPage() {
   const [createVisita] = useMutation(CREATE_VISITA_MUTATION);
   const [updateVisita] = useMutation(UPDATE_VISITA_MUTATION);
   const [createMeta] = useMutation(CREATE_META_MUTATION);
-  const [updateMeta] = useMutation(UPDATE_META_MUTATION);
+  // const [updateMeta] = useMutation(UPDATE_META_MUTATION);
   const [clearAllData] = useMutation(CLEAR_ALL_DATA_MUTATION);
 
   // ============================================
@@ -1450,7 +1452,7 @@ export function ExportarImportarPage() {
           const visitadorIds = row.getCell(7).value;
           const motivoNoVisita = row.getCell(8).value;
           const motivoNoVisitaOtra = row.getCell(9).value;
-          const visitStatus = row.getCell(10).value;
+          // const visitStatus = row.getCell(10).value; // Not used in this section
           const conversacion = row.getCell(11).value;
           const oraciones = row.getCell(12).value;
           const estudioInstituto = row.getCell(13).value;
@@ -1485,11 +1487,11 @@ export function ExportarImportarPage() {
               'Visita de seguimiento': 'visita_seguimiento',
               'No se pudo realizar': 'no_se_pudo_realizar'
             };
-            const statusMap: any = {
-              'Programada': 'programada',
-              'Realizada': 'realizada',
-              'Cancelada': 'cancelada'
-            };
+            // const statusMap: any = {
+            //   'Programada': 'programada',
+            //   'Realizada': 'realizada',
+            //   'Cancelada': 'cancelada'
+            // };
 
             // Resolver IDs por nombre (igual que hace Miembros y Familias)
             const familiaId = familiaNombre ? familiasMapVisitas.get(String(familiaNombre).toLowerCase()) : null;
@@ -1552,7 +1554,7 @@ export function ExportarImportarPage() {
       // ========== PASO 6: IMPORTAR METAS ==========
       const wsMetas = workbook.getWorksheet('Metas del Comité');
       if (wsMetas && updatedData3) {
-        const existingMetas = new Set(updatedData3.metas.map((m: any) => m.id));
+        // const existingMetas = new Set(updatedData3.metas.map((m: any) => m.id)); // Not used
 
         for (let rowNumber = 2; rowNumber <= wsMetas.rowCount; rowNumber++) {
           const row = wsMetas.getRow(rowNumber);
@@ -1628,7 +1630,7 @@ export function ExportarImportarPage() {
       const barriosActuales = currentData?.barrios || [];
       const nucleosActuales = currentData?.nucleos || [];
       const familiasActuales = currentData?.familias || [];
-      const miembrosActuales = currentData?.miembros || [];
+      // const miembrosActuales = currentData?.miembros || []; // Not used
 
       // ========== VALIDAR BARRIOS ==========
       const wsBarrios = workbook.getWorksheet('Barrios');
@@ -1817,7 +1819,7 @@ export function ExportarImportarPage() {
           // NUEVA COLUMNA VISIBLE CON NOMBRE
           const familiaNombre = row.getCell(30).value;
           // Columnas ocultas
-          const id = row.getCell(31).value;
+          // const id = row.getCell(31).value; // Not used
 
           // Validación 1: Familia (nombre) es obligatorio
           if (!familiaNombre) {

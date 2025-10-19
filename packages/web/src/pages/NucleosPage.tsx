@@ -145,7 +145,7 @@ export function NucleosPage() {
 
       // Find next editable cell
       const currentCell = e.currentTarget.parentElement;
-      const row = currentCell?.parentElement;
+      const row = currentCell?.parentElement as HTMLTableRowElement;
       if (!row) return;
 
       const cells = Array.from(row.cells);

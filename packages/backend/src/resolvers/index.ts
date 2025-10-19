@@ -8,7 +8,7 @@ import { barrioResolvers } from './barrio.resolvers';
 import { nucleoResolvers } from './nucleo.resolvers';
 import { utilsResolvers } from './utils.resolvers';
 
-export const resolvers = {
+export const resolvers: any = {
   Query: {
     ...usuarioResolvers.Query,
     ...familiaResolvers.Query,
