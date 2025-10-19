@@ -116,7 +116,7 @@ const REGENERAR_CREDENCIALES = gql`
   }
 `;
 
-const ROLES = ['CEA', 'COLABORADOR', 'MIEMBRO'];
+const ROLES = ['CEA', 'MCA', 'COLABORADOR', 'MIEMBRO'];
 const ROLES_FAMILIARES = ['Padre', 'Madre', 'Hijo', 'Hija', 'Abuelo', 'Abuela', 'Otro'];
 
 interface EditingState {
@@ -175,7 +175,7 @@ export function MiembrosPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [invitingMiembro, setInvitingMiembro] = useState<any>(null);
   const [isRegenerar, setIsRegenerar] = useState(false); // true = regenerar, false = crear nuevo
-  const [selectedRol, setSelectedRol] = useState<'CEA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
+  const [selectedRol, setSelectedRol] = useState<'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
   const [credencialesGeneradas, setCredencialesGeneradas] = useState<{ email: string; password: string; rol: string } | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
@@ -972,8 +972,8 @@ export function MiembrosPage() {
                     {/* Acciones */}
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        {/* Botón Invitar / Reenviar - Solo visible para CEA y COLABORADOR */}
-                        {(user?.rol === 'CEA' || user?.rol === 'COLABORADOR') && (
+                        {/* Botón Invitar / Reenviar - Solo visible para CEA, MCA y COLABORADOR */}
+                        {(user?.rol === 'CEA' || user?.rol === 'MCA' || user?.rol === 'COLABORADOR') && (
                           <>
                             {!miembro.usuario ? (
                               // Botón "Invitar" cuando no tiene usuario
@@ -1212,6 +1212,7 @@ export function MiembrosPage() {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     >
                       <option value="CEA">CEA (Administrador total)</option>
+                      <option value="MCA">MCA (Administrador total)</option>
                       <option value="COLABORADOR">COLABORADOR (Puede crear y editar)</option>
                       <option value="VISITANTE">VISITANTE (Solo lectura)</option>
                     </select>
@@ -1219,6 +1220,7 @@ export function MiembrosPage() {
                       <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
                       <p>
                         {selectedRol === 'CEA' && 'Acceso completo a todas las funciones'}
+                        {selectedRol === 'MCA' && 'Acceso completo a todas las funciones'}
                         {selectedRol === 'COLABORADOR' && 'Puede crear, editar y enviar invitaciones'}
                         {selectedRol === 'VISITANTE' && 'Solo puede ver información, sin editar'}
                       </p>

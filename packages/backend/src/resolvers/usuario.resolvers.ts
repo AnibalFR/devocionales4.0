@@ -55,8 +55,8 @@ export const usuarioResolvers = {
         });
       }
 
-      // Solo CEA puede ver todos los usuarios
-      if (currentUser.rol !== 'CEA') {
+      // Solo CEA y MCA pueden ver todos los usuarios
+      if (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA') {
         throw new GraphQLError('No autorizado', {
           extensions: { code: 'FORBIDDEN' },
         });
@@ -86,8 +86,8 @@ export const usuarioResolvers = {
         where: { id: userId },
       });
 
-      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'COLABORADOR')) {
-        throw new GraphQLError('Solo usuarios CEA y COLABORADOR pueden enviar invitaciones', {
+      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
+        throw new GraphQLError('Solo usuarios CEA, MCA y COLABORADOR pueden enviar invitaciones', {
           extensions: { code: 'FORBIDDEN' },
         });
       }
@@ -177,8 +177,8 @@ export const usuarioResolvers = {
         where: { id: userId },
       });
 
-      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'COLABORADOR')) {
-        throw new GraphQLError('Solo usuarios CEA y COLABORADOR pueden regenerar credenciales', {
+      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
+        throw new GraphQLError('Solo usuarios CEA, MCA y COLABORADOR pueden regenerar credenciales', {
           extensions: { code: 'FORBIDDEN' },
         });
       }

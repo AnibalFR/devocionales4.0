@@ -27,6 +27,7 @@ export const typeDefs = `#graphql
 
   enum RolUsuario {
     CEA
+    MCA
     COLABORADOR
     VISITANTE
   }

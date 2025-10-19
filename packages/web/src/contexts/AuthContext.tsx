@@ -7,7 +7,7 @@ interface User {
   email: string;
   nombre: string;
   apellidos?: string;
-  rol: 'CEA' | 'COLABORADOR' | 'VISITANTE';
+  rol: 'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE';
   mustChangePassword: boolean;
 }
 

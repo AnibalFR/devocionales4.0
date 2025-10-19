@@ -16,8 +16,8 @@ export const utilsResolvers = {
         select: { rol: true, comunidadId: true },
       });
 
-      if (!user || user.rol !== 'CEA') {
-        throw new GraphQLError('Solo usuarios CEA pueden limpiar la base de datos', {
+      if (!user || (user.rol !== 'CEA' && user.rol !== 'MCA')) {
+        throw new GraphQLError('Solo usuarios CEA y MCA pueden limpiar la base de datos', {
           extensions: { code: 'FORBIDDEN' },
         });
       }
