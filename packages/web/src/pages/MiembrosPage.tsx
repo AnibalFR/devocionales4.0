@@ -333,6 +333,12 @@ export function MiembrosPage() {
   const startEdit = (miembroId: string, field: string, currentValue: any) => {
     // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
     const miembro = miembros.find((m: any) => m.id === miembroId);
+    console.log('🟢 startEdit - Capturando updatedAt:', {
+      miembroId,
+      field,
+      updatedAt: miembro?.updatedAt,
+      miembroCompleto: miembro
+    });
     setEditing({
       miembroId,
       field,
@@ -351,6 +357,14 @@ export function MiembrosPage() {
     isSavingRef.current = true;
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
+    console.log('🔵 saveEdit - Iniciando guardado:', {
+      miembroId,
+      field: editing.field,
+      value: editing.value,
+      capturedUpdatedAt: editing.updatedAt,
+      forceOverwrite
+    });
+
     try {
       const input: any = {};
 
@@ -366,9 +380,13 @@ export function MiembrosPage() {
         input.lastUpdatedAt = editing.updatedAt;
       }
 
+      console.log('🔵 saveEdit - Enviando al servidor:', { input });
+
       await updateMiembro({
         variables: { id: miembroId, input },
       });
+
+      console.log('✅ saveEdit - Guardado exitoso, haciendo refetch...');
 
       // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
@@ -412,8 +430,22 @@ export function MiembrosPage() {
       }
     } catch (err: any) {
       setIsSaving(false); // FASE 2: Ocultar indicador en error
+
+      console.error('❌ saveEdit - Error capturado:', {
+        errorMessage: err.message,
+        errorCode: err.graphQLErrors?.[0]?.extensions?.code,
+        serverVersion: err.graphQLErrors?.[0]?.extensions?.serverVersion,
+        sentVersion: editing.updatedAt,
+        fullError: err
+      });
+
       // OCC: Detectar conflicto de edición
       if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        console.error('🔴 CONFLICTO DETECTADO:', {
+          sentUpdatedAt: editing.updatedAt,
+          serverUpdatedAt: err.graphQLErrors?.[0]?.extensions?.serverVersion,
+          areEqual: editing.updatedAt === err.graphQLErrors?.[0]?.extensions?.serverVersion
+        });
         setConflictModal({
           isOpen: true,
           miembroId,
