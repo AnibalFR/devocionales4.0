@@ -16,7 +16,19 @@ interface UseAppVersionReturn {
 
 const CURRENT_BUILD_ID = import.meta.env.VITE_BUILD_ID || 'development';
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutos
-const RELEASE_URL = `${import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:4000'}/api/release`;
+
+// Construir URL del endpoint de release
+// En desarrollo: http://localhost:4000/api/release
+// En producción: usa el mismo origen que el frontend
+const getReleaseUrl = () => {
+  if (import.meta.env.DEV) {
+    return 'http://localhost:4000/api/release';
+  }
+  // En producción, el backend está en el mismo dominio
+  return `${window.location.origin}/api/release`;
+};
+
+const RELEASE_URL = getReleaseUrl();
 
 export function useAppVersion(): UseAppVersionReturn {
   const [release, setRelease] = useState<ReleaseInfo | null>(null);

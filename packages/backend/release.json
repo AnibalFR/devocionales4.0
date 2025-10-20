@@ -1,11 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Sistema de notificaciones de actualizaciones automáticas",
-    "Los usuarios recibirán alertas cuando haya nuevas versiones",
-    "Workflow actualizado para incluir gestión de releases",
-    "Mejora en la comunicación de cambios y features"
+    "Corrección del sistema de notificaciones de actualizaciones",
+    "URL del endpoint de release ahora funciona correctamente"
   ],
-  "requiresReload": true,
+  "requiresReload": false,
   "requiresReauth": false
 }
