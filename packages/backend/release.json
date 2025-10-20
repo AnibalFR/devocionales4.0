@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Nueva funcionalidad: Ahora puedes editar el Barrio de los miembros",
-    "La columna Barrio en el catálogo de miembros ahora es editable"
+    "Mejora: Tecla Tab en columna Nombre ahora guarda y avanza a Apellidos",
+    "Navegación mejorada entre columnas editables del catálogo de miembros"
   ],
   "requiresReload": false,
   "requiresReauth": false

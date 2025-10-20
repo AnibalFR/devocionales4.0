@@ -283,7 +283,11 @@ export function MiembrosPage() {
     // Buscar siguiente celda editable en la misma fila
     for (let i = currentIndex + 1; i < cells.length; i++) {
       const cell = cells[i];
-      if (cell.onclick || cell.querySelector('input[type="checkbox"]')) {
+      // Verificar si la celda tiene onclick directo, checkbox, o un span/select editable dentro
+      if (cell.onclick ||
+          cell.querySelector('input[type="checkbox"]') ||
+          cell.querySelector('span.cursor-pointer') ||
+          cell.querySelector('select')) {
         return cell as HTMLTableCellElement;
       }
     }
