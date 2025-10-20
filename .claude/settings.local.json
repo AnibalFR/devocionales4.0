@@ -6,7 +6,11 @@
       "Bash(npm run build:*)",
       "Bash(./deploy.sh -c \"Hotfix Crítico: Resuelve falsos positivos OCC - Captura updatedAt al iniciar edición\n\n## Problema Resuelto\nBug crítico donde usuarios veían conflictos de edición siendo el único usuario editando\n\n## Causa Raíz Identificada\nEl updatedAt se capturaba del array de Apollo Client en el momento del GUARDADO, no al INICIAR la edición. Si el cache se actualizaba entre inicio y guardado (por refetch, polling, etc.), el updatedAt era diferente al del inicio de edición, causando falso positivo de conflicto.\n\n## Solución Implementada\n\n### Frontend - Todos los catálogos editables\n\n**MiembrosPage.tsx:**\n- Agregado updatedAt a EditingState interface\n- startEdit ahora captura y guarda updatedAt del miembro\n- saveEdit usa updatedAt del estado, no del array\n- handleConflictOverwrite actualizado\n\n**FamiliasPage.tsx:**\n- Agregado updatedAt al estado de edición\n- startEdit captura updatedAt al iniciar\n- saveEdit usa updatedAt capturado\n- handleConflictOverwrite actualizado\n\n**MetasPage.tsx:**\n- Agregado updatedAt a editingCell state\n- Creada función startCellEdit para capturar updatedAt\n- handleInlineUpdate usa updatedAt del estado\n- Todas las llamadas a setEditingCell reemplazadas por startCellEdit\n\n**BarriosPage.tsx:**\n- Mismo patrón que FamiliasPage\n- updatedAt capturado al iniciar edición\n- saveEdit usa timestamp del estado\n\n**NucleosPage.tsx:**\n- Mismo patrón que BarriosPage\n- updatedAt en estado de edición\n- Captura en startEdit, uso en saveEdit\n\n**DevocionalesPage.tsx:**\n- updatedAt agregado a EditingState\n- startEdit captura timestamp\n- saveEdit usa updatedAt del estado\n- handleConflictOverwrite actualizado\n\n## Resultado\n✅ OCC funciona sin falsos positivos en TODOS los catálogos\n✅ Timestamp se captura en el momento correcto (inicio de edición)\n✅ Cache de Apollo puede actualizarse sin causar conflictos erróneos\n✅ Protección real contra edición concurrente se mantiene\n✅ UX fluida para usuarios editando sin interrupciones\n\n## Catálogos Corregidos\n- Miembros\n- Familias\n- Metas\n- Barrios\n- Núcleos\n- Devocionales\n\n## Beneficio\nExperiencia de edición confiable y sin interrupciones falsas\")",
       "Bash(./deploy.sh:*)",
-      "Bash(npx prisma generate:*)"
+      "Bash(npx prisma generate:*)",
+      "Bash(ssh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
