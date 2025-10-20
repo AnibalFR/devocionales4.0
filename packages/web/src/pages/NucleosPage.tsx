@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { AlertTriangle, Lightbulb } from 'lucide-react';
+import EditConflictModal from '../components/EditConflictModal';
+import EditingIndicator from '../components/EditingIndicator';
 
 // Helper para formatear fechas de forma segura
 const formatDate = (dateInput: string | number | null | undefined): string => {
@@ -43,6 +45,7 @@ const GET_NUCLEOS = gql`
       barrioId
       descripcion
       createdAt
+      updatedAt
       barrio {
         id
         nombre
@@ -79,6 +82,7 @@ const UPDATE_NUCLEO = gql`
       barrioId
       descripcion
       createdAt
+      updatedAt
       barrio {
         id
         nombre
@@ -108,6 +112,22 @@ export function NucleosPage() {
     field: string | null;
     value: string;
   }>({ nucleoId: null, field: null, value: '' });
+
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
+
+  // OCC: Estado del modal de conflictos
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    nucleoId: string | null;
+    field: string | null;
+    pendingValue: string;
+  }>({
+    isOpen: false,
+    nucleoId: null,
+    field: null,
+    pendingValue: '',
+  });
 
   // Refs para navegación con Tab
   const tableRef = useRef<HTMLTableElement>(null);
@@ -151,20 +171,30 @@ export function NucleosPage() {
     return null;
   };
 
-  const saveEdit = async (nucleoId: string, field: string, moveToNext = false, currentCellIndex?: number) => {
+  const saveEdit = async (nucleoId: string, field: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
+      const nucleo = data?.nucleos.find((n: any) => n.id === nucleoId);
+
       await updateNucleo({
         variables: {
           id: nucleoId,
-          input: { [field]: editing.value || null },
+          input: {
+            [field]: editing.value || null,
+            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
+            ...(forceOverwrite ? {} : { lastUpdatedAt: nucleo?.updatedAt })
+          },
         },
       });
-      cancelEdit();
+
+      // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
+      cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
       if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
@@ -199,9 +229,21 @@ export function NucleosPage() {
       } else {
         isSavingRef.current = false;
       }
-    } catch (error: any) {
-      console.error('Error updating nucleo:', error);
-      alert(error.message || 'Error al actualizar el núcleo');
+    } catch (err: any) {
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
+      // OCC: Detectar conflicto de edición
+      if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          nucleoId,
+          field,
+          pendingValue: editing.value,
+        });
+      } else {
+        console.error('Error updating nucleo:', err);
+        alert(err.message || 'Error al actualizar el núcleo');
+        cancelEdit();
+      }
       isSavingRef.current = false;
     }
   };
@@ -224,6 +266,34 @@ export function NucleosPage() {
         saveEdit(nucleoId, field);
       }
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, nucleoId: null, field: null, pendingValue: '' });
+    cancelEdit();
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.nucleoId || !conflictModal.field) return;
+
+    // Restaurar el estado de edición con el valor pendiente
+    setEditing({
+      nucleoId: conflictModal.nucleoId,
+      field: conflictModal.field,
+      value: conflictModal.pendingValue,
+    });
+
+    setConflictModal({ isOpen: false, nucleoId: null, field: null, pendingValue: '' });
+
+    // Guardar con forceOverwrite = true
+    await saveEdit(conflictModal.nucleoId, conflictModal.field, false, undefined, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, nucleoId: null, field: null, pendingValue: '' });
+    cancelEdit();
   };
 
   const handleNuevoNucleo = async () => {
@@ -357,7 +427,9 @@ export function NucleosPage() {
                     <tr key={nucleo.id} data-nucleo-id={nucleo.id} className="hover:bg-gray-50">
                       {/* Nombre */}
                       {editing.nucleoId === nucleo.id && editing.field === 'nombre' ? (
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="text"
                             value={editing.value}
@@ -384,7 +456,9 @@ export function NucleosPage() {
 
                       {/* Barrio */}
                       {editing.nucleoId === nucleo.id && editing.field === 'barrioId' ? (
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <select
                             value={editing.value}
                             onChange={(e) =>
@@ -418,7 +492,9 @@ export function NucleosPage() {
 
                       {/* Descripción */}
                       {editing.nucleoId === nucleo.id && editing.field === 'descripcion' ? (
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="text"
                             value={editing.value}
@@ -476,6 +552,16 @@ export function NucleosPage() {
             </p>
           </div>
         </div>
+
+        {/* Modal de Conflictos de Edición (OCC) */}
+        <EditConflictModal
+          isOpen={conflictModal.isOpen}
+          onClose={handleConflictClose}
+          onReload={handleConflictReload}
+          onOverwrite={handleConflictOverwrite}
+          entityType="nucleo"
+          fieldName={conflictModal.field || undefined}
+        />
       </div>
   );
 }

@@ -103,9 +103,26 @@ export const barrioResolvers = {
         });
       }
 
+      // OCC: Validar conflicto de edición concurrente
+      if (input.lastUpdatedAt) {
+        const serverUpdatedAt = barrioExistente.updatedAt.toISOString();
+        if (serverUpdatedAt !== input.lastUpdatedAt) {
+          throw new GraphQLError('Conflicto: Otro usuario modificó este registro', {
+            extensions: {
+              code: 'EDIT_CONFLICT',
+              serverVersion: serverUpdatedAt,
+              serverData: barrioExistente
+            },
+          });
+        }
+      }
+
+      // Remover lastUpdatedAt del input antes de actualizar
+      const { lastUpdatedAt, ...dataToUpdate } = input;
+
       const barrio = await prisma.barrio.update({
         where: { id },
-        data: input,
+        data: dataToUpdate,
       });
 
       return barrio;

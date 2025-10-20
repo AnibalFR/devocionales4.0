@@ -472,6 +472,7 @@ export const typeDefs = `#graphql
     nombre: String
     descripcion: String
     activo: Boolean
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   # Nucleo Inputs
@@ -486,6 +487,7 @@ export const typeDefs = `#graphql
     barrioId: ID
     descripcion: String
     activo: Boolean
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   input CreateUsuarioFromMiembroInput {

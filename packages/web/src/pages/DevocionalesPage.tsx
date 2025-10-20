@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Lightbulb, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import EditingIndicator from '../components/EditingIndicator';
+import EditConflictModal from '../components/EditConflictModal';
 
 const MIEMBROS_CON_DEVOCIONAL = gql`
   query MiembrosConDevocional {
@@ -14,6 +15,7 @@ const MIEMBROS_CON_DEVOCIONAL = gql`
       devocionalHora
       devocionalParticipantes
       devocionalMiembros
+      updatedAt
       familia {
         id
         nombre
@@ -58,6 +60,7 @@ const UPDATE_MIEMBRO = gql`
       devocionalHora
       devocionalParticipantes
       devocionalMiembros
+      updatedAt
     }
   }
 `;
@@ -95,6 +98,19 @@ export function DevocionalesPage() {
 
   // FASE 2: Estado para indicador visual de guardado
   const [isSaving, setIsSaving] = useState(false);
+
+  // OCC: Estado del modal de conflictos
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    miembroId: string | null;
+    field: string | null;
+    pendingValue: string | number;
+  }>({
+    isOpen: false,
+    miembroId: null,
+    field: null,
+    pendingValue: '',
+  });
 
   const [modalState, setModalState] = useState<ModalState>({
     isOpen: false,
@@ -171,13 +187,14 @@ export function DevocionalesPage() {
     return null;
   };
 
-  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number) => {
+  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
     if (!editing.field || editing.value === null || isSavingRef.current) return;
 
     isSavingRef.current = true;
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
+      const miembro = miembrosConDevocional.find((m: any) => m.id === miembroId);
       const input: any = {};
 
       if (editing.field === 'dia') {
@@ -188,7 +205,6 @@ export function DevocionalesPage() {
         const participantes = parseInt(editing.value as string);
 
         // Validación: Participantes >= (Acompañantes + 1)
-        const miembro = miembrosConDevocional.find((m: any) => m.id === miembroId);
         const numAcompanantes = miembro?.devocionalMiembros?.length || 0;
 
         if (participantes < numAcompanantes + 1) {
@@ -202,12 +218,18 @@ export function DevocionalesPage() {
         input.devocionalParticipantes = participantes;
       }
 
+      // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
+      if (!forceOverwrite && miembro?.updatedAt) {
+        input.lastUpdatedAt = miembro.updatedAt;
+      }
+
       await updateMiembro({
         variables: { id: miembroId, input },
       });
 
-      setIsSaving(false); // FASE 2: Ocultar indicador
+      // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
       cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
@@ -245,10 +267,48 @@ export function DevocionalesPage() {
       }
     } catch (err: any) {
       setIsSaving(false); // FASE 2: Ocultar indicador en error
-      alert(`Error al actualizar: ${err.message}`);
-      cancelEdit();
+      // OCC: Detectar conflicto de edición
+      if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          miembroId,
+          field: editing.field,
+          pendingValue: editing.value,
+        });
+      } else {
+        alert(`Error al actualizar: ${err.message}`);
+        cancelEdit();
+      }
       isSavingRef.current = false;
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: '' });
+    cancelEdit();
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.miembroId || !conflictModal.field) return;
+
+    // Restaurar el estado de edición con el valor pendiente
+    setEditing({
+      miembroId: conflictModal.miembroId,
+      field: conflictModal.field as 'dia' | 'hora' | 'participantes',
+      value: conflictModal.pendingValue,
+    });
+
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: '' });
+
+    // Guardar con forceOverwrite = true
+    await saveEdit(conflictModal.miembroId, false, undefined, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: '' });
+    cancelEdit();
   };
 
   const openAcompanantesModal = (miembro: any) => {
@@ -701,6 +761,16 @@ export function DevocionalesPage() {
           </p>
         </div>
       </div>
+
+      {/* Modal de Conflictos de Edición (OCC) */}
+      <EditConflictModal
+        isOpen={conflictModal.isOpen}
+        onClose={handleConflictClose}
+        onReload={handleConflictReload}
+        onOverwrite={handleConflictOverwrite}
+        entityType="miembro"
+        fieldName={conflictModal.field || undefined}
+      />
 
       {/* Modal de Acompañantes */}
       {modalState.isOpen && (

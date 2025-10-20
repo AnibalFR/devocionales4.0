@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Lightbulb } from 'lucide-react';
+import EditConflictModal from '../components/EditConflictModal';
+import EditingIndicator from '../components/EditingIndicator';
 
 // Helper para formatear fechas de forma segura
 const formatDate = (dateInput: string | number | null | undefined): string => {
@@ -43,6 +45,7 @@ const GET_BARRIOS = gql`
       nombre
       descripcion
       createdAt
+      updatedAt
     }
   }
 `;
@@ -65,6 +68,7 @@ const UPDATE_BARRIO = gql`
       nombre
       descripcion
       createdAt
+      updatedAt
     }
   }
 `;
@@ -90,6 +94,22 @@ export function BarriosPage() {
     field: string | null;
     value: string;
   }>({ barrioId: null, field: null, value: '' });
+
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
+
+  // OCC: Estado del modal de conflictos
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    barrioId: string | null;
+    field: string | null;
+    pendingValue: string;
+  }>({
+    isOpen: false,
+    barrioId: null,
+    field: null,
+    pendingValue: '',
+  });
 
   // Refs para navegación con Tab
   const tableRef = useRef<HTMLTableElement>(null);
@@ -133,20 +153,30 @@ export function BarriosPage() {
     return null;
   };
 
-  const saveEdit = async (barrioId: string, field: string, moveToNext = false, currentCellIndex?: number) => {
+  const saveEdit = async (barrioId: string, field: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
+      const barrio = data?.barrios.find((b: any) => b.id === barrioId);
+
       await updateBarrio({
         variables: {
           id: barrioId,
-          input: { [field]: editing.value || null },
+          input: {
+            [field]: editing.value || null,
+            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
+            ...(forceOverwrite ? {} : { lastUpdatedAt: barrio?.updatedAt })
+          },
         },
       });
-      cancelEdit();
+
+      // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
+      cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
       if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
@@ -181,9 +211,21 @@ export function BarriosPage() {
       } else {
         isSavingRef.current = false;
       }
-    } catch (error) {
-      console.error('Error updating barrio:', error);
-      alert('Error al actualizar el barrio');
+    } catch (err: any) {
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
+      // OCC: Detectar conflicto de edición
+      if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          barrioId,
+          field,
+          pendingValue: editing.value,
+        });
+      } else {
+        console.error('Error updating barrio:', err);
+        alert(`Error al actualizar el barrio: ${err.message}`);
+        cancelEdit();
+      }
       isSavingRef.current = false;
     }
   };
@@ -206,6 +248,34 @@ export function BarriosPage() {
         saveEdit(barrioId, field);
       }
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, barrioId: null, field: null, pendingValue: '' });
+    cancelEdit();
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.barrioId || !conflictModal.field) return;
+
+    // Restaurar el estado de edición con el valor pendiente
+    setEditing({
+      barrioId: conflictModal.barrioId,
+      field: conflictModal.field,
+      value: conflictModal.pendingValue,
+    });
+
+    setConflictModal({ isOpen: false, barrioId: null, field: null, pendingValue: '' });
+
+    // Guardar con forceOverwrite = true
+    await saveEdit(conflictModal.barrioId, conflictModal.field, false, undefined, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, barrioId: null, field: null, pendingValue: '' });
+    cancelEdit();
   };
 
   const handleNuevoBarrio = async () => {
@@ -309,7 +379,9 @@ export function BarriosPage() {
                     <tr key={barrio.id} data-barrio-id={barrio.id} className="hover:bg-gray-50">
                       {/* Nombre */}
                       {editing.barrioId === barrio.id && editing.field === 'nombre' ? (
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="text"
                             value={editing.value}
@@ -336,7 +408,9 @@ export function BarriosPage() {
 
                       {/* Descripción */}
                       {editing.barrioId === barrio.id && editing.field === 'descripcion' ? (
-                        <td className="px-4 py-2">
+                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="text"
                             value={editing.value}
@@ -394,6 +468,16 @@ export function BarriosPage() {
             </p>
           </div>
         </div>
+
+        {/* Modal de Conflictos de Edición (OCC) */}
+        <EditConflictModal
+          isOpen={conflictModal.isOpen}
+          onClose={handleConflictClose}
+          onReload={handleConflictReload}
+          onOverwrite={handleConflictOverwrite}
+          entityType="barrio"
+          fieldName={conflictModal.field || undefined}
+        />
       </div>
   );
 }
