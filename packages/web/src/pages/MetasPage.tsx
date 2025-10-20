@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Trash2 } from 'lucide-react';
 
@@ -68,6 +68,10 @@ const ESTADO_COLORS: Record<string, string> = {
 export function MetasPage() {
   // State para edición inline (replicar v3.0)
   const [editingCell, setEditingCell] = useState<{metaId: string, field: string} | null>(null);
+
+  // Refs para navegación con Tab
+  const tableRef = useRef<HTMLTableElement>(null);
+  const isSavingRef = useRef(false);
 
   const { data, loading, error, refetch } = useQuery(METAS_QUERY);
   const [createMeta] = useMutation(CREATE_META);
@@ -269,6 +273,68 @@ export function MetasPage() {
     }
   };
 
+  // Función para encontrar la siguiente celda editable
+  const findNextEditableCell = (currentCell: HTMLTableCellElement): HTMLTableCellElement | null => {
+    const row = currentCell.parentElement as HTMLTableRowElement;
+    if (!row) return null;
+
+    const cells = Array.from(row.cells);
+    const currentIndex = cells.indexOf(currentCell);
+
+    // Buscar siguiente celda editable en la misma fila
+    for (let i = currentIndex + 1; i < cells.length; i++) {
+      const cell = cells[i];
+
+      // Verificar si la celda es editable (no readonly)
+      if (cell.classList.contains('bg-gray-50')) {
+        continue; // Celda readonly
+      }
+
+      const hasClickableSpan = cell.querySelector('span[class*="cursor-pointer"]');
+      if (hasClickableSpan) {
+        return cell as HTMLTableCellElement;
+      }
+    }
+
+    return null;
+  };
+
+  // Función para manejar Tab y navegar a la siguiente celda
+  const handleTabNavigation = async (metaId: string, currentCellIndex: number) => {
+    if (isSavingRef.current) return;
+    isSavingRef.current = true;
+
+    // Dar tiempo para que onChange/onBlur guarden
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    if (!tableRef.current) {
+      isSavingRef.current = false;
+      return;
+    }
+
+    const row = tableRef.current.querySelector(`tr[data-meta-id="${metaId}"]`) as HTMLTableRowElement;
+    if (!row) {
+      isSavingRef.current = false;
+      return;
+    }
+
+    const currentCell = row.cells[currentCellIndex];
+    if (!currentCell) {
+      isSavingRef.current = false;
+      return;
+    }
+
+    const nextCell = findNextEditableCell(currentCell);
+    if (nextCell) {
+      const clickableSpan = nextCell.querySelector('span[class*="cursor-pointer"]') as HTMLElement;
+      if (clickableSpan) {
+        clickableSpan.click();
+      }
+    }
+
+    isSavingRef.current = false;
+  };
+
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return '-';
     const [year, month, day] = dateString.split('-').map(Number);
@@ -312,8 +378,19 @@ export function MetasPage() {
             setEditingCell(null);
           }}
           onBlur={() => setEditingCell(null)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setEditingCell(null);
+          onKeyDown={async (e) => {
+            if (e.key === 'Escape') {
+              setEditingCell(null);
+            } else if (e.key === 'Tab') {
+              e.preventDefault();
+              setEditingCell(null);
+              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+              const row = cell?.parentElement as HTMLTableRowElement;
+              if (row && cell) {
+                const cellIndex = Array.from(row.cells).indexOf(cell);
+                await handleTabNavigation(meta.id, cellIndex);
+              }
+            }
           }}
         >
           {generateTrimestreOptions().map(opt => (
@@ -351,9 +428,25 @@ export function MetasPage() {
             }
           }}
           onBlur={() => setEditingCell(null)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setEditingCell(null);
-            if (e.key === 'Enter') setEditingCell(null);
+          onKeyDown={async (e) => {
+            if (e.key === 'Escape') {
+              setEditingCell(null);
+            } else if (e.key === 'Enter') {
+              setEditingCell(null);
+            } else if (e.key === 'Tab') {
+              e.preventDefault();
+              const value = (e.target as HTMLInputElement).value;
+              if (value) {
+                await handleInlineUpdate(meta.id, field, value);
+              }
+              setEditingCell(null);
+              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+              const row = cell?.parentElement as HTMLTableRowElement;
+              if (row && cell) {
+                const cellIndex = Array.from(row.cells).indexOf(cell);
+                await handleTabNavigation(meta.id, cellIndex);
+              }
+            }
           }}
         />
       );
@@ -398,6 +491,19 @@ export function MetasPage() {
                 await handleInlineUpdate(meta.id, field, newValue);
               }
               setEditingCell(null);
+            } else if (e.key === 'Tab') {
+              e.preventDefault();
+              const newValue = parseInt((e.target as HTMLInputElement).value);
+              if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
+                await handleInlineUpdate(meta.id, field, newValue);
+              }
+              setEditingCell(null);
+              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+              const row = cell?.parentElement as HTMLTableRowElement;
+              if (row && cell) {
+                const cellIndex = Array.from(row.cells).indexOf(cell);
+                await handleTabNavigation(meta.id, cellIndex);
+              }
             }
           }}
           onClick={(e) => {
@@ -503,7 +609,7 @@ export function MetasPage() {
           <p className="text-gray-600 text-center py-8">No hay metas registradas</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{minWidth: '180px'}}>
@@ -540,7 +646,7 @@ export function MetasPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {metas.map((meta: any) => (
-                  <tr key={meta.id} className="hover:bg-gray-50">
+                  <tr key={meta.id} data-meta-id={meta.id} className="hover:bg-gray-50">
                     {/* Trimestre - EDITABLE */}
                     <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                       {renderTrimestreCell(meta)}

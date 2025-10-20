@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Navegación Tab completa en todos los catálogos",
-    "Excel-style: Miembros, Familias, Barrios, Núcleos y Devocionales"
+    "Navegación Tab completada en TODOS los catálogos editables",
+    "Excel-style: Miembros, Familias, Barrios, Núcleos, Devocionales y Metas"
   ],
   "requiresReload": false,
   "requiresReauth": false
