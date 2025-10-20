@@ -79,6 +79,7 @@ interface EditingState {
   miembroId: string | null;
   field: 'dia' | 'hora' | 'participantes' | null;
   value: string | number | null;
+  updatedAt: string | null;
 }
 
 interface ModalState {
@@ -94,6 +95,7 @@ export function DevocionalesPage() {
     miembroId: null,
     field: null,
     value: null,
+    updatedAt: null,
   });
 
   // FASE 2: Estado para indicador visual de guardado
@@ -152,11 +154,18 @@ export function DevocionalesPage() {
   const todosMiembros = miembrosData?.miembros || [];
 
   const startEdit = (miembroId: string, field: 'dia' | 'hora' | 'participantes', currentValue: any) => {
-    setEditing({ miembroId, field, value: currentValue });
+    // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
+    const miembro = miembrosConDevocional.find((m: any) => m.id === miembroId);
+    setEditing({
+      miembroId,
+      field,
+      value: currentValue,
+      updatedAt: miembro?.updatedAt || null
+    });
   };
 
   const cancelEdit = () => {
-    setEditing({ miembroId: null, field: null, value: null });
+    setEditing({ miembroId: null, field: null, value: null, updatedAt: null });
   };
 
   const findNextEditableCell = (currentCell: HTMLTableCellElement): HTMLTableCellElement | null => {
@@ -194,7 +203,6 @@ export function DevocionalesPage() {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const miembro = miembrosConDevocional.find((m: any) => m.id === miembroId);
       const input: any = {};
 
       if (editing.field === 'dia') {
@@ -205,6 +213,7 @@ export function DevocionalesPage() {
         const participantes = parseInt(editing.value as string);
 
         // Validación: Participantes >= (Acompañantes + 1)
+        const miembro = miembrosConDevocional.find((m: any) => m.id === miembroId);
         const numAcompanantes = miembro?.devocionalMiembros?.length || 0;
 
         if (participantes < numAcompanantes + 1) {
@@ -218,9 +227,9 @@ export function DevocionalesPage() {
         input.devocionalParticipantes = participantes;
       }
 
-      // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
-      if (!forceOverwrite && miembro?.updatedAt) {
-        input.lastUpdatedAt = miembro.updatedAt;
+      // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+      if (!forceOverwrite && editing.updatedAt) {
+        input.lastUpdatedAt = editing.updatedAt;
       }
 
       await updateMiembro({
@@ -294,10 +303,12 @@ export function DevocionalesPage() {
     if (!conflictModal.miembroId || !conflictModal.field) return;
 
     // Restaurar el estado de edición con el valor pendiente
+    // OCC Fix: No necesitamos updatedAt porque forceOverwrite=true lo ignora
     setEditing({
       miembroId: conflictModal.miembroId,
       field: conflictModal.field as 'dia' | 'hora' | 'participantes',
       value: conflictModal.pendingValue,
+      updatedAt: null, // No importa en sobrescritura forzada
     });
 
     setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: '' });

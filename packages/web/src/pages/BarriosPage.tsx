@@ -93,7 +93,8 @@ export function BarriosPage() {
     barrioId: string | null;
     field: string | null;
     value: string;
-  }>({ barrioId: null, field: null, value: '' });
+    updatedAt: string | null;
+  }>({ barrioId: null, field: null, value: '', updatedAt: null });
 
   // FASE 2: Estado para indicador visual de guardado
   const [isSaving, setIsSaving] = useState(false);
@@ -116,11 +117,19 @@ export function BarriosPage() {
   const isSavingRef = useRef(false);
 
   const startEdit = (barrioId: string, field: string, value: string) => {
-    setEditing({ barrioId, field, value: value || '' });
+    // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
+    const barrios = data?.barrios || [];
+    const barrio = barrios.find((b: any) => b.id === barrioId);
+    setEditing({
+      barrioId,
+      field,
+      value: value || '',
+      updatedAt: barrio?.updatedAt || null
+    });
   };
 
   const cancelEdit = () => {
-    setEditing({ barrioId: null, field: null, value: '' });
+    setEditing({ barrioId: null, field: null, value: '', updatedAt: null });
   };
 
   // Función para encontrar la siguiente celda editable
@@ -160,15 +169,13 @@ export function BarriosPage() {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const barrio = data?.barrios.find((b: any) => b.id === barrioId);
-
       await updateBarrio({
         variables: {
           id: barrioId,
           input: {
             [field]: editing.value || null,
-            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
-            ...(forceOverwrite ? {} : { lastUpdatedAt: barrio?.updatedAt })
+            // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+            ...(forceOverwrite ? {} : { lastUpdatedAt: editing.updatedAt })
           },
         },
       });
@@ -261,10 +268,12 @@ export function BarriosPage() {
     if (!conflictModal.barrioId || !conflictModal.field) return;
 
     // Restaurar el estado de edición con el valor pendiente
+    // OCC Fix: No necesitamos updatedAt porque forceOverwrite=true lo ignora
     setEditing({
       barrioId: conflictModal.barrioId,
       field: conflictModal.field,
       value: conflictModal.pendingValue,
+      updatedAt: null, // No importa en sobrescritura forzada
     });
 
     setConflictModal({ isOpen: false, barrioId: null, field: null, pendingValue: '' });

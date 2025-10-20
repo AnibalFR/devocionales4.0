@@ -156,7 +156,8 @@ export function FamiliasPage() {
     familiaId: string | null;
     field: string | null;
     value: string;
-  }>({ familiaId: null, field: null, value: '' });
+    updatedAt: string | null;
+  }>({ familiaId: null, field: null, value: '', updatedAt: null });
 
   // FASE 2: Estado para indicador visual de guardado
   const [isSaving, setIsSaving] = useState(false);
@@ -223,11 +224,19 @@ export function FamiliasPage() {
   };
 
   const startEdit = (familiaId: string, field: string, value: string) => {
-    setEditing({ familiaId, field, value: value || '' });
+    // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
+    const familias = data?.familias || [];
+    const familia = familias.find((f: any) => f.id === familiaId);
+    setEditing({
+      familiaId,
+      field,
+      value: value || '',
+      updatedAt: familia?.updatedAt || null
+    });
   };
 
   const cancelEdit = () => {
-    setEditing({ familiaId: null, field: null, value: '' });
+    setEditing({ familiaId: null, field: null, value: '', updatedAt: null });
   };
 
   // Función para encontrar la siguiente celda editable
@@ -267,15 +276,13 @@ export function FamiliasPage() {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const familia = familias.find((f: any) => f.id === familiaId);
-
       await updateFamilia({
         variables: {
           id: familiaId,
           input: {
             [field]: editing.value || null,
-            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
-            ...(forceOverwrite ? {} : { lastUpdatedAt: familia?.updatedAt })
+            // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+            ...(forceOverwrite ? {} : { lastUpdatedAt: editing.updatedAt })
           },
         },
       });
@@ -370,10 +377,12 @@ export function FamiliasPage() {
     if (!conflictModal.familiaId || !conflictModal.field) return;
 
     // Restaurar el valor pendiente y forzar sobrescritura
+    // OCC Fix: No necesitamos updatedAt porque forceOverwrite=true lo ignora
     setEditing({
       familiaId: conflictModal.familiaId,
       field: conflictModal.field,
       value: conflictModal.pendingValue,
+      updatedAt: null, // No importa en sobrescritura forzada
     });
 
     setConflictModal({ isOpen: false, familiaId: null, field: null, pendingValue: '' });

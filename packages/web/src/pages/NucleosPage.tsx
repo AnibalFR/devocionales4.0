@@ -111,7 +111,8 @@ export function NucleosPage() {
     nucleoId: string | null;
     field: string | null;
     value: string;
-  }>({ nucleoId: null, field: null, value: '' });
+    updatedAt: string | null;
+  }>({ nucleoId: null, field: null, value: '', updatedAt: null });
 
   // FASE 2: Estado para indicador visual de guardado
   const [isSaving, setIsSaving] = useState(false);
@@ -134,11 +135,19 @@ export function NucleosPage() {
   const isSavingRef = useRef(false);
 
   const startEdit = (nucleoId: string, field: string, value: string) => {
-    setEditing({ nucleoId, field, value: value || '' });
+    // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
+    const nucleos = data?.nucleos || [];
+    const nucleo = nucleos.find((n: any) => n.id === nucleoId);
+    setEditing({
+      nucleoId,
+      field,
+      value: value || '',
+      updatedAt: nucleo?.updatedAt || null
+    });
   };
 
   const cancelEdit = () => {
-    setEditing({ nucleoId: null, field: null, value: '' });
+    setEditing({ nucleoId: null, field: null, value: '', updatedAt: null });
   };
 
   // Función para encontrar la siguiente celda editable
@@ -178,15 +187,13 @@ export function NucleosPage() {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const nucleo = data?.nucleos.find((n: any) => n.id === nucleoId);
-
       await updateNucleo({
         variables: {
           id: nucleoId,
           input: {
             [field]: editing.value || null,
-            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
-            ...(forceOverwrite ? {} : { lastUpdatedAt: nucleo?.updatedAt })
+            // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+            ...(forceOverwrite ? {} : { lastUpdatedAt: editing.updatedAt })
           },
         },
       });
@@ -279,10 +286,12 @@ export function NucleosPage() {
     if (!conflictModal.nucleoId || !conflictModal.field) return;
 
     // Restaurar el estado de edición con el valor pendiente
+    // OCC Fix: No necesitamos updatedAt porque forceOverwrite=true lo ignora
     setEditing({
       nucleoId: conflictModal.nucleoId,
       field: conflictModal.field,
       value: conflictModal.pendingValue,
+      updatedAt: null, // No importa en sobrescritura forzada
     });
 
     setConflictModal({ isOpen: false, nucleoId: null, field: null, pendingValue: '' });

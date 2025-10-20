@@ -127,6 +127,7 @@ interface EditingState {
   miembroId: string | null;
   field: string | null;
   value: any;
+  updatedAt: string | null;
 }
 
 // Helper para formatear fechas
@@ -171,6 +172,7 @@ export function MiembrosPage() {
     miembroId: null,
     field: null,
     value: null,
+    updatedAt: null,
   });
   const isSavingRef = useRef(false);
 
@@ -329,11 +331,18 @@ export function MiembrosPage() {
   };
 
   const startEdit = (miembroId: string, field: string, currentValue: any) => {
-    setEditing({ miembroId, field, value: currentValue });
+    // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
+    const miembro = miembros.find((m: any) => m.id === miembroId);
+    setEditing({
+      miembroId,
+      field,
+      value: currentValue,
+      updatedAt: miembro?.updatedAt || null
+    });
   };
 
   const cancelEdit = () => {
-    setEditing({ miembroId: null, field: null, value: null });
+    setEditing({ miembroId: null, field: null, value: null, updatedAt: null });
   };
 
   const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
@@ -343,7 +352,6 @@ export function MiembrosPage() {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const miembro = miembros.find((m: any) => m.id === miembroId);
       const input: any = {};
 
       // Si se está editando edad aproximada, guardar también fecha de actualización
@@ -353,9 +361,9 @@ export function MiembrosPage() {
         input[editing.field] = editing.value || null;
       }
 
-      // OCC: Agregar timestamp solo si no estamos forzando sobrescritura
-      if (!forceOverwrite && miembro?.updatedAt) {
-        input.lastUpdatedAt = miembro.updatedAt;
+      // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+      if (!forceOverwrite && editing.updatedAt) {
+        input.lastUpdatedAt = editing.updatedAt;
       }
 
       await updateMiembro({
@@ -451,10 +459,12 @@ export function MiembrosPage() {
     if (!conflictModal.miembroId || !conflictModal.field) return;
 
     // Restaurar el valor pendiente y forzar sobrescritura
+    // OCC Fix: No necesitamos updatedAt porque forceOverwrite=true lo ignora
     setEditing({
       miembroId: conflictModal.miembroId,
       field: conflictModal.field,
       value: conflictModal.pendingValue,
+      updatedAt: null, // No importa en sobrescritura forzada
     });
 
     setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: null });

@@ -71,7 +71,8 @@ const ESTADO_COLORS: Record<string, string> = {
 
 export function MetasPage() {
   // State para edición inline (replicar v3.0)
-  const [editingCell, setEditingCell] = useState<{metaId: string, field: string} | null>(null);
+  // OCC Fix: Agregar updatedAt para capturarlo al iniciar edición
+  const [editingCell, setEditingCell] = useState<{metaId: string, field: string, updatedAt: string | null} | null>(null);
 
   // FASE 2: Estado para indicador visual de guardado
   const [isSaving, setIsSaving] = useState(false);
@@ -279,19 +280,27 @@ export function MetasPage() {
   // FUNCIONES DE EDICIÓN INLINE (v3.0 pattern)
   // ============================================
 
+  // OCC Fix: Helper para iniciar edición y capturar updatedAt
+  const startCellEdit = (metaId: string, field: string) => {
+    const meta = metas.find((m: any) => m.id === metaId);
+    setEditingCell({
+      metaId,
+      field,
+      updatedAt: meta?.updatedAt || null
+    });
+  };
+
   const handleInlineUpdate = async (metaId: string, field: string, value: any, forceOverwrite = false) => {
     setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
-      const meta = metas.find((m: any) => m.id === metaId);
-
       await updateMeta({
         variables: {
           id: metaId,
           input: {
             [field]: value,
-            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
-            ...(forceOverwrite ? {} : { lastUpdatedAt: meta?.updatedAt })
+            // OCC Fix: Usar updatedAt capturado al INICIAR edición, no del array actual
+            ...(forceOverwrite ? {} : { lastUpdatedAt: editingCell?.updatedAt })
           }
         }
       });
@@ -470,7 +479,7 @@ export function MetasPage() {
     return (
       <span
         className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded block"
-        onClick={() => setEditingCell({metaId: meta.id, field: 'trimestre'})}
+        onClick={() => startCellEdit(meta.id, 'trimestre')}
       >
         {meta.trimestre}
       </span>
@@ -526,7 +535,7 @@ export function MetasPage() {
     return (
       <span
         className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded block"
-        onClick={() => setEditingCell({metaId: meta.id, field})}
+        onClick={() => startCellEdit(meta.id, field)}
       >
         {formatDateForDisplay(value)}
       </span>
@@ -591,7 +600,7 @@ export function MetasPage() {
     return (
       <span
         className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded block text-center font-bold text-green-600"
-        onClick={() => setEditingCell({metaId: meta.id, field})}
+        onClick={() => startCellEdit(meta.id, field)}
       >
         {value}
       </span>

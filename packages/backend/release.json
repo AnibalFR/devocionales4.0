@@ -1,12 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "FASE 2: Indicadores visuales de edición activa",
-    "Badges 'Editando' y 'Guardando...' en celdas activas",
-    "Fondo amarillo con borde en campos siendo editados",
-    "Feedback visual inmediato durante guardado",
-    "Cobertura en: Familias, Miembros, Metas y Devocionales",
-    "UX mejorado tipo Excel con indicadores visuales claros"
+    "Hotfix Crítico: Resuelve falsos positivos en conflictos de edición",
+    "OCC captura timestamp al INICIAR edición, no al guardar",
+    "Elimina conflictos erróneos cuando un único usuario edita",
+    "Corrección aplicada a TODOS los catálogos editables",
+    "Experiencia de edición más fluida y confiable"
   ],
   "requiresReload": true,
   "requiresReauth": false
