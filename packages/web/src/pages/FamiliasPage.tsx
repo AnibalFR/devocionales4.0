@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { AlertTriangle, Lightbulb, CheckCircle, Info } from 'lucide-react';
 
@@ -167,6 +167,10 @@ export function FamiliasPage() {
   // Estado de ordenamiento
   const [sortBy, setSortBy] = useState<'nombre' | 'miembros-desc' | 'miembros-asc' | 'fecha'>('fecha');
 
+  // Refs para navegación con Tab
+  const tableRef = useRef<HTMLTableElement>(null);
+  const isSavingRef = useRef(false);
+
   // Estado del modal con estados adicionales
   const [modal, setModal] = useState<{
     isOpen: boolean;
@@ -206,7 +210,41 @@ export function FamiliasPage() {
     setEditing({ familiaId: null, field: null, value: '' });
   };
 
-  const saveEdit = async (familiaId: string, field: string) => {
+  // Función para encontrar la siguiente celda editable
+  const findNextEditableCell = (currentCell: HTMLTableCellElement): HTMLTableCellElement | null => {
+    const row = currentCell.parentElement as HTMLTableRowElement;
+    if (!row) return null;
+
+    const cells = Array.from(row.cells);
+    const currentIndex = cells.indexOf(currentCell);
+
+    // Buscar siguiente celda editable en la misma fila
+    for (let i = currentIndex + 1; i < cells.length; i++) {
+      const cell = cells[i];
+
+      // Verificar si la celda es editable (no readonly)
+      if (cell.classList.contains('bg-gray-50')) {
+        continue; // Celda readonly
+      }
+
+      const hasCheckbox = cell.querySelector('input[type="checkbox"]');
+      const hasClickableSpan = cell.querySelector('span[class*="cursor-pointer"]');
+      const hasSelect = cell.querySelector('select');
+      const isEditableCell = cell.classList.contains('editable-cell');
+
+      if (cell.onclick || hasCheckbox || hasClickableSpan || hasSelect || isEditableCell) {
+        return cell as HTMLTableCellElement;
+      }
+    }
+
+    return null;
+  };
+
+  const saveEdit = async (familiaId: string, field: string, moveToNext = false, currentCellIndex?: number) => {
+    if (isSavingRef.current) return;
+
+    isSavingRef.current = true;
+
     try {
       await updateFamilia({
         variables: {
@@ -215,14 +253,49 @@ export function FamiliasPage() {
         },
       });
       cancelEdit();
-      refetch();
+      await refetch();
+
+      // Si se presionó Tab, mover a la siguiente celda
+      if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
+        setTimeout(() => {
+          const row = tableRef.current?.querySelector(`tr[data-familia-id="${familiaId}"]`) as HTMLTableRowElement;
+          if (!row) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const currentCell = row.cells[currentCellIndex];
+          if (!currentCell) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const nextCell = findNextEditableCell(currentCell);
+          if (nextCell) {
+            const clickableSpan = nextCell.querySelector('span[class*="cursor-pointer"]') as HTMLElement;
+            const clickableCheckbox = nextCell.querySelector('input[type="checkbox"]') as HTMLElement;
+
+            if (clickableSpan) {
+              clickableSpan.click();
+            } else if (clickableCheckbox) {
+              clickableCheckbox.focus();
+            } else if (nextCell.onclick) {
+              nextCell.click();
+            }
+          }
+          isSavingRef.current = false;
+        }, 100);
+      } else {
+        isSavingRef.current = false;
+      }
     } catch (error) {
       console.error('Error updating familia:', error);
       alert('Error al actualizar la familia');
+      isSavingRef.current = false;
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, familiaId: string, field: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent, familiaId: string, field: string, cellElement?: HTMLTableCellElement) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       saveEdit(familiaId, field);
@@ -231,21 +304,13 @@ export function FamiliasPage() {
       cancelEdit();
     } else if (e.key === 'Tab') {
       e.preventDefault();
-      saveEdit(familiaId, field);
-
-      // Navegar a siguiente celda editable
-      const cell = (e.target as HTMLElement).closest('td');
-      const row = cell?.closest('tr');
-      const cells = Array.from(row?.cells || []);
-      const currentIndex = cells.indexOf(cell as HTMLTableCellElement);
-
-      // Buscar siguiente celda editable
-      for (let i = currentIndex + 1; i < cells.length; i++) {
-        const nextCell = cells[i] as HTMLTableCellElement;
-        if (nextCell.classList.contains('editable-cell')) {
-          setTimeout(() => nextCell.click(), 50);
-          break;
-        }
+      // Calcular el índice de la celda actual
+      if (cellElement) {
+        const row = cellElement.parentElement as HTMLTableRowElement;
+        const cellIndex = Array.from(row.cells).indexOf(cellElement);
+        saveEdit(familiaId, field, true, cellIndex);
+      } else {
+        saveEdit(familiaId, field);
       }
     }
   };
@@ -650,7 +715,7 @@ export function FamiliasPage() {
         {/* Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-8"></th>
@@ -741,7 +806,7 @@ export function FamiliasPage() {
                     return (
                       <React.Fragment key={familia.id}>
                         {/* Main Row */}
-                        <tr className="hover:bg-gray-50">
+                        <tr data-familia-id={familia.id} className="hover:bg-gray-50">
                           {/* Expand/Collapse */}
                           <td className="px-4 py-2">
                             {familia.miembros.length > 0 && (
@@ -763,7 +828,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'nombre')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'nombre', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'nombre')}
                                 autoFocus
                                 className="input input-sm w-full border-2 border-green-600"
@@ -807,7 +875,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'direccion')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'direccion', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'direccion')}
                                 autoFocus
                                 className="input input-sm w-full border-2 border-green-600"
@@ -833,7 +904,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'telefono')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'telefono', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'telefono')}
                                 autoFocus
                                 className="input input-sm w-full border-2 border-green-600"
@@ -858,7 +932,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'barrioId')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'barrioId', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'barrioId')}
                                 autoFocus
                                 className="select select-sm w-full border-2 border-green-600"
@@ -888,7 +965,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'nucleoId')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'nucleoId', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'nucleoId')}
                                 autoFocus
                                 className="select select-sm w-full border-2 border-green-600"
@@ -934,7 +1014,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'estatus')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'estatus', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'estatus')}
                                 autoFocus
                                 className="select select-sm w-full border-2 border-green-600"
@@ -969,7 +1052,10 @@ export function FamiliasPage() {
                                 onChange={(e) =>
                                   setEditing({ ...editing, value: e.target.value })
                                 }
-                                onKeyDown={(e) => handleKeyDown(e, familia.id, 'notas')}
+                                onKeyDown={(e) => {
+                                  const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                                  handleKeyDown(e, familia.id, 'notas', cell);
+                                }}
                                 onBlur={() => saveEdit(familia.id, 'notas')}
                                 autoFocus
                                 className="input input-sm w-full border-2 border-green-600"

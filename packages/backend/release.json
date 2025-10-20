@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Corrección definitiva: Navegación con Tab corregida en catálogo",
-    "Ahora Tab funciona correctamente de Nombre → Apellidos → etc."
+    "Navegación Tab corregida en Miembros, Familias y Barrios",
+    "Navegación fluida tipo Excel en todos los catálogos"
   ],
   "requiresReload": false,
   "requiresReauth": false

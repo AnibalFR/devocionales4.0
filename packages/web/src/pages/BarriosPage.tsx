@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Lightbulb } from 'lucide-react';
 
@@ -91,6 +91,10 @@ export function BarriosPage() {
     value: string;
   }>({ barrioId: null, field: null, value: '' });
 
+  // Refs para navegación con Tab
+  const tableRef = useRef<HTMLTableElement>(null);
+  const isSavingRef = useRef(false);
+
   const startEdit = (barrioId: string, field: string, value: string) => {
     setEditing({ barrioId, field, value: value || '' });
   };
@@ -99,7 +103,41 @@ export function BarriosPage() {
     setEditing({ barrioId: null, field: null, value: '' });
   };
 
-  const saveEdit = async (barrioId: string, field: string) => {
+  // Función para encontrar la siguiente celda editable
+  const findNextEditableCell = (currentCell: HTMLTableCellElement): HTMLTableCellElement | null => {
+    const row = currentCell.parentElement as HTMLTableRowElement;
+    if (!row) return null;
+
+    const cells = Array.from(row.cells);
+    const currentIndex = cells.indexOf(currentCell);
+
+    // Buscar siguiente celda editable en la misma fila
+    for (let i = currentIndex + 1; i < cells.length; i++) {
+      const cell = cells[i];
+
+      // Verificar si la celda es editable (no readonly)
+      if (cell.classList.contains('bg-gray-50')) {
+        continue; // Celda readonly
+      }
+
+      const hasCheckbox = cell.querySelector('input[type="checkbox"]');
+      const hasClickableSpan = cell.querySelector('span[class*="cursor-pointer"]');
+      const hasSelect = cell.querySelector('select');
+      const isEditableCell = cell.classList.contains('editable-cell');
+
+      if (cell.onclick || hasCheckbox || hasClickableSpan || hasSelect || isEditableCell) {
+        return cell as HTMLTableCellElement;
+      }
+    }
+
+    return null;
+  };
+
+  const saveEdit = async (barrioId: string, field: string, moveToNext = false, currentCellIndex?: number) => {
+    if (isSavingRef.current) return;
+
+    isSavingRef.current = true;
+
     try {
       await updateBarrio({
         variables: {
@@ -108,14 +146,49 @@ export function BarriosPage() {
         },
       });
       cancelEdit();
-      refetch();
+      await refetch();
+
+      // Si se presionó Tab, mover a la siguiente celda
+      if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
+        setTimeout(() => {
+          const row = tableRef.current?.querySelector(`tr[data-barrio-id="${barrioId}"]`) as HTMLTableRowElement;
+          if (!row) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const currentCell = row.cells[currentCellIndex];
+          if (!currentCell) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const nextCell = findNextEditableCell(currentCell);
+          if (nextCell) {
+            const clickableSpan = nextCell.querySelector('span[class*="cursor-pointer"]') as HTMLElement;
+            const clickableCheckbox = nextCell.querySelector('input[type="checkbox"]') as HTMLElement;
+
+            if (clickableSpan) {
+              clickableSpan.click();
+            } else if (clickableCheckbox) {
+              clickableCheckbox.focus();
+            } else if (nextCell.onclick) {
+              nextCell.click();
+            }
+          }
+          isSavingRef.current = false;
+        }, 100);
+      } else {
+        isSavingRef.current = false;
+      }
     } catch (error) {
       console.error('Error updating barrio:', error);
       alert('Error al actualizar el barrio');
+      isSavingRef.current = false;
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, barrioId: string, field: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent, barrioId: string, field: string, cellElement?: HTMLTableCellElement) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       saveEdit(barrioId, field);
@@ -124,31 +197,13 @@ export function BarriosPage() {
       cancelEdit();
     } else if (e.key === 'Tab') {
       e.preventDefault();
-
-      // Find next editable cell
-      const currentCell = e.currentTarget.parentElement;
-      const row = currentCell?.parentElement as HTMLTableRowElement;
-      if (!row) return;
-
-      const cells = Array.from(row.cells);
-      const currentIndex = cells.indexOf(currentCell as HTMLTableCellElement);
-
-      // Find next editable cell (skip Fecha Creación which is at index 2)
-      let nextCell = null;
-      for (let i = currentIndex + 1; i < cells.length - 1; i++) { // -1 to skip Acciones
-        if (i !== 2) { // Skip Fecha Creación column
-          nextCell = cells[i];
-          break;
-        }
-      }
-
-      // Save and navigate
-      saveEdit(barrioId, field);
-
-      if (nextCell) {
-        setTimeout(() => {
-          (nextCell as HTMLTableCellElement).click();
-        }, 50);
+      // Calcular el índice de la celda actual
+      if (cellElement) {
+        const row = cellElement.parentElement as HTMLTableRowElement;
+        const cellIndex = Array.from(row.cells).indexOf(cellElement);
+        saveEdit(barrioId, field, true, cellIndex);
+      } else {
+        saveEdit(barrioId, field);
       }
     }
   };
@@ -225,7 +280,7 @@ export function BarriosPage() {
         {/* Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '200px' }}>
@@ -251,7 +306,7 @@ export function BarriosPage() {
                   </tr>
                 ) : (
                   barrios.map((barrio: any) => (
-                    <tr key={barrio.id} className="hover:bg-gray-50">
+                    <tr key={barrio.id} data-barrio-id={barrio.id} className="hover:bg-gray-50">
                       {/* Nombre */}
                       {editing.barrioId === barrio.id && editing.field === 'nombre' ? (
                         <td className="px-4 py-2">
@@ -261,7 +316,10 @@ export function BarriosPage() {
                             onChange={(e) =>
                               setEditing({ ...editing, value: e.target.value })
                             }
-                            onKeyDown={(e) => handleKeyDown(e, barrio.id, 'nombre')}
+                            onKeyDown={(e) => {
+                              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                              handleKeyDown(e, barrio.id, 'nombre', cell);
+                            }}
                             onBlur={() => saveEdit(barrio.id, 'nombre')}
                             autoFocus
                             className="input input-sm w-full"
@@ -285,7 +343,10 @@ export function BarriosPage() {
                             onChange={(e) =>
                               setEditing({ ...editing, value: e.target.value })
                             }
-                            onKeyDown={(e) => handleKeyDown(e, barrio.id, 'descripcion')}
+                            onKeyDown={(e) => {
+                              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                              handleKeyDown(e, barrio.id, 'descripcion', cell);
+                            }}
                             onBlur={() => saveEdit(barrio.id, 'descripcion')}
                             autoFocus
                             className="input input-sm w-full"
