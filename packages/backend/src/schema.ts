@@ -312,6 +312,7 @@ export const typeDefs = `#graphql
     estatus: String
     activa: Boolean
     notas: String
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   # Miembro Inputs
@@ -357,6 +358,7 @@ export const typeDefs = `#graphql
     devocionalMiembros: [ID!]
     activo: Boolean
     notas: String
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   # Visita Inputs (Wizard de 8 pasos)

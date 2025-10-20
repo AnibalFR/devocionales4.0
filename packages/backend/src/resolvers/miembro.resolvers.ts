@@ -43,6 +43,7 @@ interface UpdateMiembroInput {
   devocionalMiembros?: string[];
   activo?: boolean;
   notas?: string;
+  lastUpdatedAt?: string; // OCC: timestamp para detectar conflictos
 }
 
 // Función auxiliar para convertir fecha YYYY-MM-DD a DateTime ISO-8601
@@ -244,8 +245,25 @@ export const miembroResolvers = {
         });
       }
 
+      // OCC: Validar conflicto de edición concurrente
+      if (input.lastUpdatedAt) {
+        const serverUpdatedAt = miembroExistente.updatedAt.toISOString();
+        if (serverUpdatedAt !== input.lastUpdatedAt) {
+          throw new GraphQLError('Conflicto: Otro usuario modificó este registro', {
+            extensions: {
+              code: 'EDIT_CONFLICT',
+              serverVersion: serverUpdatedAt,
+              serverData: miembroExistente
+            },
+          });
+        }
+      }
+
+      // Remover lastUpdatedAt del input antes de actualizar
+      const { lastUpdatedAt, ...inputSinTimestamp } = input;
+
       // Actualizar fecha de actualización de edad si se modifica la edad aproximada
-      const data: any = { ...input };
+      const data: any = { ...inputSinTimestamp };
 
       // Convertir fechaNacimiento a DateTime si está presente
       if (input.fechaNacimiento !== undefined) {

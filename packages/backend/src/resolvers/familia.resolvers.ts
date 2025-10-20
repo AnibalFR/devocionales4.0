@@ -28,6 +28,7 @@ interface UpdateFamiliaInput {
   estatus?: string;
   activa?: boolean;
   notas?: string;
+  lastUpdatedAt?: string; // OCC: timestamp para detectar conflictos
 }
 
 export const familiaResolvers = {
@@ -143,9 +144,26 @@ export const familiaResolvers = {
         });
       }
 
+      // OCC: Validar conflicto de edición concurrente
+      if (input.lastUpdatedAt) {
+        const serverUpdatedAt = familiaExistente.updatedAt.toISOString();
+        if (serverUpdatedAt !== input.lastUpdatedAt) {
+          throw new GraphQLError('Conflicto: Otro usuario modificó este registro', {
+            extensions: {
+              code: 'EDIT_CONFLICT',
+              serverVersion: serverUpdatedAt,
+              serverData: familiaExistente
+            },
+          });
+        }
+      }
+
+      // Remover lastUpdatedAt del input antes de actualizar
+      const { lastUpdatedAt, ...dataToUpdate } = input;
+
       const familia = await prisma.familia.update({
         where: { id },
-        data: input,
+        data: dataToUpdate,
         include: {
           miembros: true,
           visitas: true,

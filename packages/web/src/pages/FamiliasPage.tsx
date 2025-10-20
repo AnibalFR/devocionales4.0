@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { AlertTriangle, Lightbulb, CheckCircle, Info } from 'lucide-react';
+import EditConflictModal from '../components/EditConflictModal';
 
 const GET_FAMILIAS = gql`
   query GetFamilias {
@@ -16,6 +17,7 @@ const GET_FAMILIAS = gql`
       estatus
       notas
       createdAt
+      updatedAt
       barrioRel {
         id
         nombre
@@ -192,6 +194,19 @@ export function FamiliasPage() {
     searchMember: '',
   });
 
+  // Estado del modal de conflictos de edición (OCC)
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    familiaId: string | null;
+    field: string | null;
+    pendingValue: string;
+  }>({
+    isOpen: false,
+    familiaId: null,
+    field: null,
+    pendingValue: '',
+  });
+
   const toggleRow = (familiaId: string) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(familiaId)) {
@@ -240,16 +255,22 @@ export function FamiliasPage() {
     return null;
   };
 
-  const saveEdit = async (familiaId: string, field: string, moveToNext = false, currentCellIndex?: number) => {
+  const saveEdit = async (familiaId: string, field: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
 
     try {
+      const familia = familias.find((f: any) => f.id === familiaId);
+
       await updateFamilia({
         variables: {
           id: familiaId,
-          input: { [field]: editing.value || null },
+          input: {
+            [field]: editing.value || null,
+            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
+            ...(forceOverwrite ? {} : { lastUpdatedAt: familia?.updatedAt })
+          },
         },
       });
       cancelEdit();
@@ -288,9 +309,21 @@ export function FamiliasPage() {
       } else {
         isSavingRef.current = false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating familia:', error);
-      alert('Error al actualizar la familia');
+
+      // OCC: Detectar conflicto de edición
+      if (error.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          familiaId,
+          field,
+          pendingValue: editing.value,
+        });
+      } else {
+        alert('Error al actualizar la familia');
+      }
+
       isSavingRef.current = false;
     }
   };
@@ -313,6 +346,34 @@ export function FamiliasPage() {
         saveEdit(familiaId, field);
       }
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, familiaId: null, field: null, pendingValue: '' });
+    cancelEdit();
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.familiaId || !conflictModal.field) return;
+
+    // Restaurar el valor pendiente y forzar sobrescritura
+    setEditing({
+      familiaId: conflictModal.familiaId,
+      field: conflictModal.field,
+      value: conflictModal.pendingValue,
+    });
+
+    setConflictModal({ isOpen: false, familiaId: null, field: null, pendingValue: '' });
+
+    // Guardar con forceOverwrite = true
+    await saveEdit(conflictModal.familiaId, conflictModal.field, false, undefined, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, familiaId: null, field: null, pendingValue: '' });
+    cancelEdit();
   };
 
   const handleNuevaFamilia = async () => {
@@ -1452,6 +1513,16 @@ export function FamiliasPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de Conflictos de Edición (OCC) */}
+      <EditConflictModal
+        isOpen={conflictModal.isOpen}
+        onClose={handleConflictClose}
+        onReload={handleConflictReload}
+        onOverwrite={handleConflictOverwrite}
+        entityType="familia"
+        fieldName={conflictModal.field || undefined}
+      />
     </>
   );
 }

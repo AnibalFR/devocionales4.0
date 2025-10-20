@@ -1,9 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Navegación Tab completada en TODOS los catálogos editables",
-    "Excel-style: Miembros, Familias, Barrios, Núcleos, Devocionales y Metas"
+    "Control de Concurrencia Optimista: Previene pérdida de datos",
+    "Detecta cuando otro usuario editó el mismo registro",
+    "Modal de conflictos te permite recargar o sobrescribir cambios",
+    "Implementado en Familias y Miembros",
+    "Mayor estabilidad en edición colaborativa"
   ],
-  "requiresReload": false,
+  "requiresReload": true,
   "requiresReauth": false
 }

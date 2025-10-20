@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertTriangle, Lightbulb, Info, CheckCircle, Lock, Mail, XCircle } from 'lucide-react';
+import EditConflictModal from '../components/EditConflictModal';
 
 const MIEMBROS_QUERY = gql`
   query Miembros {
@@ -27,6 +28,7 @@ const MIEMBROS_QUERY = gql`
       devocionalParticipantes
       activo
       fechaRegistro
+      updatedAt
       familia {
         id
         nombre
@@ -186,6 +188,19 @@ export function MiembrosPage() {
   const [selectedRol, setSelectedRol] = useState<'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
   const [credencialesGeneradas, setCredencialesGeneradas] = useState<{ email: string; password: string; rol: string } | null>(null);
 
+  // Estado del modal de conflictos de edición (OCC)
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    miembroId: string | null;
+    field: string | null;
+    pendingValue: any;
+  }>({
+    isOpen: false,
+    miembroId: null,
+    field: null,
+    pendingValue: null,
+  });
+
   const tableRef = useRef<HTMLTableElement>(null);
 
   const { data, loading, error, refetch } = useQuery(MIEMBROS_QUERY);
@@ -316,12 +331,13 @@ export function MiembrosPage() {
     setEditing({ miembroId: null, field: null, value: null });
   };
 
-  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number) => {
+  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number, forceOverwrite = false) => {
     if (!editing.field || isSavingRef.current) return;
 
     isSavingRef.current = true;
 
     try {
+      const miembro = miembros.find((m: any) => m.id === miembroId);
       const input: any = {};
 
       // Si se está editando edad aproximada, guardar también fecha de actualización
@@ -329,6 +345,11 @@ export function MiembrosPage() {
         input.edadAproximada = parseInt(editing.value);
       } else {
         input[editing.field] = editing.value || null;
+      }
+
+      // OCC: Agregar timestamp solo si no estamos forzando sobrescritura
+      if (!forceOverwrite && miembro?.updatedAt) {
+        input.lastUpdatedAt = miembro.updatedAt;
       }
 
       await updateMiembro({
@@ -374,8 +395,18 @@ export function MiembrosPage() {
         isSavingRef.current = false;
       }
     } catch (err: any) {
-      alert(`Error al actualizar: ${err.message}`);
-      cancelEdit();
+      // OCC: Detectar conflicto de edición
+      if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          miembroId,
+          field: editing.field,
+          pendingValue: editing.value,
+        });
+      } else {
+        alert(`Error al actualizar: ${err.message}`);
+        cancelEdit();
+      }
       isSavingRef.current = false;
     }
   };
@@ -398,6 +429,34 @@ export function MiembrosPage() {
         saveEdit(miembroId, false);
       }
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: null });
+    cancelEdit();
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.miembroId || !conflictModal.field) return;
+
+    // Restaurar el valor pendiente y forzar sobrescritura
+    setEditing({
+      miembroId: conflictModal.miembroId,
+      field: conflictModal.field,
+      value: conflictModal.pendingValue,
+    });
+
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: null });
+
+    // Guardar con forceOverwrite = true
+    await saveEdit(conflictModal.miembroId, false, undefined, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, miembroId: null, field: null, pendingValue: null });
+    cancelEdit();
   };
 
   const handleDelete = async (id: string, nombre: string) => {
@@ -1331,6 +1390,16 @@ export function MiembrosPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de Conflictos de Edición (OCC) */}
+      <EditConflictModal
+        isOpen={conflictModal.isOpen}
+        onClose={handleConflictClose}
+        onReload={handleConflictReload}
+        onOverwrite={handleConflictOverwrite}
+        entityType="miembro"
+        fieldName={conflictModal.field || undefined}
+      />
     </div>
   );
 }
