@@ -732,37 +732,37 @@ export function MetasPage() {
                 {metas.map((meta: any) => (
                   <tr key={meta.id} data-meta-id={meta.id} className="hover:bg-gray-50">
                     {/* Trimestre - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 ${editingCell?.metaId === meta.id && editingCell?.field === 'trimestre' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'trimestre' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm font-medium text-gray-900 ${editingCell?.metaId === meta.id && editingCell?.field === 'trimestre' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderTrimestreCell(meta)}
                     </td>
 
                     {/* Fecha Inicio - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaInicio' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaInicio' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaInicio' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderDateCell(meta, 'fechaInicio')}
                     </td>
 
                     {/* Fecha Fin - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaFin' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaFin' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaFin' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderDateCell(meta, 'fechaFin')}
                     </td>
 
                     {/* Meta Núcleos - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaNucleos' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'metaNucleos' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaNucleos' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderNumberCell(meta, 'metaNucleos')}
                     </td>
 
                     {/* Meta Visitas - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaVisitas' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'metaVisitas' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaVisitas' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderNumberCell(meta, 'metaVisitas')}
                     </td>
 
                     {/* Meta Personas Visitando - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaPersonasVisitando' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'metaPersonasVisitando' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaPersonasVisitando' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderNumberCell(meta, 'metaPersonasVisitando')}
                     </td>
 
                     {/* Meta Devocionales - EDITABLE */}
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaDevocionales' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
+                    <td className={`px-4 ${editingCell?.metaId === meta.id && editingCell?.field === 'metaDevocionales' ? 'pt-8 pb-2' : 'py-2'} whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaDevocionales' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {renderNumberCell(meta, 'metaDevocionales')}
                     </td>
 

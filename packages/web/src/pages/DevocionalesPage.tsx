@@ -539,7 +539,7 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Día - Editable */}
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`} ref={(el) => el && editing.miembroId === miembro.id && editing.field === 'dia' ? (el as any)._currentCell = el : null}>
+                    <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`} ref={(el) => el && editing.miembroId === miembro.id && editing.field === 'dia' ? (el as any)._currentCell = el : null}>
                       {editing.miembroId === miembro.id && editing.field === 'dia' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}
@@ -599,7 +599,7 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Hora - Editable */}
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
+                    <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'hora' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}
@@ -675,7 +675,7 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Participantes - Editable */}
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
+                    <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'participantes' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}

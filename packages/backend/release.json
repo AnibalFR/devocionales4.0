@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Bugfix UI: Aumenta ancho de columna Edad para mejor edición",
-    "Cambio de 60px a 120px de ancho mínimo",
-    "Ahora se pueden ver claramente los números durante la edición"
+    "Bugfix UI: Completa fix de indicador de edición en Metas y Devocionales",
+    "Ajustado padding en celdas editables para evitar superposición",
+    "El indicador Editando/Guardando ya no tapa los campos de entrada"
   ],
   "requiresReload": false,
   "requiresReauth": false
