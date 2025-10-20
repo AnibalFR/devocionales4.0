@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Corrección del sistema de notificaciones de actualizaciones",
-    "URL del endpoint de release ahora funciona correctamente"
+    "Corrección: Ahora puedes editar fechas de nacimiento sin errores",
+    "El campo 'Fecha Nac.' en el catálogo de miembros funciona correctamente"
   ],
   "requiresReload": false,
   "requiresReauth": false

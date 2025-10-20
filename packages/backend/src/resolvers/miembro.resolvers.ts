@@ -45,6 +45,29 @@ interface UpdateMiembroInput {
   notas?: string;
 }
 
+// Función auxiliar para convertir fecha YYYY-MM-DD a DateTime ISO-8601
+function convertirFechaADateTime(fecha: string | null | undefined): Date | null {
+  if (!fecha) return null;
+
+  // Si ya es un objeto Date o string ISO completo, devolverlo como Date
+  try {
+    const date = new Date(fecha);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  } catch {
+    // Continuar con el parsing manual
+  }
+
+  // Si es formato YYYY-MM-DD, convertir a DateTime a medianoche UTC
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateRegex.test(fecha)) {
+    return new Date(`${fecha}T00:00:00.000Z`);
+  }
+
+  return null;
+}
+
 // Función auxiliar para calcular edad según MEM-003
 function calcularEdad(miembro: any): number | null {
   // Si tiene fechaNacimiento → edad exacta calculada
@@ -168,6 +191,12 @@ export const miembroResolvers = {
         fechaRegistro: new Date(),
       };
 
+      // Convertir fechaNacimiento a DateTime si está presente
+      if (input.fechaNacimiento) {
+        const fechaConvertida = convertirFechaADateTime(input.fechaNacimiento);
+        data.fechaNacimiento = fechaConvertida;
+      }
+
       if (input.edadAproximada !== undefined && input.edadAproximada !== null) {
         data.fechaActualizacionEdad = new Date();
       }
@@ -217,6 +246,13 @@ export const miembroResolvers = {
 
       // Actualizar fecha de actualización de edad si se modifica la edad aproximada
       const data: any = { ...input };
+
+      // Convertir fechaNacimiento a DateTime si está presente
+      if (input.fechaNacimiento !== undefined) {
+        const fechaConvertida = convertirFechaADateTime(input.fechaNacimiento);
+        data.fechaNacimiento = fechaConvertida;
+      }
+
       if (input.edadAproximada !== undefined && input.edadAproximada !== miembroExistente.edadAproximada) {
         data.fechaActualizacionEdad = new Date();
       }
