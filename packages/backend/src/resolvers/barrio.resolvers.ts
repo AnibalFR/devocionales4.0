@@ -1,5 +1,6 @@
-import { GraphQLError } from 'graphql';
+import { GraphQLError} from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface CreateBarrioInput {
   nombre: string;
@@ -82,6 +83,18 @@ export const barrioResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Barrio',
+          entityId: barrio.id,
+          metadata: { nombre: barrio.nombre },
+          barrioId: barrio.id,
+        }
+      );
+
       return barrio;
     },
 
@@ -125,6 +138,18 @@ export const barrioResolvers = {
         data: dataToUpdate,
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Barrio',
+          entityId: barrio.id,
+          metadata: { nombre: barrio.nombre },
+          barrioId: barrio.id,
+        }
+      );
+
       return barrio;
     },
 
@@ -151,6 +176,18 @@ export const barrioResolvers = {
         where: { id },
         data: { activo: false },
       });
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Barrio',
+          entityId: barrio.id,
+          metadata: { nombre: barrio.nombre },
+          barrioId: barrio.id,
+        }
+      );
 
       return true;
     },

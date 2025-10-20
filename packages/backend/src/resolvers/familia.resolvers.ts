@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface CreateFamiliaInput {
   nombre: string;
@@ -123,6 +124,19 @@ export const familiaResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Familia',
+          entityId: familia.id,
+          metadata: { nombre: familia.nombre },
+          barrioId: familia.barrioId || undefined,
+          nucleoId: familia.nucleoId || undefined,
+        }
+      );
+
       return familia;
     },
 
@@ -172,6 +186,19 @@ export const familiaResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Familia',
+          entityId: familia.id,
+          metadata: { nombre: familia.nombre },
+          barrioId: familia.barrioId || undefined,
+          nucleoId: familia.nucleoId || undefined,
+        }
+      );
+
       return familia;
     },
 
@@ -198,6 +225,19 @@ export const familiaResolvers = {
         where: { id },
         data: { activa: false },
       });
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Familia',
+          entityId: familia.id,
+          metadata: { nombre: familia.nombre },
+          barrioId: familia.barrioId || undefined,
+          nucleoId: familia.nucleoId || undefined,
+        }
+      );
 
       return true;
     },

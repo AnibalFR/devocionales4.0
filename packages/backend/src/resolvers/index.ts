@@ -7,6 +7,7 @@ import { metaResolvers } from './meta.resolvers';
 import { barrioResolvers } from './barrio.resolvers';
 import { nucleoResolvers } from './nucleo.resolvers';
 import { utilsResolvers } from './utils.resolvers';
+import { timelineResolvers } from './timeline.resolvers';
 
 export const resolvers: any = {
   Query: {
@@ -17,6 +18,7 @@ export const resolvers: any = {
     ...metaResolvers.Query,
     ...barrioResolvers.Query,
     ...nucleoResolvers.Query,
+    ...timelineResolvers.Query,
   },
   Mutation: {
     ...authResolvers.Mutation,

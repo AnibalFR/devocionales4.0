@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface CreateNucleoInput {
   nombre: string;
@@ -104,6 +105,19 @@ export const nucleoResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Nucleo',
+          entityId: nucleo.id,
+          metadata: { nombre: nucleo.nombre },
+          barrioId: nucleo.barrioId,
+          nucleoId: nucleo.id,
+        }
+      );
+
       return nucleo;
     },
 
@@ -163,6 +177,19 @@ export const nucleoResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Nucleo',
+          entityId: nucleo.id,
+          metadata: { nombre: nucleo.nombre },
+          barrioId: nucleo.barrioId,
+          nucleoId: nucleo.id,
+        }
+      );
+
       return nucleo;
     },
 
@@ -189,6 +216,19 @@ export const nucleoResolvers = {
         where: { id },
         data: { activo: false },
       });
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Nucleo',
+          entityId: nucleo.id,
+          metadata: { nombre: nucleo.nombre },
+          barrioId: nucleo.barrioId,
+          nucleoId: nucleo.id,
+        }
+      );
 
       return true;
     },

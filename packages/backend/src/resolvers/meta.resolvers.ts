@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface CreateMetaInput {
   trimestre: string;
@@ -237,6 +238,17 @@ export const metaResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Meta',
+          entityId: meta.id,
+          metadata: { trimestre: meta.trimestre },
+        }
+      );
+
       return meta;
     },
 
@@ -280,6 +292,17 @@ export const metaResolvers = {
         data: dataToUpdate,
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Meta',
+          entityId: meta.id,
+          metadata: { trimestre: meta.trimestre },
+        }
+      );
+
       return meta;
     },
 
@@ -305,6 +328,17 @@ export const metaResolvers = {
       await prisma.meta.delete({
         where: { id },
       });
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Meta',
+          entityId: meta.id,
+          metadata: { trimestre: meta.trimestre },
+        }
+      );
 
       return true;
     },

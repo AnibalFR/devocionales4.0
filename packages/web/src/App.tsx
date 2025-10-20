@@ -18,6 +18,7 @@ import { ReporteCicloPage } from './pages/ReporteCicloPage';
 import { BarriosPage } from './pages/BarriosPage';
 import { NucleosPage } from './pages/NucleosPage';
 import { ExportarImportarPage } from './pages/ExportarImportarPage';
+import TimelinePage from './pages/TimelinePage';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -131,6 +132,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <ExportarImportarPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/timeline"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TimelinePage />
             </Layout>
           </ProtectedRoute>
         }

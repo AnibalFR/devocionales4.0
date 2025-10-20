@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface VisitActivitiesInput {
   conversacion_preocupaciones?: boolean;
@@ -264,6 +265,19 @@ export const visitaResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Visita',
+          entityId: visita.id,
+          metadata: { visitType: visita.visitType, visitDate: visita.visitDate },
+          barrioId: visita.barrioId || undefined,
+          nucleoId: visita.nucleoId || undefined,
+        }
+      );
+
       return visita;
     },
 
@@ -360,6 +374,19 @@ export const visitaResolvers = {
         },
       });
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Visita',
+          entityId: visita.id,
+          metadata: { visitType: visita.visitType, visitDate: visita.visitDate },
+          barrioId: visita.barrioId || undefined,
+          nucleoId: visita.nucleoId || undefined,
+        }
+      );
+
       return visita;
     },
 
@@ -385,6 +412,19 @@ export const visitaResolvers = {
       await prisma.visita.delete({
         where: { id },
       });
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Visita',
+          entityId: visita.id,
+          metadata: { visitType: visita.visitType, visitDate: visita.visitDate },
+          barrioId: visita.barrioId || undefined,
+          nucleoId: visita.nucleoId || undefined,
+        }
+      );
 
       return true;
     },

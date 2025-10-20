@@ -500,6 +500,44 @@ export const typeDefs = `#graphql
   }
 
   # ============================================
+  # TIMELINE EVENTS - Sistema de Auditoría
+  # ============================================
+
+  type TimelineEvent {
+    id: ID!
+    timestampUtc: String!
+    actorId: ID!
+    actorName: String!
+    actorRole: RolUsuario!
+    actionType: String!      # login, logout, create, update, delete, import, export
+    entityType: String!      # User, Familia, Miembro, Visita, Meta, Barrio, Nucleo, System
+    entityId: ID
+    summary: String!         # Texto natural: "Tú has iniciado sesión"
+    metadata: JSON
+  }
+
+  input TimelineFilters {
+    actionTypes: [String!]   # Filtrar por tipos de acción
+    entityTypes: [String!]   # Filtrar por tipos de entidad
+    actorId: ID              # Filtrar por usuario específico
+    startDate: String        # YYYY-MM-DD
+    endDate: String          # YYYY-MM-DD
+  }
+
+  type TimelineEventsConnection {
+    events: [TimelineEvent!]!
+    hasMore: Boolean!
+    cursor: String
+  }
+
+  type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+  }
+
+  # ============================================
   # QUERIES
   # ============================================
 
@@ -532,6 +570,13 @@ export const typeDefs = `#graphql
     metas: [Meta!]!
     meta(id: ID!): Meta
     metaActiva: Meta  # Meta del periodo actual
+
+    # Timeline Events
+    timelineEvents(
+      filters: TimelineFilters
+      limit: Int = 50
+      cursor: String
+    ): TimelineEventsConnection!
   }
 
   # ============================================

@@ -25,11 +25,12 @@ model Comunidad {
   updatedAt DateTime @updatedAt
 
   // Relaciones
-  usuarios  Usuario[]
-  familias  Familia[]
-  barrios   Barrio[]
-  nucleos   Nucleo[]
-  metas     Meta[]
+  usuarios       Usuario[]
+  familias       Familia[]
+  barrios        Barrio[]
+  nucleos        Nucleo[]
+  metas          Meta[]
+  timelineEvents TimelineEvent[]
 
   @@map("comunidades")
 }
@@ -350,4 +351,44 @@ model Meta {
   @@index([fechaInicio])
   @@index([fechaFin])
   @@map("metas")
+}
+
+// ============================================
+// TIMELINE EVENTS - Sistema de Auditoría
+// ============================================
+
+model TimelineEvent {
+  id            String      @id @default(cuid())
+  timestampUtc  DateTime    @default(now())
+
+  // Actor (quien realizó la acción)
+  actorId       String
+  actorName     String      // Snapshot para evitar joins
+  actorRole     RolUsuario
+
+  // Acción
+  actionType    String      // login, logout, create, update, delete, import, export
+  entityType    String      // User, Familia, Miembro, Visita, Meta, Barrio, Nucleo, System
+  entityId      String?     // ID del registro afectado (null para login/logout)
+
+  // Texto y metadata
+  summary       String      // Texto natural: "Tú has iniciado sesión", "María López creó la familia..."
+  metadata      Json?       // { changedFields, oldValues, recordCount, fileName, etc }
+
+  // Scoping (para filtrar por permisos de rol)
+  comunidadId   String
+  barrioId      String?     // Para filtrar eventos de COLABORADOR por barrio
+  nucleoId      String?     // Para filtrar eventos de COLABORADOR por núcleo
+
+  // Relación
+  comunidad     Comunidad   @relation(fields: [comunidadId], references: [id], onDelete: Cascade)
+
+  @@index([timestampUtc])
+  @@index([actorId])
+  @@index([actionType])
+  @@index([entityType])
+  @@index([comunidadId])
+  @@index([barrioId])
+  @@index([nucleoId])
+  @@map("timeline_events")
 }

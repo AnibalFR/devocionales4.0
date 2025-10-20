@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { createToken } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface LoginInput {
   email: string;
@@ -51,6 +52,15 @@ export const authResolvers = {
 
       // Generar token
       const token = createToken(usuario.id);
+
+      // Registrar evento de login
+      await EventLogger.logEvent(
+        { prisma, userId: usuario.id },
+        {
+          actionType: 'login',
+          entityType: 'System',
+        }
+      );
 
       return {
         token,

@@ -113,6 +113,13 @@ export function Layout({ children }: LayoutProps) {
                       >
                         Núcleos
                       </Link>
+                      <Link
+                        to="/timeline"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setOtrosOpen(false)}
+                      >
+                        Línea de Tiempo
+                      </Link>
                     </div>
                   )}
                 </div>

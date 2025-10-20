@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
+import { EventLogger } from '../services/eventLogger';
 
 interface CreateMiembroInput {
   familiaId?: string;
@@ -224,6 +225,19 @@ export const miembroResolvers = {
         });
       }
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'create',
+          entityType: 'Miembro',
+          entityId: miembro.id,
+          metadata: { nombre: `${miembro.nombre}${miembro.apellidos ? ' ' + miembro.apellidos : ''}` },
+          barrioId: miembro.barrioId || undefined,
+          nucleoId: miembro.nucleoId || undefined,
+        }
+      );
+
       return miembro;
     },
 
@@ -309,6 +323,19 @@ export const miembroResolvers = {
         });
       }
 
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'update',
+          entityType: 'Miembro',
+          entityId: miembro.id,
+          metadata: { nombre: `${miembro.nombre}${miembro.apellidos ? ' ' + miembro.apellidos : ''}` },
+          barrioId: miembro.barrioId || undefined,
+          nucleoId: miembro.nucleoId || undefined,
+        }
+      );
+
       return miembro;
     },
 
@@ -358,6 +385,19 @@ export const miembroResolvers = {
           data: { miembroCount: count },
         });
       }
+
+      // Registrar evento
+      await EventLogger.logEvent(
+        { prisma, userId },
+        {
+          actionType: 'delete',
+          entityType: 'Miembro',
+          entityId: miembro.id,
+          metadata: { nombre: `${miembro.nombre}${miembro.apellidos ? ' ' + miembro.apellidos : ''}` },
+          barrioId: miembro.barrioId || undefined,
+          nucleoId: miembro.nucleoId || undefined,
+        }
+      );
 
       return true;
     },

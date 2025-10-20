@@ -1,10 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Mejora UX: Tooltips informativos en estado de cuenta de miembros",
-    "Tooltips explican permisos de cada rol al pasar el mouse",
-    "Subtítulos de páginas simplificados y más limpios"
+    "Nueva Línea de Tiempo de Eventos Colaborativa",
+    "Visibilidad completa de actividad del sistema",
+    "Registro automático de login, CRUD y cambios",
+    "Filtros por permisos según rol de usuario",
+    "Timeline cronológica con eventos de últimos 90 días"
   ],
-  "requiresReload": false,
+  "requiresReload": true,
   "requiresReauth": false
 }
