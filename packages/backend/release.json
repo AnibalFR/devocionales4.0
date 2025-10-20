@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Hotfix: Corrige posicionamiento de indicador en catálogo Metas",
-    "Eliminado contenedor relativo duplicado que causaba mal posicionamiento",
-    "Indicador Editando ahora se posiciona correctamente en la celda"
+    "Mejora UX: Tooltips informativos en estado de cuenta de miembros",
+    "Tooltips explican permisos de cada rol al pasar el mouse",
+    "Subtítulos de páginas simplificados y más limpios"
   ],
   "requiresReload": false,
   "requiresReauth": false

@@ -635,7 +635,7 @@ export function MiembrosPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Catálogo de Miembros</h1>
           <p className="text-gray-600 mt-2">
-            Gestión completa de miembros con edición inline tipo Excel
+            Gestión completa de miembros
           </p>
         </div>
         <button
@@ -991,12 +991,26 @@ export function MiembrosPage() {
                     {/* Estado de Cuenta */}
                     <td className="px-4 py-2">
                       {miembro.usuario ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
+                          title={
+                            miembro.usuario.rol === 'CEA' || miembro.usuario.rol === 'MCA'
+                              ? 'Acceso completo: Ver, crear, editar, eliminar y gestionar usuarios'
+                              : miembro.usuario.rol === 'COLABORADOR'
+                              ? 'Puede ver toda la información, crear y editar registros, y enviar invitaciones'
+                              : miembro.usuario.rol === 'VISITANTE'
+                              ? 'Solo puede ver información, sin permisos de edición'
+                              : ''
+                          }
+                        >
                           <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
                           {miembro.usuario.rol}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        <span
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 cursor-help"
+                          title="Este miembro no tiene acceso al sistema. Usa el botón 'Invitar' para crear su cuenta."
+                        >
                           <Lock className="w-3.5 h-3.5 flex-shrink-0" />
                           Sin acceso
                         </span>
