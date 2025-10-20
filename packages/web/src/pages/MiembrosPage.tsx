@@ -168,6 +168,7 @@ export function MiembrosPage() {
     field: null,
     value: null,
   });
+  const isSavingRef = useRef(false);
 
   const [filtroFamilia, setFiltroFamilia] = useState('');
   const [filtroRol, setFiltroRol] = useState('');
@@ -283,11 +284,23 @@ export function MiembrosPage() {
     // Buscar siguiente celda editable en la misma fila
     for (let i = currentIndex + 1; i < cells.length; i++) {
       const cell = cells[i];
-      // Verificar si la celda tiene onclick directo, checkbox, o un span/select editable dentro
-      if (cell.onclick ||
-          cell.querySelector('input[type="checkbox"]') ||
-          cell.querySelector('span.cursor-pointer') ||
-          cell.querySelector('select')) {
+
+      // Verificar si la celda es editable:
+      // 1. Tiene onclick directo en el td
+      // 2. Tiene un checkbox
+      // 3. Tiene un span clickeable (columnas de texto)
+      // 4. Tiene un select (dropdowns)
+      // 5. NO tiene bg-gray-50 (que indica readonly)
+
+      if (cell.classList.contains('bg-gray-50')) {
+        continue; // Celda readonly
+      }
+
+      const hasCheckbox = cell.querySelector('input[type="checkbox"]');
+      const hasClickableSpan = cell.querySelector('span[class*="cursor-pointer"]');
+      const hasSelect = cell.querySelector('select');
+
+      if (cell.onclick || hasCheckbox || hasClickableSpan || hasSelect) {
         return cell as HTMLTableCellElement;
       }
     }
@@ -304,7 +317,9 @@ export function MiembrosPage() {
   };
 
   const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number) => {
-    if (!editing.field) return;
+    if (!editing.field || isSavingRef.current) return;
+
+    isSavingRef.current = true;
 
     try {
       const input: any = {};
@@ -328,20 +343,40 @@ export function MiembrosPage() {
         setTimeout(() => {
           // Encontrar la fila del miembro que acabamos de editar
           const row = tableRef.current?.querySelector(`tr[data-miembro-id="${miembroId}"]`) as HTMLTableRowElement;
-          if (!row) return;
+          if (!row) {
+            isSavingRef.current = false;
+            return;
+          }
 
           const currentCell = row.cells[currentCellIndex];
-          if (!currentCell) return;
+          if (!currentCell) {
+            isSavingRef.current = false;
+            return;
+          }
 
           const nextCell = findNextEditableCell(currentCell);
           if (nextCell) {
-            nextCell.click();
+            // Buscar el elemento clickeable dentro de la celda y hacer click en él
+            const clickableSpan = nextCell.querySelector('span[class*="cursor-pointer"]') as HTMLElement;
+            const clickableCheckbox = nextCell.querySelector('input[type="checkbox"]') as HTMLElement;
+
+            if (clickableSpan) {
+              clickableSpan.click();
+            } else if (clickableCheckbox) {
+              clickableCheckbox.focus();
+            } else if (nextCell.onclick) {
+              nextCell.click();
+            }
           }
+          isSavingRef.current = false;
         }, 100);
+      } else {
+        isSavingRef.current = false;
       }
     } catch (err: any) {
       alert(`Error al actualizar: ${err.message}`);
       cancelEdit();
+      isSavingRef.current = false;
     }
   };
 

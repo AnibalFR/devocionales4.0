@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Corrección: Tab ahora funciona correctamente en TODAS las columnas editables",
-    "Navegación tipo Excel mejorada: Nombre → Apellidos → Fecha → etc."
+    "Corrección definitiva: Navegación con Tab corregida en catálogo",
+    "Ahora Tab funciona correctamente de Nombre → Apellidos → etc."
   ],
   "requiresReload": false,
   "requiresReauth": false
