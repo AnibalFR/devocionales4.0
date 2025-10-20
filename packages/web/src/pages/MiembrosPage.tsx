@@ -845,9 +845,33 @@ export function MiembrosPage() {
                       )}
                     </td>
 
-                    {/* Barrio - readonly */}
-                    <td className="px-4 py-2 bg-gray-50 text-gray-600 text-sm" title="Sincronizado con familia">
-                      {miembro.barrio?.nombre || '-'}
+                    {/* Barrio - Editable Dropdown */}
+                    <td className="px-4 py-2">
+                      {editing.miembroId === miembro.id && editing.field === 'barrioId' ? (
+                        <select
+                          value={editing.value || ''}
+                          onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                          onBlur={() => saveEdit(miembro.id)}
+                          onKeyDown={(e) => {
+                            const cell = e.currentTarget.parentElement as HTMLTableCellElement;
+                            handleKeyDown(e, miembro.id, cell);
+                          }}
+                          className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
+                          autoFocus
+                        >
+                          <option value="">-</option>
+                          {barrios.map((b: any) => (
+                            <option key={b.id} value={b.id}>{b.nombre}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span
+                          className="cursor-pointer hover:underline text-sm"
+                          onClick={() => startEdit(miembro.id, 'barrioId', miembro.barrioId)}
+                        >
+                          {miembro.barrio?.nombre || '-'}
+                        </span>
+                      )}
                     </td>
 
                     {/* Núcleo - Editable Dropdown */}

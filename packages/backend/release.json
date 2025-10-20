@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Fix: Las fechas de nacimiento ahora se visualizan correctamente",
-    "Corrección en el formato de fechas para evitar problemas de timezone"
+    "Nueva funcionalidad: Ahora puedes editar el Barrio de los miembros",
+    "La columna Barrio en el catálogo de miembros ahora es editable"
   ],
   "requiresReload": false,
   "requiresReauth": false

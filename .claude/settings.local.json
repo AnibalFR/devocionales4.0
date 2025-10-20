@@ -1,9 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ssh root@64.227.96.34 \"PGPASSWORD=''I2xLLTLI2icagcsXO5JsjW4fLmtOWcJ62e4tpPnaSOM='' psql -U devocionales -d devocionales_prod -h localhost -c ''SELECT id, nombre, \"\"fechaNacimiento\"\" FROM miembros WHERE \"\"fechaNacimiento\"\" IS NOT NULL LIMIT 5;''\")",
-      "Bash(ssh root@64.227.96.34 'curl -s http://localhost:4000/graphql -H \"\"Content-Type: application/json\"\" -d '\"''\"'{\n  \"\"query\"\": \"\"{ miembros { id nombre fechaNacimiento edadCalculada } }\"\"\n}'\"''\"' | python3 -m json.tool')",
-      "Bash(./deploy.sh -c \"Fix: Corrige visualización de fechas de nacimiento\n\n## Problema\n- Las fechas de nacimiento se guardaban correctamente\n- Pero no se visualizaban en el catálogo (aparecía ''-'')\n- Problema de serialización GraphQL y timezone\n\n## Solución Backend\n- Resolver personalizado para fechaNacimiento en miembro.resolvers.ts\n- Serializa el Date como ISO string para GraphQL\n\n## Solución Frontend  \n- Mejora en función formatDate()\n- Extrae la fecha del string ISO evitando problemas de timezone\n- Formato DD/MM/YYYY sin conversiones de zona horaria\n\nAhora las fechas de nacimiento se visualizan correctamente.\")"
+      "Bash(./deploy.sh -c \"Feature: Habilita edición de Barrio en catálogo de miembros\n\n## Problema\n- La columna Barrio estaba marcada como readonly\n- No se podía asignar o cambiar el barrio de un miembro\n- Tooltip decía ''Sincronizado con familia'' (sin fundamento en reglas de negocio)\n\n## Solución\n- Columna Barrio ahora es editable con dropdown\n- Muestra todos los barrios disponibles\n- Funciona igual que la columna de Núcleo\n- Navegación con Tab, Enter, Escape\n\n## Frontend\n- Actualizado MiembrosPage.tsx:848-875\n- Dropdown editable de barrios\n- Soporte para teclado (Enter/Tab/Escape)\n- Estilo consistente con otras columnas editables\n\nLos usuarios ahora pueden asignar y cambiar barrios directamente desde el catálogo de miembros.\")"
     ],
     "deny": [],
     "ask": []
