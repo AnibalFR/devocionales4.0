@@ -83,6 +83,7 @@ const UPDATE_MIEMBRO = gql`
   mutation UpdateMiembro($id: ID!, $input: UpdateMiembroInput!) {
     updateMiembro(id: $id, input: $input) {
       id
+      updatedAt
     }
   }
 `;
@@ -361,8 +362,9 @@ export function MiembrosPage() {
         variables: { id: miembroId, input },
       });
 
-      setIsSaving(false); // FASE 2: Ocultar indicador
+      // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
       cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda

@@ -46,6 +46,7 @@ const UPDATE_META = gql`
     updateMeta(id: $id, input: $input) {
       id
       trimestre
+      updatedAt
     }
   }
 `;
@@ -295,8 +296,9 @@ export function MetasPage() {
         }
       });
 
-      setIsSaving(false); // FASE 2: Ocultar indicador
+      // Esperar refetch ANTES de ocultar indicador para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
     } catch (err: any) {
       setIsSaving(false); // FASE 2: Ocultar indicador en error
       // OCC: Detectar conflicto de edición

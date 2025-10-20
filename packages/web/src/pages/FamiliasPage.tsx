@@ -87,6 +87,7 @@ const UPDATE_FAMILIA = gql`
       nucleoId
       estatus
       notas
+      updatedAt
     }
   }
 `;
@@ -278,9 +279,11 @@ export function FamiliasPage() {
           },
         },
       });
-      cancelEdit();
-      setIsSaving(false); // FASE 2: Ocultar indicador
+
+      // Esperar refetch ANTES de cancelEdit para asegurar datos actualizados
       await refetch();
+      setIsSaving(false); // FASE 2: Ocultar indicador
+      cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
       if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
