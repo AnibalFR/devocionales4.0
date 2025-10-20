@@ -62,6 +62,7 @@ interface UpdateVisitaInput {
   seguimientoActividadBasicaEspecificar?: string;
   seguimientoNinguno?: boolean;
   additionalNotes?: string;
+  lastUpdatedAt?: string; // OCC: timestamp para detectar conflictos
 }
 
 // Función para derivar automáticamente el visitStatus según VIS-002
@@ -299,6 +300,20 @@ export const visitaResolvers = {
         throw new GraphQLError('No tiene permisos para editar esta visita', {
           extensions: { code: 'FORBIDDEN' },
         });
+      }
+
+      // OCC: Validar conflicto de edición concurrente
+      if (input.lastUpdatedAt) {
+        const serverUpdatedAt = visitaExistente.updatedAt.toISOString();
+        if (serverUpdatedAt !== input.lastUpdatedAt) {
+          throw new GraphQLError('Conflicto: Otro usuario modificó este registro', {
+            extensions: {
+              code: 'EDIT_CONFLICT',
+              serverVersion: serverUpdatedAt,
+              serverData: visitaExistente
+            },
+          });
+        }
       }
 
       // Derivar el nuevo visitStatus si se actualiza el tipo o la fecha

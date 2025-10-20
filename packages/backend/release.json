@@ -1,11 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Control de Concurrencia Optimista: Previene pérdida de datos",
-    "Detecta cuando otro usuario editó el mismo registro",
-    "Modal de conflictos te permite recargar o sobrescribir cambios",
-    "Implementado en Familias y Miembros",
-    "Mayor estabilidad en edición colaborativa"
+    "OCC extendido: Ahora en Familias, Miembros, Metas y Visitas",
+    "Protección completa contra pérdida de datos por edición simultánea",
+    "Modal intuitivo para resolver conflictos",
+    "Sistema de timestamps automático sin cambios en BD",
+    "Cobertura total en tablas con edición colaborativa"
   ],
   "requiresReload": true,
   "requiresReauth": false

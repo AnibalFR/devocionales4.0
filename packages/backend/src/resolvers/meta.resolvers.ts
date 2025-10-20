@@ -19,6 +19,7 @@ interface UpdateMetaInput {
   metaVisitas?: number;
   metaPersonasVisitando?: number;
   metaDevocionales?: number;
+  lastUpdatedAt?: string; // OCC: timestamp para detectar conflictos
 }
 
 // Función para calcular el estado de una meta según META-003
@@ -257,9 +258,26 @@ export const metaResolvers = {
         });
       }
 
+      // OCC: Validar conflicto de edición concurrente
+      if (input.lastUpdatedAt) {
+        const serverUpdatedAt = metaExistente.updatedAt.toISOString();
+        if (serverUpdatedAt !== input.lastUpdatedAt) {
+          throw new GraphQLError('Conflicto: Otro usuario modificó este registro', {
+            extensions: {
+              code: 'EDIT_CONFLICT',
+              serverVersion: serverUpdatedAt,
+              serverData: metaExistente
+            },
+          });
+        }
+      }
+
+      // Remover lastUpdatedAt del input antes de actualizar
+      const { lastUpdatedAt, ...dataToUpdate } = input;
+
       const meta = await prisma.meta.update({
         where: { id },
-        data: input,
+        data: dataToUpdate,
       });
 
       return meta;

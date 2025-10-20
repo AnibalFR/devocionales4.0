@@ -86,6 +86,7 @@ const VISITAS_QUERY = gql`
         nombre
       }
       createdAt
+      updatedAt
     }
   }
 `;

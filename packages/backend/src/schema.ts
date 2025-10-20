@@ -437,6 +437,7 @@ export const typeDefs = `#graphql
     seguimientoActividadBasicaEspecificar: String
     seguimientoNinguno: Boolean
     additionalNotes: String
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   # Meta Inputs
@@ -458,6 +459,7 @@ export const typeDefs = `#graphql
     metaVisitas: Int
     metaPersonasVisitando: Int
     metaDevocionales: Int
+    lastUpdatedAt: String  # OCC: timestamp para detectar conflictos
   }
 
   # Barrio Inputs

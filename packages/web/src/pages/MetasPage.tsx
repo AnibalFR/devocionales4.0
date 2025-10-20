@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Trash2 } from 'lucide-react';
+import EditConflictModal from '../components/EditConflictModal';
 
 const METAS_QUERY = gql`
   query Metas {
@@ -15,6 +16,7 @@ const METAS_QUERY = gql`
       metaDevocionales
       estado
       createdAt
+      updatedAt
       progreso {
         nucleosActuales
         nucleosPorcentaje
@@ -68,6 +70,19 @@ const ESTADO_COLORS: Record<string, string> = {
 export function MetasPage() {
   // State para edición inline (replicar v3.0)
   const [editingCell, setEditingCell] = useState<{metaId: string, field: string} | null>(null);
+
+  // Estado del modal de conflictos de edición (OCC)
+  const [conflictModal, setConflictModal] = useState<{
+    isOpen: boolean;
+    metaId: string | null;
+    field: string | null;
+    pendingValue: any;
+  }>({
+    isOpen: false,
+    metaId: null,
+    field: null,
+    pendingValue: null,
+  });
 
   // Refs para navegación con Tab
   const tableRef = useRef<HTMLTableElement>(null);
@@ -259,18 +274,55 @@ export function MetasPage() {
   // FUNCIONES DE EDICIÓN INLINE (v3.0 pattern)
   // ============================================
 
-  const handleInlineUpdate = async (metaId: string, field: string, value: any) => {
+  const handleInlineUpdate = async (metaId: string, field: string, value: any, forceOverwrite = false) => {
     try {
+      const meta = metas.find((m: any) => m.id === metaId);
+
       await updateMeta({
         variables: {
           id: metaId,
-          input: { [field]: value }
+          input: {
+            [field]: value,
+            // OCC: Enviar timestamp solo si no estamos forzando sobrescritura
+            ...(forceOverwrite ? {} : { lastUpdatedAt: meta?.updatedAt })
+          }
         }
       });
       await refetch();
     } catch (err: any) {
-      alert(`Error al actualizar: ${err.message}`);
+      // OCC: Detectar conflicto de edición
+      if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
+        setConflictModal({
+          isOpen: true,
+          metaId,
+          field,
+          pendingValue: value,
+        });
+      } else {
+        alert(`Error al actualizar: ${err.message}`);
+      }
     }
+  };
+
+  // OCC: Handlers del modal de conflictos
+  const handleConflictReload = async () => {
+    await refetch();
+    setConflictModal({ isOpen: false, metaId: null, field: null, pendingValue: null });
+    setEditingCell(null);
+  };
+
+  const handleConflictOverwrite = async () => {
+    if (!conflictModal.metaId || !conflictModal.field) return;
+
+    setConflictModal({ isOpen: false, metaId: null, field: null, pendingValue: null });
+
+    // Guardar con forceOverwrite = true
+    await handleInlineUpdate(conflictModal.metaId, conflictModal.field, conflictModal.pendingValue, true);
+  };
+
+  const handleConflictClose = () => {
+    setConflictModal({ isOpen: false, metaId: null, field: null, pendingValue: null });
+    setEditingCell(null);
   };
 
   // Función para encontrar la siguiente celda editable
@@ -711,6 +763,16 @@ export function MetasPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de Conflictos de Edición (OCC) */}
+      <EditConflictModal
+        isOpen={conflictModal.isOpen}
+        onClose={handleConflictClose}
+        onReload={handleConflictReload}
+        onOverwrite={handleConflictOverwrite}
+        entityType="meta"
+        fieldName={conflictModal.field || undefined}
+      />
     </div>
   );
 }
