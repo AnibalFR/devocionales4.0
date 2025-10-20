@@ -436,9 +436,9 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <div className="relative">
+        <div>
           {/* FASE 2: Indicador visual */}
-          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <EditingIndicator isEditing={true} isSaving={isSaving} />
           <select
             autoFocus
             defaultValue={meta.trimestre}
@@ -493,9 +493,9 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <div className="relative">
+        <div>
           {/* FASE 2: Indicador visual */}
-          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <EditingIndicator isEditing={true} isSaving={isSaving} />
           <input
             type="date"
             autoFocus
@@ -549,9 +549,9 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <div className="relative">
+        <div>
           {/* FASE 2: Indicador visual */}
-          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <EditingIndicator isEditing={true} isSaving={isSaving} />
           <input
             type="number"
             min="0"

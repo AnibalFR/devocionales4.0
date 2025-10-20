@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Bugfix UI: Completa fix de indicador de edición en Metas y Devocionales",
-    "Ajustado padding en celdas editables para evitar superposición",
-    "El indicador Editando/Guardando ya no tapa los campos de entrada"
+    "Hotfix: Corrige posicionamiento de indicador en catálogo Metas",
+    "Eliminado contenedor relativo duplicado que causaba mal posicionamiento",
+    "Indicador Editando ahora se posiciona correctamente en la celda"
   ],
   "requiresReload": false,
   "requiresReauth": false
