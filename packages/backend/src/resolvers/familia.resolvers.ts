@@ -223,6 +223,15 @@ export const familiaResolvers = {
       });
     },
 
+    // OCC Fix: Serializar campos Date a ISO string
+    updatedAt: (parent: any) => {
+      return parent.updatedAt instanceof Date ? parent.updatedAt.toISOString() : parent.updatedAt;
+    },
+
+    createdAt: (parent: any) => {
+      return parent.createdAt instanceof Date ? parent.createdAt.toISOString() : parent.createdAt;
+    },
+
     barrioRel: async (parent: any, _args: unknown, { prisma }: Context) => {
       if (parent.barrioRel) return parent.barrioRel;
       if (!parent.barrioId) return null;

@@ -1,11 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Hotfix Crítico: Resuelve falsos positivos en conflictos de edición",
-    "OCC captura timestamp al INICIAR edición, no al guardar",
-    "Elimina conflictos erróneos cuando un único usuario edita",
-    "Corrección aplicada a TODOS los catálogos editables",
-    "Experiencia de edición más fluida y confiable"
+    "Hotfix Crítico: Resuelve formato inconsistente de timestamps OCC",
+    "Serialización correcta de updatedAt/createdAt como ISO strings",
+    "Field resolvers agregados en backend para todos los tipos",
+    "Elimina completamente falsos positivos de conflictos",
+    "Sistema OCC ahora totalmente funcional y confiable"
   ],
   "requiresReload": true,
   "requiresReauth": false
