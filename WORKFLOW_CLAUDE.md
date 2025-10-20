@@ -123,6 +123,55 @@ Marcar cada tarea como completada cuando termine.
 
 ### PASO 5: Preparar Deployment
 
+#### A. Actualizar Notas de Release
+
+**Antes de cada deployment, actualizar `packages/backend/release.json`:**
+
+1. **Editar el array de notas:**
+   ```json
+   {
+     "buildId": "auto-generated",
+     "notes": [
+       "Nueva funcionalidad de reportes mejorados",
+       "Corrección de errores en formularios",
+       "Mejoras de rendimiento"
+     ],
+     "requiresReload": false,
+     "requiresReauth": false
+   }
+   ```
+
+2. **Configurar flags según el tipo de actualización:**
+
+   - **Actualización menor** (fixes pequeños, mejoras visuales):
+     ```json
+     "requiresReload": false,
+     "requiresReauth": false
+     ```
+     → Muestra toast discreto, usuario actualiza cuando quiera
+
+   - **Actualización importante** (nuevas features, cambios significativos):
+     ```json
+     "requiresReload": true,
+     "requiresReauth": false
+     ```
+     → Muestra modal automático, usuario debe actualizar
+
+   - **Actualización crítica** (cambios en autenticación, schema, seguridad):
+     ```json
+     "requiresReload": true,
+     "requiresReauth": true
+     ```
+     → Modal que requiere logout + reload
+
+3. **Mejores prácticas para notas:**
+   - Máximo 5 items para mejor legibilidad
+   - Sé claro y conciso
+   - Usa lenguaje orientado al usuario
+   - Enfócate en beneficios, no en detalles técnicos
+
+#### B. Determinar Opciones del Script
+
 1. **Determinar opciones del script de deployment:**
 
    ```bash
@@ -195,13 +244,31 @@ Marcar cada tarea como completada cuando termine.
    - Estado de PM2
    - Endpoint GraphQL interno
    - Acceso público
+   - **Endpoint de release**: `/api/release` con nuevo buildId
 
 2. **Revisar output del script:**
    - Confirmar que todos los pasos fueron exitosos (✓)
    - No debe haber errores (✗)
    - Warnings (⚠) son aceptables según el caso
 
-3. **Si algo falla:**
+3. **Sistema de notificación automática:**
+   - El deployment genera un nuevo `buildId` único (timestamp + git hash)
+   - Los usuarios activos verán notificación en ~5 minutos (polling automático)
+   - Tipo de notificación depende de los flags configurados en `release.json`:
+     - `requiresReload: false, requiresReauth: false` → Toast discreto
+     - `requiresReload: true, requiresReauth: false` → Modal automático
+     - `requiresReload: true, requiresReauth: true` → Modal con logout
+
+4. **Verificar endpoint de release:**
+   ```bash
+   # Verificar internamente
+   ssh root@64.227.96.34 'curl -s http://localhost:4000/api/release | python3 -m json.tool'
+
+   # Verificar públicamente
+   curl -s https://www.registrodevocionales.com/api/release
+   ```
+
+5. **Si algo falla:**
    ```bash
    # Ver logs del servidor
    ssh root@64.227.96.34 'pm2 logs devocionales-api --lines 50'
@@ -311,6 +378,9 @@ Antes de ejecutar `./deploy.sh`, verificar:
 - [ ] Los cambios están completos y probados
 - [ ] El código compila sin errores (backend y frontend)
 - [ ] Actualicé TodoWrite marcando tareas completadas
+- [ ] **Actualicé `packages/backend/release.json` con:**
+  - [ ] Notas del release (qué cambió)
+  - [ ] Flags apropiados (`requiresReload`, `requiresReauth`)
 - [ ] Identifiqué si necesito `-m` (migraciones)
 - [ ] Identifiqué si necesito `-i` (dependencias)
 - [ ] Preparé mensaje de commit descriptivo

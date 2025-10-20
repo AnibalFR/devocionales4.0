@@ -4,6 +4,9 @@ import { apolloClient } from './lib/apollo';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { UpdateToast } from './components/UpdateToast';
+import { UpdateModal } from './components/UpdateModal';
+import { useAppVersion } from './hooks/useAppVersion';
 import { LoginPage } from './pages/LoginPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { FamiliasPage } from './pages/FamiliasPage';
@@ -18,9 +21,14 @@ import { ExportarImportarPage } from './pages/ExportarImportarPage';
 
 function AppRoutes() {
   const { user } = useAuth();
+  const { hasNewVersion, release, refresh, dismissUpdate } = useAppVersion();
+
+  const showModal = hasNewVersion && release && (release.requiresReload || release.requiresReauth);
+  const showToast = hasNewVersion && release && !release.requiresReload && !release.requiresReauth;
 
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
@@ -128,7 +136,17 @@ function AppRoutes() {
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+
+      {/* Sistema de notificaciones de actualización */}
+      {showModal && release && (
+        <UpdateModal release={release} onUpdate={refresh} onDismiss={dismissUpdate} />
+      )}
+
+      {showToast && (
+        <UpdateToast onUpdate={refresh} onDismiss={dismissUpdate} />
+      )}
+    </>
   );
 }
 

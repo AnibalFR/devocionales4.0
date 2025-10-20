@@ -263,10 +263,36 @@ fi
 if [ "$SKIP_BUILD" = false ]; then
     print_step "🔨 CONSTRUYENDO FRONTEND"
 
-    print_info "Ejecutando vite build..."
-    ssh $SERVER "cd $APP_DIR/packages/web && pnpm vite build"
+    # Generar BUILD_ID único (timestamp-githash)
+    print_info "Generando BUILD_ID..."
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+    GIT_HASH=$(ssh $SERVER "cd $APP_DIR && git rev-parse --short HEAD")
+    BUILD_ID="${TIMESTAMP}-${GIT_HASH}"
 
-    print_success "Frontend construido exitosamente"
+    print_success "BUILD_ID generado: $BUILD_ID"
+
+    # Actualizar release.json con el nuevo buildId
+    print_info "Actualizando release.json con BUILD_ID..."
+    ssh $SERVER "cd $APP_DIR/packages/backend && \
+        if [ -f release.json ]; then \
+            sed -i 's/\"buildId\": \".*\"/\"buildId\": \"$BUILD_ID\"/' release.json; \
+        else \
+            echo '{\"buildId\":\"$BUILD_ID\",\"notes\":[],\"requiresReload\":false,\"requiresReauth\":false}' > release.json; \
+        fi"
+
+    print_success "release.json actualizado"
+
+    # Recordatorio para editar notas de release
+    print_warning "RECORDATORIO: Edita packages/backend/release.json en el servidor si quieres agregar notas del release"
+    print_info "Puedes hacerlo con: ssh $SERVER 'nano $APP_DIR/packages/backend/release.json'"
+
+    # Pausa de 5 segundos para dar tiempo a editar si es necesario
+    sleep 2
+
+    print_info "Ejecutando vite build con BUILD_ID..."
+    ssh $SERVER "cd $APP_DIR/packages/web && BUILD_ID=$BUILD_ID pnpm vite build"
+
+    print_success "Frontend construido exitosamente con BUILD_ID: $BUILD_ID"
 else
     print_warning "Build del frontend omitido (--skip-build)"
 fi

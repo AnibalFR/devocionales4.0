@@ -1,0 +1,39 @@
+{
+  "_comment": "Template para editar las notas de release antes de cada deployment",
+  "_instructions": [
+    "1. El buildId se genera automáticamente durante el deployment",
+    "2. Edita el array 'notes' con las mejoras de esta versión (máximo 5 items recomendado)",
+    "3. requiresReload: true = muestra modal automático que requiere actualización",
+    "4. requiresReauth: true = requiere que el usuario cierre sesión y vuelva a entrar",
+    "5. Si solo quieres notificación discreta (toast), deja ambos flags en false"
+  ],
+  "_examples": [
+    {
+      "scenario": "Actualización menor (mejoras visuales, fixes pequeños)",
+      "requiresReload": false,
+      "requiresReauth": false,
+      "notes": ["Mejoras visuales en el diseño", "Corrección de errores menores"]
+    },
+    {
+      "scenario": "Actualización importante (nuevas features, cambios significativos)",
+      "requiresReload": true,
+      "requiresReauth": false,
+      "notes": ["Nueva funcionalidad de reportes", "Mejoras de rendimiento", "Actualización de dependencias"]
+    },
+    {
+      "scenario": "Actualización crítica (cambios en autenticación o schema)",
+      "requiresReload": true,
+      "requiresReauth": true,
+      "notes": ["Cambios en el sistema de autenticación", "Actualización de seguridad importante"]
+    }
+  ],
+
+  "buildId": "auto-generated-do-not-edit",
+  "notes": [
+    "Agrega aquí las mejoras de esta versión",
+    "Máximo 5 items para mejor legibilidad",
+    "Sé claro y conciso"
+  ],
+  "requiresReload": false,
+  "requiresReauth": false
+}

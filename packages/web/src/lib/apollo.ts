@@ -46,3 +46,8 @@ export const apolloClient = new ApolloClient({
     },
   },
 });
+
+// Hacer el cliente disponible globalmente para el sistema de actualizaciones
+if (typeof window !== 'undefined') {
+  window.apolloClient = apolloClient;
+}
