@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Trash2 } from 'lucide-react';
 import EditConflictModal from '../components/EditConflictModal';
+import EditingIndicator from '../components/EditingIndicator';
 
 const METAS_QUERY = gql`
   query Metas {
@@ -70,6 +71,9 @@ const ESTADO_COLORS: Record<string, string> = {
 export function MetasPage() {
   // State para edición inline (replicar v3.0)
   const [editingCell, setEditingCell] = useState<{metaId: string, field: string} | null>(null);
+
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
 
   // Estado del modal de conflictos de edición (OCC)
   const [conflictModal, setConflictModal] = useState<{
@@ -275,6 +279,8 @@ export function MetasPage() {
   // ============================================
 
   const handleInlineUpdate = async (metaId: string, field: string, value: any, forceOverwrite = false) => {
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
+
     try {
       const meta = metas.find((m: any) => m.id === metaId);
 
@@ -288,8 +294,11 @@ export function MetasPage() {
           }
         }
       });
+
+      setIsSaving(false); // FASE 2: Ocultar indicador
       await refetch();
     } catch (err: any) {
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
       // OCC: Detectar conflicto de edición
       if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
         setConflictModal({
@@ -416,39 +425,43 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <select
-          autoFocus
-          defaultValue={meta.trimestre}
-          className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm"
-          onChange={async (e) => {
-            const selectedOption = generateTrimestreOptions().find(opt => opt.label === e.target.value);
-            if (selectedOption) {
-              await handleInlineUpdate(meta.id, 'trimestre', selectedOption.label);
-              await handleInlineUpdate(meta.id, 'fechaInicio', selectedOption.fechaInicio);
-              await handleInlineUpdate(meta.id, 'fechaFin', selectedOption.fechaFin);
-            }
-            setEditingCell(null);
-          }}
-          onBlur={() => setEditingCell(null)}
-          onKeyDown={async (e) => {
-            if (e.key === 'Escape') {
-              setEditingCell(null);
-            } else if (e.key === 'Tab') {
-              e.preventDefault();
-              setEditingCell(null);
-              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
-              const row = cell?.parentElement as HTMLTableRowElement;
-              if (row && cell) {
-                const cellIndex = Array.from(row.cells).indexOf(cell);
-                await handleTabNavigation(meta.id, cellIndex);
+        <div className="relative">
+          {/* FASE 2: Indicador visual */}
+          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <select
+            autoFocus
+            defaultValue={meta.trimestre}
+            className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm"
+            onChange={async (e) => {
+              const selectedOption = generateTrimestreOptions().find(opt => opt.label === e.target.value);
+              if (selectedOption) {
+                await handleInlineUpdate(meta.id, 'trimestre', selectedOption.label);
+                await handleInlineUpdate(meta.id, 'fechaInicio', selectedOption.fechaInicio);
+                await handleInlineUpdate(meta.id, 'fechaFin', selectedOption.fechaFin);
               }
-            }
-          }}
-        >
-          {generateTrimestreOptions().map(opt => (
-            <option key={opt.value} value={opt.label}>{opt.label}</option>
-          ))}
-        </select>
+              setEditingCell(null);
+            }}
+            onBlur={() => setEditingCell(null)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Escape') {
+                setEditingCell(null);
+              } else if (e.key === 'Tab') {
+                e.preventDefault();
+                setEditingCell(null);
+                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                const row = cell?.parentElement as HTMLTableRowElement;
+                if (row && cell) {
+                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                  await handleTabNavigation(meta.id, cellIndex);
+                }
+              }
+            }}
+          >
+            {generateTrimestreOptions().map(opt => (
+              <option key={opt.value} value={opt.label}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       );
     }
 
@@ -469,38 +482,42 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <input
-          type="date"
-          autoFocus
-          defaultValue={value}
-          className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm"
-          onChange={async (e) => {
-            if (e.target.value) {
-              await handleInlineUpdate(meta.id, field, e.target.value);
-            }
-          }}
-          onBlur={() => setEditingCell(null)}
-          onKeyDown={async (e) => {
-            if (e.key === 'Escape') {
-              setEditingCell(null);
-            } else if (e.key === 'Enter') {
-              setEditingCell(null);
-            } else if (e.key === 'Tab') {
-              e.preventDefault();
-              const value = (e.target as HTMLInputElement).value;
-              if (value) {
-                await handleInlineUpdate(meta.id, field, value);
+        <div className="relative">
+          {/* FASE 2: Indicador visual */}
+          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <input
+            type="date"
+            autoFocus
+            defaultValue={value}
+            className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm"
+            onChange={async (e) => {
+              if (e.target.value) {
+                await handleInlineUpdate(meta.id, field, e.target.value);
               }
-              setEditingCell(null);
-              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
-              const row = cell?.parentElement as HTMLTableRowElement;
-              if (row && cell) {
-                const cellIndex = Array.from(row.cells).indexOf(cell);
-                await handleTabNavigation(meta.id, cellIndex);
+            }}
+            onBlur={() => setEditingCell(null)}
+            onKeyDown={async (e) => {
+              if (e.key === 'Escape') {
+                setEditingCell(null);
+              } else if (e.key === 'Enter') {
+                setEditingCell(null);
+              } else if (e.key === 'Tab') {
+                e.preventDefault();
+                const value = (e.target as HTMLInputElement).value;
+                if (value) {
+                  await handleInlineUpdate(meta.id, field, value);
+                }
+                setEditingCell(null);
+                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                const row = cell?.parentElement as HTMLTableRowElement;
+                if (row && cell) {
+                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                  await handleTabNavigation(meta.id, cellIndex);
+                }
               }
-            }
-          }}
-        />
+            }}
+          />
+        </div>
       );
     }
 
@@ -521,47 +538,51 @@ export function MetasPage() {
 
     if (isEditing) {
       return (
-        <input
-          type="number"
-          min="0"
-          autoFocus
-          defaultValue={value}
-          className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm text-center"
-          onBlur={async (e) => {
-            const newValue = parseInt(e.target.value);
-            if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
-              await handleInlineUpdate(meta.id, field, newValue);
-            }
-            setEditingCell(null);
-          }}
-          onKeyDown={async (e) => {
-            if (e.key === 'Escape') {
-              setEditingCell(null);
-            } else if (e.key === 'Enter') {
-              const newValue = parseInt((e.target as HTMLInputElement).value);
+        <div className="relative">
+          {/* FASE 2: Indicador visual */}
+          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+          <input
+            type="number"
+            min="0"
+            autoFocus
+            defaultValue={value}
+            className="w-full border-2 border-primary-600 rounded px-2 py-1 text-sm text-center"
+            onBlur={async (e) => {
+              const newValue = parseInt(e.target.value);
               if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
                 await handleInlineUpdate(meta.id, field, newValue);
               }
               setEditingCell(null);
-            } else if (e.key === 'Tab') {
-              e.preventDefault();
-              const newValue = parseInt((e.target as HTMLInputElement).value);
-              if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
-                await handleInlineUpdate(meta.id, field, newValue);
+            }}
+            onKeyDown={async (e) => {
+              if (e.key === 'Escape') {
+                setEditingCell(null);
+              } else if (e.key === 'Enter') {
+                const newValue = parseInt((e.target as HTMLInputElement).value);
+                if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
+                  await handleInlineUpdate(meta.id, field, newValue);
+                }
+                setEditingCell(null);
+              } else if (e.key === 'Tab') {
+                e.preventDefault();
+                const newValue = parseInt((e.target as HTMLInputElement).value);
+                if (!isNaN(newValue) && newValue >= 0 && newValue !== value) {
+                  await handleInlineUpdate(meta.id, field, newValue);
+                }
+                setEditingCell(null);
+                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                const row = cell?.parentElement as HTMLTableRowElement;
+                if (row && cell) {
+                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                  await handleTabNavigation(meta.id, cellIndex);
+                }
               }
-              setEditingCell(null);
-              const cell = e.currentTarget.parentElement as HTMLTableCellElement;
-              const row = cell?.parentElement as HTMLTableRowElement;
-              if (row && cell) {
-                const cellIndex = Array.from(row.cells).indexOf(cell);
-                await handleTabNavigation(meta.id, cellIndex);
-              }
-            }
-          }}
-          onClick={(e) => {
-            (e.target as HTMLInputElement).select();
-          }}
-        />
+            }}
+            onClick={(e) => {
+              (e.target as HTMLInputElement).select();
+            }}
+          />
+        </div>
       );
     }
 
@@ -700,37 +721,37 @@ export function MetasPage() {
                 {metas.map((meta: any) => (
                   <tr key={meta.id} data-meta-id={meta.id} className="hover:bg-gray-50">
                     {/* Trimestre - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 ${editingCell?.metaId === meta.id && editingCell?.field === 'trimestre' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderTrimestreCell(meta)}
                     </td>
 
                     {/* Fecha Inicio - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaInicio' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderDateCell(meta, 'fechaInicio')}
                     </td>
 
                     {/* Fecha Fin - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm text-gray-600 ${editingCell?.metaId === meta.id && editingCell?.field === 'fechaFin' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderDateCell(meta, 'fechaFin')}
                     </td>
 
                     {/* Meta Núcleos - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaNucleos' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderNumberCell(meta, 'metaNucleos')}
                     </td>
 
                     {/* Meta Visitas - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaVisitas' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderNumberCell(meta, 'metaVisitas')}
                     </td>
 
                     {/* Meta Personas Visitando - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaPersonasVisitando' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderNumberCell(meta, 'metaPersonasVisitando')}
                     </td>
 
                     {/* Meta Devocionales - EDITABLE */}
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${editingCell?.metaId === meta.id && editingCell?.field === 'metaDevocionales' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset' : ''}`}>
                       {renderNumberCell(meta, 'metaDevocionales')}
                     </td>
 

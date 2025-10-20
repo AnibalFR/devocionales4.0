@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { AlertTriangle, Lightbulb, CheckCircle, Info } from 'lucide-react';
 import EditConflictModal from '../components/EditConflictModal';
+import EditingIndicator from '../components/EditingIndicator';
 
 const GET_FAMILIAS = gql`
   query GetFamilias {
@@ -156,6 +157,9 @@ export function FamiliasPage() {
     value: string;
   }>({ familiaId: null, field: null, value: '' });
 
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
+
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Estados de paginación
@@ -259,6 +263,7 @@ export function FamiliasPage() {
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
       const familia = familias.find((f: any) => f.id === familiaId);
@@ -274,6 +279,7 @@ export function FamiliasPage() {
         },
       });
       cancelEdit();
+      setIsSaving(false); // FASE 2: Ocultar indicador
       await refetch();
 
       // Si se presionó Tab, mover a la siguiente celda
@@ -311,6 +317,8 @@ export function FamiliasPage() {
       }
     } catch (error: any) {
       console.error('Error updating familia:', error);
+
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
 
       // OCC: Detectar conflicto de edición
       if (error.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
@@ -882,7 +890,13 @@ export function FamiliasPage() {
 
                           {/* Nombre */}
                           {editing.familiaId === familia.id && editing.field === 'nombre' ? (
-                            <td className="px-4 py-2">
+                            <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                              {/* FASE 2: Indicador visual */}
+                              <EditingIndicator
+                                isEditing={true}
+                                isSaving={isSaving}
+                              />
+
                               <input
                                 type="text"
                                 value={editing.value}

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Lightbulb, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import EditingIndicator from '../components/EditingIndicator';
 
 const MIEMBROS_CON_DEVOCIONAL = gql`
   query MiembrosConDevocional {
@@ -92,6 +93,9 @@ export function DevocionalesPage() {
     value: null,
   });
 
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
+
   const [modalState, setModalState] = useState<ModalState>({
     isOpen: false,
     miembroId: null,
@@ -171,6 +175,7 @@ export function DevocionalesPage() {
     if (!editing.field || editing.value === null || isSavingRef.current) return;
 
     isSavingRef.current = true;
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
       const input: any = {};
@@ -188,6 +193,7 @@ export function DevocionalesPage() {
 
         if (participantes < numAcompanantes + 1) {
           alert(`Error: Los participantes deben ser al menos ${numAcompanantes + 1} (número de acompañantes + 1)`);
+          setIsSaving(false); // FASE 2: Ocultar indicador
           cancelEdit();
           isSavingRef.current = false;
           return;
@@ -200,6 +206,7 @@ export function DevocionalesPage() {
         variables: { id: miembroId, input },
       });
 
+      setIsSaving(false); // FASE 2: Ocultar indicador
       await refetch();
       cancelEdit();
 
@@ -237,6 +244,7 @@ export function DevocionalesPage() {
         isSavingRef.current = false;
       }
     } catch (err: any) {
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
       alert(`Error al actualizar: ${err.message}`);
       cancelEdit();
       isSavingRef.current = false;
@@ -460,9 +468,11 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Día - Editable */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" ref={(el) => el && editing.miembroId === miembro.id && editing.field === 'dia' ? (el as any)._currentCell = el : null}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`} ref={(el) => el && editing.miembroId === miembro.id && editing.field === 'dia' ? (el as any)._currentCell = el : null}>
                       {editing.miembroId === miembro.id && editing.field === 'dia' ? (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
                           <select
                             className="border border-gray-300 rounded px-2 py-1 text-sm"
                             value={editing.value as string}
@@ -518,9 +528,11 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Hora - Editable */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'hora' ? (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
                           <input
                             type="time"
                             className="border border-gray-300 rounded px-2 py-1 text-sm"
@@ -592,9 +604,11 @@ export function DevocionalesPage() {
                     </td>
 
                     {/* Participantes - Editable */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'participantes' ? (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 relative">
+                          {/* FASE 2: Indicador visual */}
+                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
                           <input
                             type="number"
                             min="1"

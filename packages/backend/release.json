@@ -1,11 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "OCC extendido: Ahora en Familias, Miembros, Metas y Visitas",
-    "Protección completa contra pérdida de datos por edición simultánea",
-    "Modal intuitivo para resolver conflictos",
-    "Sistema de timestamps automático sin cambios en BD",
-    "Cobertura total en tablas con edición colaborativa"
+    "FASE 2: Indicadores visuales de edición activa",
+    "Badges 'Editando' y 'Guardando...' en celdas activas",
+    "Fondo amarillo con borde en campos siendo editados",
+    "Feedback visual inmediato durante guardado",
+    "Cobertura en: Familias, Miembros, Metas y Devocionales",
+    "UX mejorado tipo Excel con indicadores visuales claros"
   ],
   "requiresReload": true,
   "requiresReauth": false

@@ -3,6 +3,7 @@ import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertTriangle, Lightbulb, Info, CheckCircle, Lock, Mail, XCircle } from 'lucide-react';
 import EditConflictModal from '../components/EditConflictModal';
+import EditingIndicator from '../components/EditingIndicator';
 
 const MIEMBROS_QUERY = gql`
   query Miembros {
@@ -172,6 +173,9 @@ export function MiembrosPage() {
   });
   const isSavingRef = useRef(false);
 
+  // FASE 2: Estado para indicador visual de guardado
+  const [isSaving, setIsSaving] = useState(false);
+
   const [filtroFamilia, setFiltroFamilia] = useState('');
   const [filtroRol, setFiltroRol] = useState('');
   const [filtroEstatus, setFiltroEstatus] = useState('');
@@ -335,6 +339,7 @@ export function MiembrosPage() {
     if (!editing.field || isSavingRef.current) return;
 
     isSavingRef.current = true;
+    setIsSaving(true); // FASE 2: Mostrar indicador de guardado
 
     try {
       const miembro = miembros.find((m: any) => m.id === miembroId);
@@ -356,6 +361,7 @@ export function MiembrosPage() {
         variables: { id: miembroId, input },
       });
 
+      setIsSaving(false); // FASE 2: Ocultar indicador
       await refetch();
       cancelEdit();
 
@@ -395,6 +401,7 @@ export function MiembrosPage() {
         isSavingRef.current = false;
       }
     } catch (err: any) {
+      setIsSaving(false); // FASE 2: Ocultar indicador en error
       // OCC: Detectar conflicto de edición
       if (err.graphQLErrors?.[0]?.extensions?.code === 'EDIT_CONFLICT') {
         setConflictModal({
@@ -555,7 +562,8 @@ export function MiembrosPage() {
     // Si no tiene fecha de nacimiento, es editable
     if (editing.miembroId === miembro.id && editing.field === 'edadAproximada') {
       return (
-        <td className="px-4 py-2" ref={cellRef}>
+        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative" ref={cellRef}>
+          <EditingIndicator isEditing={true} isSaving={isSaving} />
           <input
             type="number"
             min="0"
@@ -742,8 +750,13 @@ export function MiembrosPage() {
                 {miembrosPaginados.map((miembro: any) => (
                   <tr key={miembro.id} data-miembro-id={miembro.id} className="hover:bg-gray-50">
                     {/* Nombre - Editable con badges de validación */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'nombre' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'nombre' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        {/* FASE 2: Indicador visual */}
+                        <EditingIndicator
+                          isEditing={true}
+                          isSaving={isSaving}
+                        />
                         <input
                           type="text"
                           value={editing.value}
@@ -756,7 +769,9 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <div className="flex items-center gap-2">
                           <span
                             className="cursor-pointer hover:underline text-sm"
@@ -783,12 +798,13 @@ export function MiembrosPage() {
                             </span>
                           )}
                         </div>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Apellidos - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'apellidos' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'apellidos' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="text"
                           value={editing.value || ''}
@@ -801,19 +817,22 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'apellidos', miembro.apellidos)}
                         >
                           {miembro.apellidos || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Fecha Nacimiento - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'fechaNacimiento' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'fechaNacimiento' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="date"
                           value={editing.value || ''}
@@ -826,22 +845,25 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'fechaNacimiento', formatDateToInput(miembro.fechaNacimiento))}
                         >
                           {formatDate(miembro.fechaNacimiento)}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Edad - MEM-003 Sistema dual */}
                     {renderEdad(miembro)}
 
                     {/* Email - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'email' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'email' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="email"
                           value={editing.value || ''}
@@ -854,19 +876,22 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'email', miembro.email)}
                         >
                           {miembro.email || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Teléfono - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'telefono' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'telefono' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="tel"
                           value={editing.value || ''}
@@ -879,19 +904,22 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'telefono', miembro.telefono)}
                         >
                           {miembro.telefono || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Dirección - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'direccion' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'direccion' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="text"
                           value={editing.value || ''}
@@ -904,19 +932,22 @@ export function MiembrosPage() {
                           className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
                           autoFocus
                         />
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'direccion', miembro.direccion)}
                         >
                           {miembro.direccion || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Rol - MEM-005 Dropdown */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'rol' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'rol' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value}
                           onChange={(e) => setEditing({ ...editing, value: e.target.value })}
@@ -932,15 +963,17 @@ export function MiembrosPage() {
                             <option key={rol} value={rol}>{rol}</option>
                           ))}
                         </select>
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'rol', miembro.rol)}
                         >
                           {miembro.rol}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Estado de Cuenta */}
                     <td className="px-4 py-2">
@@ -958,8 +991,9 @@ export function MiembrosPage() {
                     </td>
 
                     {/* Barrio - Editable Dropdown */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'barrioId' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'barrioId' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
                           onChange={(e) => setEditing({ ...editing, value: e.target.value })}
@@ -976,19 +1010,22 @@ export function MiembrosPage() {
                             <option key={b.id} value={b.id}>{b.nombre}</option>
                           ))}
                         </select>
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'barrioId', miembro.barrioId)}
                         >
                           {miembro.barrio?.nombre || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Núcleo - Editable Dropdown */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'nucleoId' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'nucleoId' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
                           onChange={(e) => setEditing({ ...editing, value: e.target.value })}
@@ -1005,15 +1042,17 @@ export function MiembrosPage() {
                             <option key={n.id} value={n.id}>{n.nombre}</option>
                           ))}
                         </select>
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'nucleoId', miembro.nucleoId)}
                         >
                           {miembro.nucleo?.nombre || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Familia - MEM-004 readonly */}
                     <td className="px-4 py-2 bg-gray-50 text-gray-600 text-sm" title="Editar en: Catálogo de Familias">
@@ -1021,8 +1060,9 @@ export function MiembrosPage() {
                     </td>
 
                     {/* Rol Familiar - Dropdown */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'rolFamiliar' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'rolFamiliar' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
                           onChange={(e) => setEditing({ ...editing, value: e.target.value })}
@@ -1039,15 +1079,17 @@ export function MiembrosPage() {
                             <option key={rol} value={rol}>{rol}</option>
                           ))}
                         </select>
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'rolFamiliar', miembro.rolFamiliar)}
                         >
                           {miembro.rolFamiliar || '-'}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Devocional - MEM-006 Checkbox */}
                     <td className="px-4 py-2 text-center">
@@ -1073,8 +1115,9 @@ export function MiembrosPage() {
                     </td>
 
                     {/* Estatus - Editable */}
-                    <td className="px-4 py-2">
-                      {editing.miembroId === miembro.id && editing.field === 'activo' ? (
+                    {editing.miembroId === miembro.id && editing.field === 'activo' ? (
+                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value ? 'true' : 'false'}
                           onChange={(e) => setEditing({ ...editing, value: e.target.value === 'true' })}
@@ -1089,7 +1132,9 @@ export function MiembrosPage() {
                           <option value="true">Activo</option>
                           <option value="false">Inactivo</option>
                         </select>
-                      ) : (
+                      </td>
+                    ) : (
+                      <td className="px-4 py-2">
                         <span
                           className="cursor-pointer hover:underline text-sm"
                           onClick={() => startEdit(miembro.id, 'activo', miembro.activo)}
@@ -1104,8 +1149,8 @@ export function MiembrosPage() {
                             </span>
                           )}
                         </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     {/* Fecha Registro - Readonly */}
                     <td className="px-4 py-2 bg-gray-50 text-gray-600 text-sm" title="Campo automático - No se puede editar">
