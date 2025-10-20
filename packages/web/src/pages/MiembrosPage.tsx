@@ -303,7 +303,7 @@ export function MiembrosPage() {
     setEditing({ miembroId: null, field: null, value: null });
   };
 
-  const saveEdit = async (miembroId: string, moveToNext = false, currentCellElement?: HTMLTableCellElement) => {
+  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number) => {
     if (!editing.field) return;
 
     try {
@@ -324,13 +324,20 @@ export function MiembrosPage() {
       cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
-      if (moveToNext && currentCellElement) {
+      if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
         setTimeout(() => {
-          const nextCell = findNextEditableCell(currentCellElement);
+          // Encontrar la fila del miembro que acabamos de editar
+          const row = tableRef.current?.querySelector(`tr[data-miembro-id="${miembroId}"]`) as HTMLTableRowElement;
+          if (!row) return;
+
+          const currentCell = row.cells[currentCellIndex];
+          if (!currentCell) return;
+
+          const nextCell = findNextEditableCell(currentCell);
           if (nextCell) {
             nextCell.click();
           }
-        }, 50);
+        }, 100);
       }
     } catch (err: any) {
       alert(`Error al actualizar: ${err.message}`);
@@ -347,7 +354,14 @@ export function MiembrosPage() {
       cancelEdit();
     } else if (e.key === 'Tab') {
       e.preventDefault();
-      saveEdit(miembroId, true, cellElement);
+      // Calcular el índice de la celda actual
+      if (cellElement) {
+        const row = cellElement.parentElement as HTMLTableRowElement;
+        const cellIndex = Array.from(row.cells).indexOf(cellElement);
+        saveEdit(miembroId, true, cellIndex);
+      } else {
+        saveEdit(miembroId, false);
+      }
     }
   };
 
@@ -632,7 +646,7 @@ export function MiembrosPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {miembrosPaginados.map((miembro: any) => (
-                  <tr key={miembro.id} className="hover:bg-gray-50">
+                  <tr key={miembro.id} data-miembro-id={miembro.id} className="hover:bg-gray-50">
                     {/* Nombre - Editable con badges de validación */}
                     <td className="px-4 py-2">
                       {editing.miembroId === miembro.id && editing.field === 'nombre' ? (

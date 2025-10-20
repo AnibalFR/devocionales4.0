@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Mejora: Tecla Tab en columna Nombre ahora guarda y avanza a Apellidos",
-    "Navegación mejorada entre columnas editables del catálogo de miembros"
+    "Corrección: Tab ahora funciona correctamente en TODAS las columnas editables",
+    "Navegación tipo Excel mejorada: Nombre → Apellidos → Fecha → etc."
   ],
   "requiresReload": false,
   "requiresReauth": false
