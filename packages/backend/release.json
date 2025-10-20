@@ -1,12 +1,10 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Hotfix Crítico: Resuelve formato inconsistente de timestamps OCC",
-    "Serialización correcta de updatedAt/createdAt como ISO strings",
-    "Field resolvers agregados en backend para todos los tipos",
-    "Elimina completamente falsos positivos de conflictos",
-    "Sistema OCC ahora totalmente funcional y confiable"
+    "Bugfix UI: Corrige indicador de edición que tapaba campos de entrada",
+    "Ajustado padding en celdas editables de todos los catálogos",
+    "Mejora visual en Miembros, Familias, Barrios y Núcleos"
   ],
-  "requiresReload": true,
+  "requiresReload": false,
   "requiresReauth": false
 }

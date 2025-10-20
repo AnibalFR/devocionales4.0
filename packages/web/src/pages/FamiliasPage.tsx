@@ -902,7 +902,7 @@ export function FamiliasPage() {
 
                           {/* Nombre */}
                           {editing.familiaId === familia.id && editing.field === 'nombre' ? (
-                            <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                            <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                               {/* FASE 2: Indicador visual */}
                               <EditingIndicator
                                 isEditing={true}

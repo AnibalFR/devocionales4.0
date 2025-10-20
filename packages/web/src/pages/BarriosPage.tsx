@@ -388,7 +388,7 @@ export function BarriosPage() {
                     <tr key={barrio.id} data-barrio-id={barrio.id} className="hover:bg-gray-50">
                       {/* Nombre */}
                       {editing.barrioId === barrio.id && editing.field === 'nombre' ? (
-                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                           {/* FASE 2: Indicador visual */}
                           <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
@@ -417,7 +417,7 @@ export function BarriosPage() {
 
                       {/* Descripción */}
                       {editing.barrioId === barrio.id && editing.field === 'descripcion' ? (
-                        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                        <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                           {/* FASE 2: Indicador visual */}
                           <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input

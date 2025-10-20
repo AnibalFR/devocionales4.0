@@ -575,7 +575,7 @@ export function MiembrosPage() {
     // Si no tiene fecha de nacimiento, es editable
     if (editing.miembroId === miembro.id && editing.field === 'edadAproximada') {
       return (
-        <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative" ref={cellRef}>
+        <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative" ref={cellRef}>
           <EditingIndicator isEditing={true} isSaving={isSaving} />
           <input
             type="number"
@@ -764,7 +764,7 @@ export function MiembrosPage() {
                   <tr key={miembro.id} data-miembro-id={miembro.id} className="hover:bg-gray-50">
                     {/* Nombre - Editable con badges de validación */}
                     {editing.miembroId === miembro.id && editing.field === 'nombre' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         {/* FASE 2: Indicador visual */}
                         <EditingIndicator
                           isEditing={true}
@@ -816,7 +816,7 @@ export function MiembrosPage() {
 
                     {/* Apellidos - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'apellidos' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="text"
@@ -844,7 +844,7 @@ export function MiembrosPage() {
 
                     {/* Fecha Nacimiento - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'fechaNacimiento' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="date"
@@ -875,7 +875,7 @@ export function MiembrosPage() {
 
                     {/* Email - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'email' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="email"
@@ -903,7 +903,7 @@ export function MiembrosPage() {
 
                     {/* Teléfono - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'telefono' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="tel"
@@ -931,7 +931,7 @@ export function MiembrosPage() {
 
                     {/* Dirección - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'direccion' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <input
                           type="text"
@@ -959,7 +959,7 @@ export function MiembrosPage() {
 
                     {/* Rol - MEM-005 Dropdown */}
                     {editing.miembroId === miembro.id && editing.field === 'rol' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value}
@@ -1005,7 +1005,7 @@ export function MiembrosPage() {
 
                     {/* Barrio - Editable Dropdown */}
                     {editing.miembroId === miembro.id && editing.field === 'barrioId' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
@@ -1037,7 +1037,7 @@ export function MiembrosPage() {
 
                     {/* Núcleo - Editable Dropdown */}
                     {editing.miembroId === miembro.id && editing.field === 'nucleoId' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
@@ -1074,7 +1074,7 @@ export function MiembrosPage() {
 
                     {/* Rol Familiar - Dropdown */}
                     {editing.miembroId === miembro.id && editing.field === 'rolFamiliar' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value || ''}
@@ -1129,7 +1129,7 @@ export function MiembrosPage() {
 
                     {/* Estatus - Editable */}
                     {editing.miembroId === miembro.id && editing.field === 'activo' ? (
-                      <td className="px-4 py-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
+                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
                         <EditingIndicator isEditing={true} isSaving={isSaving} />
                         <select
                           value={editing.value ? 'true' : 'false'}
