@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Corrección: Ahora puedes editar fechas de nacimiento sin errores",
-    "El campo 'Fecha Nac.' en el catálogo de miembros funciona correctamente"
+    "Fix: Las fechas de nacimiento ahora se visualizan correctamente",
+    "Corrección en el formato de fechas para evitar problemas de timezone"
   ],
   "requiresReload": false,
   "requiresReauth": false

@@ -129,6 +129,13 @@ interface EditingState {
 const formatDate = (dateInput: string | number | null | undefined): string => {
   if (!dateInput) return '-';
   try {
+    // Si es string ISO, extraer solo la parte de fecha YYYY-MM-DD para evitar problemas de timezone
+    if (typeof dateInput === 'string' && dateInput.includes('T')) {
+      const datePart = dateInput.split('T')[0]; // "1990-08-11"
+      const [year, month, day] = datePart.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
     const date = new Date(dateInput);
     if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('es-MX', {

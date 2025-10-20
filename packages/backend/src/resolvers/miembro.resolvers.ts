@@ -346,6 +346,13 @@ export const miembroResolvers = {
   },
 
   Miembro: {
+    // Serializar fechaNacimiento como string ISO
+    fechaNacimiento: (parent: any) => {
+      if (!parent.fechaNacimiento) return null;
+      const date = new Date(parent.fechaNacimiento);
+      return date.toISOString();
+    },
+
     // Campo calculado: edad según sistema dual
     edadCalculada: (parent: any) => {
       return calcularEdad(parent);

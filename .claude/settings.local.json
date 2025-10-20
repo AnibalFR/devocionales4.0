@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./deploy.sh -c \"Fix: Corrige error al editar fechas de nacimiento en miembros\n\n## Problema\n- Al editar el campo ''Fecha Nac.'' en el catálogo de miembros aparecía error:\n  ''Invalid value for argument fechaNacimiento: premature end of input. Expected ISO-8601 DateTime''\n- Input type=\"\"date\"\" devuelve formato YYYY-MM-DD (solo fecha)\n- Prisma DateTime requiere formato ISO-8601 completo (con hora)\n\n## Solución Backend\n- Nueva función helper: convertirFechaADateTime()\n- Convierte fechas YYYY-MM-DD a DateTime ISO-8601 (medianoche UTC)\n- Actualizado createMiembro para transformar fechaNacimiento\n- Actualizado updateMiembro para transformar fechaNacimiento\n\n## Frontend\n- Sin cambios (mantiene input type=\"\"date\"\" estándar)\n- La transformación se hace en el backend\n\nEl campo de fecha de nacimiento ahora funciona correctamente sin errores.\")"
+      "Bash(ssh root@64.227.96.34 \"PGPASSWORD=''I2xLLTLI2icagcsXO5JsjW4fLmtOWcJ62e4tpPnaSOM='' psql -U devocionales -d devocionales_prod -h localhost -c ''SELECT id, nombre, \"\"fechaNacimiento\"\" FROM miembros WHERE \"\"fechaNacimiento\"\" IS NOT NULL LIMIT 5;''\")",
+      "Bash(ssh root@64.227.96.34 'curl -s http://localhost:4000/graphql -H \"\"Content-Type: application/json\"\" -d '\"''\"'{\n  \"\"query\"\": \"\"{ miembros { id nombre fechaNacimiento edadCalculada } }\"\"\n}'\"''\"' | python3 -m json.tool')",
+      "Bash(./deploy.sh -c \"Fix: Corrige visualización de fechas de nacimiento\n\n## Problema\n- Las fechas de nacimiento se guardaban correctamente\n- Pero no se visualizaban en el catálogo (aparecía ''-'')\n- Problema de serialización GraphQL y timezone\n\n## Solución Backend\n- Resolver personalizado para fechaNacimiento en miembro.resolvers.ts\n- Serializa el Date como ISO string para GraphQL\n\n## Solución Frontend  \n- Mejora en función formatDate()\n- Extrae la fecha del string ISO evitando problemas de timezone\n- Formato DD/MM/YYYY sin conversiones de zona horaria\n\nAhora las fechas de nacimiento se visualizan correctamente.\")"
     ],
     "deny": [],
     "ask": []
