@@ -1,8 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Navegación Tab corregida en Miembros, Familias y Barrios",
-    "Navegación fluida tipo Excel en todos los catálogos"
+    "Navegación Tab completa en todos los catálogos",
+    "Excel-style: Miembros, Familias, Barrios, Núcleos y Devocionales"
   ],
   "requiresReload": false,
   "requiresReauth": false

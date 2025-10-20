@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Lightbulb, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 
@@ -103,6 +103,10 @@ export function DevocionalesPage() {
   const [selectedAcompanantes, setSelectedAcompanantes] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
 
+  // Refs para navegación con Tab
+  const tableRef = useRef<HTMLTableElement>(null);
+  const isSavingRef = useRef(false);
+
   const { data, loading, error, refetch } = useQuery(MIEMBROS_CON_DEVOCIONAL);
   const { data: miembrosData } = useQuery(MIEMBROS_ACTIVOS);
   const [updateMiembro] = useMutation(UPDATE_MIEMBRO);
@@ -145,7 +149,17 @@ export function DevocionalesPage() {
     // Buscar siguiente celda editable en la misma fila
     for (let i = currentIndex + 1; i < cells.length; i++) {
       const cell = cells[i];
-      if (cell.querySelector('button[onClick]')) {
+
+      // Verificar si la celda es editable (no readonly)
+      if (cell.classList.contains('bg-gray-50')) {
+        continue; // Celda readonly
+      }
+
+      const hasButton = cell.querySelector('button[onClick]') || cell.querySelector('button');
+      const hasClickableSpan = cell.querySelector('span[class*="cursor-pointer"]');
+      const hasSelect = cell.querySelector('select');
+
+      if (cell.onclick || hasButton || hasClickableSpan || hasSelect) {
         return cell as HTMLTableCellElement;
       }
     }
@@ -153,8 +167,10 @@ export function DevocionalesPage() {
     return null;
   };
 
-  const saveEdit = async (miembroId: string, moveToNext = false, currentCellElement?: HTMLTableCellElement) => {
-    if (!editing.field || editing.value === null) return;
+  const saveEdit = async (miembroId: string, moveToNext = false, currentCellIndex?: number) => {
+    if (!editing.field || editing.value === null || isSavingRef.current) return;
+
+    isSavingRef.current = true;
 
     try {
       const input: any = {};
@@ -173,6 +189,7 @@ export function DevocionalesPage() {
         if (participantes < numAcompanantes + 1) {
           alert(`Error: Los participantes deben ser al menos ${numAcompanantes + 1} (número de acompañantes + 1)`);
           cancelEdit();
+          isSavingRef.current = false;
           return;
         }
 
@@ -183,24 +200,46 @@ export function DevocionalesPage() {
         variables: { id: miembroId, input },
       });
 
-      refetch();
+      await refetch();
       cancelEdit();
 
       // Si se presionó Tab, mover a la siguiente celda
-      if (moveToNext && currentCellElement) {
+      if (moveToNext && currentCellIndex !== undefined && tableRef.current) {
         setTimeout(() => {
-          const nextCell = findNextEditableCell(currentCellElement);
+          const row = tableRef.current?.querySelector(`tr[data-miembro-id="${miembroId}"]`) as HTMLTableRowElement;
+          if (!row) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const currentCell = row.cells[currentCellIndex];
+          if (!currentCell) {
+            isSavingRef.current = false;
+            return;
+          }
+
+          const nextCell = findNextEditableCell(currentCell);
           if (nextCell) {
-            const button = nextCell.querySelector('button');
+            const button = nextCell.querySelector('button') as HTMLElement;
+            const clickableSpan = nextCell.querySelector('span[class*="cursor-pointer"]') as HTMLElement;
+
             if (button) {
               button.click();
+            } else if (clickableSpan) {
+              clickableSpan.click();
+            } else if (nextCell.onclick) {
+              nextCell.click();
             }
           }
-        }, 50);
+          isSavingRef.current = false;
+        }, 100);
+      } else {
+        isSavingRef.current = false;
       }
     } catch (err: any) {
       alert(`Error al actualizar: ${err.message}`);
       cancelEdit();
+      isSavingRef.current = false;
     }
   };
 
@@ -360,7 +399,7 @@ export function DevocionalesPage() {
       ) : (
         <div className="card">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table ref={tableRef} className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -394,7 +433,7 @@ export function DevocionalesPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {miembrosConDevocional.map((miembro: any) => (
-                  <tr key={miembro.id} className="hover:bg-gray-50">
+                  <tr key={miembro.id} data-miembro-id={miembro.id} className="hover:bg-gray-50">
                     {/* Anfitrión con badges de validación */}
                     <td className="px-6 py-4 text-sm font-medium text-primary-600 bg-gray-50" title="Editar en: Catálogo de Miembros">
                       <div className="flex items-center gap-2">
@@ -440,7 +479,11 @@ export function DevocionalesPage() {
                               if (e.key === 'Tab') {
                                 e.preventDefault();
                                 const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                saveEdit(miembro.id, true, cell);
+                                const row = cell?.parentElement as HTMLTableRowElement;
+                                if (row && cell) {
+                                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                                  saveEdit(miembro.id, true, cellIndex);
+                                }
                               }
                             }}
                             autoFocus
@@ -495,7 +538,11 @@ export function DevocionalesPage() {
                               if (e.key === 'Tab') {
                                 e.preventDefault();
                                 const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                saveEdit(miembro.id, true, cell);
+                                const row = cell?.parentElement as HTMLTableRowElement;
+                                if (row && cell) {
+                                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                                  saveEdit(miembro.id, true, cellIndex);
+                                }
                               }
                             }}
                             autoFocus
@@ -566,7 +613,11 @@ export function DevocionalesPage() {
                               if (e.key === 'Tab') {
                                 e.preventDefault();
                                 const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                saveEdit(miembro.id, true, cell);
+                                const row = cell?.parentElement as HTMLTableRowElement;
+                                if (row && cell) {
+                                  const cellIndex = Array.from(row.cells).indexOf(cell);
+                                  saveEdit(miembro.id, true, cellIndex);
+                                }
                               }
                             }}
                             autoFocus
