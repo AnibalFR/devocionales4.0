@@ -1,7 +1,18 @@
 import { useQuery, gql } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { RefreshCw, Clock, User, FileText } from 'lucide-react';
+import {
+  RefreshCw,
+  Clock,
+  User,
+  FileText,
+  LogIn,
+  PlusCircle,
+  Edit,
+  Trash2,
+  Download,
+  Upload
+} from 'lucide-react';
 
 const TIMELINE_EVENTS_QUERY = gql`
   query TimelineEvents($limit: Int, $cursor: String) {
@@ -37,21 +48,23 @@ interface GroupedEvent extends TimelineEvent {
 }
 
 const getActionIcon = (actionType: string) => {
+  const iconProps = { className: 'w-5 h-5' };
+
   switch (actionType) {
     case 'login':
-      return '🔑';
+      return <LogIn {...iconProps} />;
     case 'create':
-      return '➕';
+      return <PlusCircle {...iconProps} />;
     case 'update':
-      return '✏️';
+      return <Edit {...iconProps} />;
     case 'delete':
-      return '🗑️';
+      return <Trash2 {...iconProps} />;
     case 'import':
-      return '📥';
+      return <Download {...iconProps} />;
     case 'export':
-      return '📤';
+      return <Upload {...iconProps} />;
     default:
-      return '📋';
+      return <FileText {...iconProps} />;
   }
 };
 
@@ -219,7 +232,7 @@ export default function TimelinePage() {
                     className="flex gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
                   >
                     {/* Icon */}
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl ${getActionColor(event.actionType)}`}>
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${getActionColor(event.actionType)}`}>
                       {getActionIcon(event.actionType)}
                     </div>
 
