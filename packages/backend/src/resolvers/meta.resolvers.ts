@@ -1,6 +1,11 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  requireCreatePermission,
+  requireModifyPermission,
+} from '../utils/permissions';
 
 interface CreateMetaInput {
   trimestre: string;
@@ -131,16 +136,8 @@ export const metaResolvers = {
         });
       }
 
-      // Obtener comunidad del usuario
-      const usuario = await prisma.usuario.findUnique({
-        where: { id: userId },
-      });
-
-      if (!usuario) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
       return prisma.meta.findMany({
         where: { comunidadId: usuario.comunidadId },
@@ -175,16 +172,8 @@ export const metaResolvers = {
         });
       }
 
-      // Obtener comunidad del usuario
-      const usuario = await prisma.usuario.findUnique({
-        where: { id: userId },
-      });
-
-      if (!usuario) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
       // Obtener todas las metas de la comunidad
       const metas = await prisma.meta.findMany({
@@ -220,16 +209,11 @@ export const metaResolvers = {
         });
       }
 
-      // Obtener comunidad del usuario
-      const usuario = await prisma.usuario.findUnique({
-        where: { id: userId },
-      });
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
-      if (!usuario) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Verificar permiso de creación
+      requireCreatePermission(usuario.rol, 'meta');
 
       const meta = await prisma.meta.create({
         data: {
@@ -263,12 +247,18 @@ export const metaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const metaExistente = await prisma.meta.findUnique({ where: { id } });
       if (!metaExistente) {
         throw new GraphQLError('Meta no encontrada', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación (las metas no tienen nucleoId/barrioId)
+      requireModifyPermission(usuario, 'meta', null, null);
 
       // OCC: Validar conflicto de edición concurrente
       if (input.lastUpdatedAt) {
@@ -317,12 +307,18 @@ export const metaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const meta = await prisma.meta.findUnique({ where: { id } });
       if (!meta) {
         throw new GraphQLError('Meta no encontrada', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación (eliminar requiere mismo permiso)
+      requireModifyPermission(usuario, 'meta', null, null);
 
       // Hard delete
       await prisma.meta.delete({

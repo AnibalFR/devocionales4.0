@@ -1,6 +1,12 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  buildReadFilters,
+  requireCreatePermission,
+  requireModifyPermission,
+} from '../utils/permissions';
 
 interface CreateFamiliaInput {
   nombre: string;
@@ -41,8 +47,17 @@ export const familiaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.familia.findMany({
-        where: { activa: true },
+        where: {
+          activa: true,
+          ...permissionFilters,
+        },
         include: {
           miembros: true,
           visitas: {
@@ -61,6 +76,9 @@ export const familiaResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
       const familia = await prisma.familia.findUnique({
         where: { id },
@@ -81,6 +99,14 @@ export const familiaResolvers = {
         });
       }
 
+      // Verificar permisos de lectura (COLABORADOR solo su núcleo)
+      const permissionFilters = buildReadFilters(usuario);
+      if (permissionFilters.nucleoId && familia.nucleoId !== permissionFilters.nucleoId) {
+        throw new GraphQLError('No tienes permisos para ver esta familia', {
+          extensions: { code: 'FORBIDDEN' },
+        });
+      }
+
       return familia;
     },
   },
@@ -97,16 +123,11 @@ export const familiaResolvers = {
         });
       }
 
-      // Obtener comunidad del usuario
-      const usuario = await prisma.usuario.findUnique({
-        where: { id: userId },
-      });
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
-      if (!usuario) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Verificar permiso de creación
+      requireCreatePermission(usuario.rol, 'familia');
 
       const familia = await prisma.familia.create({
         data: {
@@ -151,12 +172,23 @@ export const familiaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const familiaExistente = await prisma.familia.findUnique({ where: { id } });
       if (!familiaExistente) {
         throw new GraphQLError('Familia no encontrada', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación
+      requireModifyPermission(
+        usuario,
+        'familia',
+        familiaExistente.nucleoId,
+        familiaExistente.barrioId
+      );
 
       // OCC: Validar conflicto de edición concurrente
       if (input.lastUpdatedAt) {
@@ -213,12 +245,23 @@ export const familiaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const familia = await prisma.familia.findUnique({ where: { id } });
       if (!familia) {
         throw new GraphQLError('Familia no encontrada', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación (eliminar requiere mismo permiso)
+      requireModifyPermission(
+        usuario,
+        'familia',
+        familia.nucleoId,
+        familia.barrioId
+      );
 
       // Soft delete
       await prisma.familia.update({

@@ -1,6 +1,11 @@
 import { GraphQLError} from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  buildReadFilters,
+  requireAdmin,
+} from '../utils/permissions';
 
 interface CreateBarrioInput {
   nombre: string;
@@ -23,8 +28,14 @@ export const barrioResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.barrio.findMany({
-        where: { activo: true },
+        where: { activo: true, ...permissionFilters },
         orderBy: { createdAt: 'desc' }, // BAR-001: Más recientes primero
       });
     },
@@ -62,17 +73,11 @@ export const barrioResolvers = {
         });
       }
 
-      // Obtener comunidadId del usuario autenticado
-      const user = await prisma.usuario.findUnique({
-        where: { id: userId },
-        select: { comunidadId: true },
-      });
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
-      if (!user) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Solo ADMIN/CEA/MCA puede crear barrios
+      requireAdmin(usuario.rol);
 
       // BAR-001: Crear barrio con valores por defecto
       const barrio = await prisma.barrio.create({
@@ -80,7 +85,7 @@ export const barrioResolvers = {
           nombre: input.nombre,
           descripcion: input.descripcion || null,
           activo: true,
-          comunidadId: user.comunidadId,
+          comunidadId: usuario.comunidadId,
         },
       });
 
@@ -109,6 +114,12 @@ export const barrioResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Solo ADMIN/CEA/MCA puede editar barrios
+      requireAdmin(usuario.rol);
 
       const barrioExistente = await prisma.barrio.findUnique({ where: { id } });
       if (!barrioExistente) {
@@ -164,6 +175,12 @@ export const barrioResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Solo ADMIN/CEA/MCA puede eliminar barrios
+      requireAdmin(usuario.rol);
 
       const barrio = await prisma.barrio.findUnique({ where: { id } });
       if (!barrio) {

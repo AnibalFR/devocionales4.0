@@ -1,6 +1,12 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  buildReadFilters,
+  requireCreatePermission,
+  requireModifyPermission,
+} from '../utils/permissions';
 
 interface CreateMiembroInput {
   familiaId?: string;
@@ -114,8 +120,17 @@ export const miembroResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.miembro.findMany({
-        where: { activo: true },
+        where: {
+          activo: true,
+          ...permissionFilters,
+        },
         include: {
           familia: true,
           usuario: true,
@@ -133,6 +148,9 @@ export const miembroResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const miembro = await prisma.miembro.findUnique({
         where: { id },
         include: {
@@ -149,6 +167,14 @@ export const miembroResolvers = {
         });
       }
 
+      // Verificar permisos de lectura (COLABORADOR solo su núcleo)
+      const permissionFilters = buildReadFilters(usuario);
+      if (permissionFilters.nucleoId && miembro.nucleoId !== permissionFilters.nucleoId) {
+        throw new GraphQLError('No tienes permisos para ver este miembro', {
+          extensions: { code: 'FORBIDDEN' },
+        });
+      }
+
       return miembro;
     },
 
@@ -159,10 +185,17 @@ export const miembroResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.miembro.findMany({
         where: {
           activo: true,
           tieneDevocional: true,
+          ...permissionFilters,
         },
         include: {
           familia: true,
@@ -185,6 +218,12 @@ export const miembroResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Verificar permiso de creación
+      requireCreatePermission(usuario.rol, 'miembro');
 
       // Fecha de actualización de edad si se proporciona edad aproximada
       const data: any = {
@@ -252,12 +291,23 @@ export const miembroResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const miembroExistente = await prisma.miembro.findUnique({ where: { id } });
       if (!miembroExistente) {
         throw new GraphQLError('Miembro no encontrado', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación
+      requireModifyPermission(
+        usuario,
+        'miembro',
+        miembroExistente.nucleoId,
+        miembroExistente.barrioId
+      );
 
       // OCC: Validar conflicto de edición concurrente
       if (input.lastUpdatedAt) {
@@ -350,6 +400,9 @@ export const miembroResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const miembro = await prisma.miembro.findUnique({
         where: { id },
         include: { usuario: true },
@@ -359,6 +412,14 @@ export const miembroResolvers = {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación (eliminar requiere mismo permiso)
+      requireModifyPermission(
+        usuario,
+        'miembro',
+        miembro.nucleoId,
+        miembro.barrioId
+      );
 
       // Proteger eliminación de miembros vinculados a usuarios del sistema
       // Los usuarios del sistema deben aparecer en el catálogo para poder editar su información

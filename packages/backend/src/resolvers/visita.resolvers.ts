@@ -1,6 +1,12 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  buildReadFilters,
+  requireCreatePermission,
+  requireModifyPermission,
+} from '../utils/permissions';
 
 interface VisitActivitiesInput {
   conversacion_preocupaciones?: boolean;
@@ -118,7 +124,16 @@ export const visitaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.visita.findMany({
+        where: {
+          ...permissionFilters,
+        },
         include: {
           familia: true,
           creadoPor: true,
@@ -136,6 +151,9 @@ export const visitaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const visita = await prisma.visita.findUnique({
         where: { id },
         include: {
@@ -149,6 +167,14 @@ export const visitaResolvers = {
       if (!visita) {
         throw new GraphQLError('Visita no encontrada', {
           extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // Verificar permisos de lectura (COLABORADOR solo su núcleo)
+      const permissionFilters = buildReadFilters(usuario);
+      if (permissionFilters.nucleoId && visita.nucleoId !== permissionFilters.nucleoId) {
+        throw new GraphQLError('No tienes permisos para ver esta visita', {
+          extensions: { code: 'FORBIDDEN' },
         });
       }
 
@@ -166,12 +192,19 @@ export const visitaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.visita.findMany({
         where: {
           visitDate: {
             gte: fechaInicio,
             lte: fechaFin,
           },
+          ...permissionFilters,
         },
         include: {
           familia: true,
@@ -195,6 +228,12 @@ export const visitaResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Verificar permiso de creación (VISITANTE puede crear visitas)
+      requireCreatePermission(usuario.rol, 'visita');
 
       // Verificar que la familia existe
       const familia = await prisma.familia.findUnique({
@@ -292,6 +331,9 @@ export const visitaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       // Verificar que la visita existe
       const visitaExistente = await prisma.visita.findUnique({
         where: { id },
@@ -304,17 +346,13 @@ export const visitaResolvers = {
         });
       }
 
-      // Verificar permisos: el usuario debe pertenecer a la misma comunidad
-      const user = await prisma.usuario.findUnique({
-        where: { id: userId },
-        select: { comunidadId: true },
-      });
-
-      if (visitaExistente.familia.comunidadId !== user?.comunidadId) {
-        throw new GraphQLError('No tiene permisos para editar esta visita', {
-          extensions: { code: 'FORBIDDEN' },
-        });
-      }
+      // Verificar permiso de modificación
+      requireModifyPermission(
+        usuario,
+        'visita',
+        visitaExistente.nucleoId,
+        visitaExistente.barrioId
+      );
 
       // OCC: Validar conflicto de edición concurrente
       if (input.lastUpdatedAt) {
@@ -401,12 +439,23 @@ export const visitaResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
       const visita = await prisma.visita.findUnique({ where: { id } });
       if (!visita) {
         throw new GraphQLError('Visita no encontrada', {
           extensions: { code: 'NOT_FOUND' },
         });
       }
+
+      // Verificar permiso de modificación (eliminar requiere mismo permiso)
+      requireModifyPermission(
+        usuario,
+        'visita',
+        visita.nucleoId,
+        visita.barrioId
+      );
 
       // Hard delete (las visitas no necesitan soft delete según las reglas)
       await prisma.visita.delete({

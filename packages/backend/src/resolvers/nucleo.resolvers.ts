@@ -1,6 +1,11 @@
 import { GraphQLError } from 'graphql';
 import type { Context } from '../context';
 import { EventLogger } from '../services/eventLogger';
+import {
+  getUserWithPermissions,
+  buildReadFilters,
+  requireAdmin,
+} from '../utils/permissions';
 
 interface CreateNucleoInput {
   nombre: string;
@@ -25,8 +30,17 @@ export const nucleoResolvers = {
         });
       }
 
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Construir filtros según permisos
+      const permissionFilters = buildReadFilters(usuario);
+
       return prisma.nucleo.findMany({
-        where: { activo: true },
+        where: {
+          activo: true,
+          ...permissionFilters,
+        },
         orderBy: { createdAt: 'desc' }, // Más recientes primero
         include: {
           barrio: true,
@@ -70,17 +84,11 @@ export const nucleoResolvers = {
         });
       }
 
-      // Obtener comunidadId del usuario autenticado
-      const user = await prisma.usuario.findUnique({
-        where: { id: userId },
-        select: { comunidadId: true },
-      });
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
 
-      if (!user) {
-        throw new GraphQLError('Usuario no encontrado', {
-          extensions: { code: 'NOT_FOUND' },
-        });
-      }
+      // Solo ADMIN/CEA/MCA puede crear núcleos
+      requireAdmin(usuario.rol);
 
       // NUC-001: Validar que existe el barrio
       const barrio = await prisma.barrio.findUnique({
@@ -99,7 +107,7 @@ export const nucleoResolvers = {
           barrioId: input.barrioId,
           descripcion: input.descripcion || null,
           activo: true,
-          comunidadId: user.comunidadId,
+          comunidadId: usuario.comunidadId,
         },
         include: {
           barrio: true,
@@ -132,6 +140,12 @@ export const nucleoResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Solo ADMIN/CEA/MCA puede editar núcleos
+      requireAdmin(usuario.rol);
 
       const nucleoExistente = await prisma.nucleo.findUnique({ where: { id } });
       if (!nucleoExistente) {
@@ -204,6 +218,12 @@ export const nucleoResolvers = {
           extensions: { code: 'UNAUTHENTICATED' },
         });
       }
+
+      // Obtener usuario con permisos
+      const usuario = await getUserWithPermissions(prisma, userId);
+
+      // Solo ADMIN/CEA/MCA puede eliminar núcleos
+      requireAdmin(usuario.rol);
 
       const nucleo = await prisma.nucleo.findUnique({ where: { id } });
       if (!nucleo) {
