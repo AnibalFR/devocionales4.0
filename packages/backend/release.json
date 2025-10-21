@@ -1,11 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Feature: Permite cambiar rol de usuarios existentes",
-    "Backend: Nueva mutation updateUsuarioRol para ADMIN/CEA/MCA",
-    "UI: Dropdown inline para cambiar rol en catálogo de miembros",
-    "Mejora: Ya no es necesario regenerar credenciales para cambiar rol",
-    "Fix: Rol de usuario ahora editable directamente desde la tabla"
+    "UX: Simplificacion del catalogo de miembros",
+    "Eliminada columna 'Rol' duplicada y confusa",
+    "Ahora solo se muestra 'Estado de Cuenta' con tooltip informativo",
+    "Filtros y badges actualizados para usar rol de acceso al sistema",
+    "Mejora de claridad: una sola fuente de verdad para permisos"
   ],
   "requiresReload": false,
   "requiresReauth": false
