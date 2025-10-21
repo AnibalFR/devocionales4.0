@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
-import { AlertTriangle, Lightbulb, Info, CheckCircle, Lock, Mail, XCircle } from 'lucide-react';
+import { AlertTriangle, Lightbulb, Info, CheckCircle, Lock, Mail, XCircle, Download, Upload } from 'lucide-react';
 import EditConflictModal from '../components/EditConflictModal';
 import EditingIndicator from '../components/EditingIndicator';
+import ExcelJS from 'exceljs';
 
 const MIEMBROS_QUERY = gql`
   query Miembros {
@@ -217,6 +218,17 @@ export function MiembrosPage() {
     field: null,
     pendingValue: null,
   });
+
+  // Estados para Exportar/Importar
+  const [showImportExportModal, setShowImportExportModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    type: 'success' | 'error' | 'warning';
+    title: string;
+    message: string;
+    details?: string[];
+  } | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -591,6 +603,357 @@ export function MiembrosPage() {
     setCredencialesGeneradas(null);
   };
 
+  // ============================================
+  // EXPORTAR/IMPORTAR EXCEL
+  // ============================================
+
+  const exportarPlantilla = async () => {
+    setExporting(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const ws = workbook.addWorksheet('Miembros');
+
+      // Definir columnas - orden: visibles primero, IDs ocultos al final
+      ws.columns = [
+        { header: 'Nombre(s)', key: 'nombre', width: 25 },
+        { header: 'Apellidos', key: 'apellidos', width: 25 },
+        { header: 'Fecha Nacimiento', key: 'fechaNacimiento', width: 18 },
+        { header: 'Edad Aproximada', key: 'edadAproximada', width: 15 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Teléfono', key: 'telefono', width: 15 },
+        { header: 'Dirección', key: 'direccion', width: 40 },
+        { header: 'Rol Familiar', key: 'rolFamiliar', width: 15 },
+        { header: 'Tiene Devocional', key: 'tieneDevocional', width: 15 },
+        { header: 'Activo', key: 'activo', width: 10 },
+        { header: 'Barrio', key: 'barrio', width: 20 },
+        { header: 'Núcleo', key: 'nucleo', width: 20 },
+        { header: 'Familia', key: 'familia', width: 30 },
+        // Columnas ocultas
+        { header: 'ID', key: 'id', width: 30 },
+        { header: 'Barrio ID', key: 'barrioId', width: 30 },
+        { header: 'Núcleo ID', key: 'nucleoId', width: 30 },
+        { header: 'Familia ID', key: 'familiaId', width: 30 },
+      ];
+
+      // Estilo del encabezado
+      ws.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF217346' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      // Agregar datos existentes o fila de ejemplo
+      if (miembros.length === 0) {
+        ws.addRow({
+          nombre: 'Juan',
+          apellidos: 'Pérez',
+          fechaNacimiento: '1990-01-15',
+          edadAproximada: '',
+          email: 'juan@example.com',
+          telefono: '1234567890',
+          direccion: 'Calle Principal 123',
+          rolFamiliar: 'Padre',
+          tieneDevocional: 'NO',
+          activo: 'SI',
+          barrio: barrios.length > 0 ? barrios[0].nombre : '',
+          nucleo: '',
+          familia: '',
+          id: 'ejemplo-1',
+          barrioId: '',
+          nucleoId: '',
+          familiaId: '',
+        });
+      } else {
+        miembros.forEach((m: any) => {
+          ws.addRow({
+            nombre: m.nombre,
+            apellidos: m.apellidos || '',
+            fechaNacimiento: formatDate(m.fechaNacimiento),
+            edadAproximada: m.edadAproximada || '',
+            email: m.email || '',
+            telefono: m.telefono || '',
+            direccion: m.direccion || '',
+            rolFamiliar: m.rolFamiliar || '',
+            tieneDevocional: m.tieneDevocional ? 'SI' : 'NO',
+            activo: m.activo ? 'SI' : 'NO',
+            barrio: m.barrio?.nombre || '',
+            nucleo: m.nucleo?.nombre || '',
+            familia: m.familia?.nombre || '',
+            id: m.id,
+            barrioId: m.barrioId || '',
+            nucleoId: m.nucleoId || '',
+            familiaId: m.familiaId || '',
+          });
+        });
+      }
+
+      // Ocultar columnas técnicas (14-17: ID, Barrio ID, Núcleo ID, Familia ID)
+      [14, 15, 16, 17].forEach(col => {
+        ws.getColumn(col).hidden = true;
+        ws.getColumn(col).eachCell((cell) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        });
+      });
+
+      // Bordes para todas las celdas
+      ws.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
+      });
+
+      // Agregar hoja de instrucciones
+      const wsInstrucciones = workbook.addWorksheet('Instrucciones');
+      wsInstrucciones.columns = [
+        { header: 'Campo', key: 'campo', width: 25 },
+        { header: 'Descripción', key: 'descripcion', width: 60 },
+        { header: 'Valores Válidos', key: 'valores', width: 40 },
+      ];
+
+      wsInstrucciones.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF217346' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+
+      const instrucciones = [
+        { campo: 'Nombre(s)', descripcion: 'Nombre(s) del miembro', valores: 'Texto requerido' },
+        { campo: 'Apellidos', descripcion: 'Apellidos del miembro', valores: 'Texto opcional' },
+        { campo: 'Fecha Nacimiento', descripcion: 'Fecha de nacimiento', valores: 'YYYY-MM-DD (ej: 1990-01-15)' },
+        { campo: 'Edad Aproximada', descripcion: 'Edad aproximada si no tiene fecha de nacimiento', valores: 'Número (ej: 35)' },
+        { campo: 'Email', descripcion: 'Correo electrónico', valores: 'Email válido' },
+        { campo: 'Teléfono', descripcion: 'Número de teléfono', valores: 'Texto' },
+        { campo: 'Dirección', descripcion: 'Dirección física', valores: 'Texto' },
+        { campo: 'Rol Familiar', descripcion: 'Rol en la familia', valores: 'Padre, Madre, Hijo, Hija, Abuelo, Abuela, Otro' },
+        { campo: 'Tiene Devocional', descripcion: 'Si es anfitrión de devocional', valores: 'SI o NO' },
+        { campo: 'Activo', descripcion: 'Estado del miembro', valores: 'SI o NO' },
+        { campo: 'Barrio', descripcion: 'Nombre del barrio', valores: barrios.map((b: any) => b.nombre).join(', ') || 'Crear barrios primero' },
+        { campo: 'Núcleo', descripcion: 'Nombre del núcleo', valores: nucleos.map((n: any) => n.nombre).join(', ') || 'Opcional' },
+        { campo: 'Familia', descripcion: 'Nombre de la familia', valores: 'Nombre exacto de la familia (opcional)' },
+        { campo: '', descripcion: '', valores: '' },
+        { campo: 'NOTAS IMPORTANTES', descripcion: '', valores: '' },
+        { campo: '1', descripcion: 'Para agregar miembros nuevos, deje la columna ID vacía', valores: '' },
+        { campo: '2', descripcion: 'Para actualizar miembros existentes, NO modifique la columna ID (está oculta)', valores: '' },
+        { campo: '3', descripcion: 'Las filas de ejemplo (con ID "ejemplo-*") se ignoran al importar', valores: '' },
+        { campo: '4', descripcion: 'Los nombres de Barrio, Núcleo y Familia NO distinguen mayúsculas/minúsculas', valores: '' },
+        { campo: '5', descripcion: 'Si un Barrio/Núcleo/Familia no existe, se debe crear primero en la aplicación', valores: '' },
+      ];
+
+      instrucciones.forEach(inst => {
+        wsInstrucciones.addRow(inst);
+      });
+
+      wsInstrucciones.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
+      });
+
+      // Descargar archivo
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fecha = new Date().toISOString().split('T')[0];
+      link.download = `Miembros_${fecha}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      setImportResult({
+        type: 'success',
+        title: 'Exportación Exitosa',
+        message: `Se exportaron ${miembros.length} miembros a Excel. El archivo incluye una hoja de instrucciones.`,
+      });
+    } catch (error: any) {
+      console.error('Error al exportar:', error);
+      setImportResult({
+        type: 'error',
+        title: 'Error al Exportar',
+        message: error.message || 'Ocurrió un error inesperado.',
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const importarExcel = async (file: File) => {
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const arrayBuffer = await file.arrayBuffer();
+      await workbook.xlsx.load(arrayBuffer);
+
+      const ws = workbook.getWorksheet('Miembros');
+      if (!ws) {
+        throw new Error('No se encontró la hoja "Miembros" en el archivo Excel.');
+      }
+
+      const errores: string[] = [];
+      const advertencias: string[] = [];
+      let miembrosAdded = 0;
+      let miembrosUpdated = 0;
+
+      // Crear mapas para resolver nombres a IDs
+      const barriosMap = new Map(barrios.map((b: any) => [b.nombre.toLowerCase(), b.id]));
+      const nucleosMap = new Map(nucleos.map((n: any) => [n.nombre.toLowerCase(), n.id]));
+      const existingMiembros = new Set(miembros.map((m: any) => m.id));
+
+      // Procesar cada fila (empezar desde fila 2, después del encabezado)
+      for (let rowNumber = 2; rowNumber <= ws.rowCount; rowNumber++) {
+        const row = ws.getRow(rowNumber);
+
+        const nombre = row.getCell(1).value;
+        const apellidos = row.getCell(2).value;
+        const fechaNacimiento = row.getCell(3).value;
+        const edadAproximada = row.getCell(4).value;
+        const email = row.getCell(5).value;
+        const telefono = row.getCell(6).value;
+        const direccion = row.getCell(7).value;
+        const rolFamiliar = row.getCell(8).value;
+        const tieneDevocional = row.getCell(9).value;
+        const activo = row.getCell(10).value;
+        const barrioNombre = row.getCell(11).value;
+        const nucleoNombre = row.getCell(12).value;
+        // const familiaNombre = row.getCell(13).value; // TODO: implementar asignación de familia por nombre
+        const id = row.getCell(14).value;
+
+        // Saltar filas vacías
+        if (!nombre) continue;
+
+        // Saltar ejemplos
+        if (id && String(id).includes('ejemplo')) {
+          continue;
+        }
+
+        // Validaciones
+        if (!nombre || String(nombre).trim() === '') {
+          errores.push(`Fila ${rowNumber}: El nombre es requerido`);
+          continue;
+        }
+
+        // Validar barrio (requerido)
+        if (!barrioNombre || String(barrioNombre).trim() === '') {
+          errores.push(`Fila ${rowNumber}: El barrio es requerido para "${nombre}"`);
+          continue;
+        }
+
+        const barrioId = barriosMap.get(String(barrioNombre).toLowerCase());
+        if (!barrioId) {
+          errores.push(`Fila ${rowNumber}: Barrio "${barrioNombre}" no existe. Créalo primero en el catálogo de barrios.`);
+          continue;
+        }
+
+        // Resolver núcleo (opcional)
+        let nucleoId = null;
+        if (nucleoNombre && String(nucleoNombre).trim() !== '') {
+          nucleoId = nucleosMap.get(String(nucleoNombre).toLowerCase());
+          if (!nucleoId) {
+            advertencias.push(`Fila ${rowNumber}: Núcleo "${nucleoNombre}" no existe. Se asignará sin núcleo.`);
+          }
+        }
+
+        try {
+          const input: any = {
+            nombre: String(nombre),
+            apellidos: apellidos ? String(apellidos) : null,
+            fechaNacimiento: fechaNacimiento ? String(fechaNacimiento) : null,
+            edadAproximada: edadAproximada ? parseInt(String(edadAproximada)) : null,
+            email: email ? String(email) : null,
+            telefono: telefono ? String(telefono) : null,
+            direccion: direccion ? String(direccion) : null,
+            rolFamiliar: rolFamiliar ? String(rolFamiliar) : null,
+            tieneDevocional: String(tieneDevocional).toUpperCase() === 'SI',
+            activo: String(activo).toUpperCase() === 'SI',
+            barrioId,
+            nucleoId,
+          };
+
+          if (id && existingMiembros.has(String(id))) {
+            // Actualizar miembro existente
+            await updateMiembro({ variables: { id: String(id), input } });
+            miembrosUpdated++;
+          } else {
+            // Crear nuevo miembro
+            await createMiembro({ variables: { input } });
+            miembrosAdded++;
+          }
+        } catch (error: any) {
+          errores.push(`Fila ${rowNumber}: Error al guardar "${nombre}": ${error.message}`);
+        }
+      }
+
+      // Refrescar datos
+      await refetch();
+
+      // Mostrar resultados
+      if (errores.length > 0) {
+        setImportResult({
+          type: 'error',
+          title: 'Importación Completada con Errores',
+          message: `Se procesaron algunos miembros pero hubo ${errores.length} error(es):`,
+          details: [
+            `✅ Miembros agregados: ${miembrosAdded}`,
+            `✅ Miembros actualizados: ${miembrosUpdated}`,
+            '',
+            '❌ ERRORES:',
+            ...errores,
+            ...(advertencias.length > 0 ? ['', '⚠️ ADVERTENCIAS:', ...advertencias] : []),
+          ],
+        });
+      } else if (advertencias.length > 0) {
+        setImportResult({
+          type: 'warning',
+          title: 'Importación Exitosa con Advertencias',
+          message: `Se importaron ${miembrosAdded + miembrosUpdated} miembros con algunas advertencias:`,
+          details: [
+            `✅ Miembros agregados: ${miembrosAdded}`,
+            `✅ Miembros actualizados: ${miembrosUpdated}`,
+            '',
+            '⚠️ ADVERTENCIAS:',
+            ...advertencias,
+          ],
+        });
+      } else {
+        setImportResult({
+          type: 'success',
+          title: 'Importación Exitosa',
+          message: `Se importaron ${miembrosAdded + miembrosUpdated} miembros correctamente.`,
+          details: [
+            `✅ Miembros agregados: ${miembrosAdded}`,
+            `✅ Miembros actualizados: ${miembrosUpdated}`,
+          ],
+        });
+      }
+    } catch (error: any) {
+      console.error('Error al importar:', error);
+      setImportResult({
+        type: 'error',
+        title: 'Error al Importar',
+        message: error.message || 'Ocurrió un error inesperado.',
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      importarExcel(file);
+    }
+  };
+
   // Renderizado de edad según MEM-003
   const renderEdad = (miembro: any, cellRef?: (el: HTMLTableCellElement | null) => void) => {
     // Si tiene fecha de nacimiento, edad no es editable
@@ -668,15 +1031,24 @@ export function MiembrosPage() {
             Gestión completa de miembros
           </p>
         </div>
-        <button
-          onClick={handleNuevoMiembro}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Nuevo Miembro</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowImportExportModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <Download className="w-5 h-5" />
+            <span>Exportar/Importar</span>
+          </button>
+          <button
+            onClick={handleNuevoMiembro}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Nuevo Miembro</span>
+          </button>
+        </div>
       </div>
 
       {/* Estadísticas */}
@@ -1500,6 +1872,162 @@ VISITANTE:
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Exportar/Importar */}
+      {showImportExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Exportar / Importar Miembros</h3>
+              <button
+                onClick={() => {
+                  setShowImportExportModal(false);
+                  setImportResult(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Sección de Exportar */}
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start gap-3 mb-3">
+                <Download className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Exportar a Excel</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Descarga todos los miembros en formato Excel. Incluye una hoja de instrucciones para facilitar la edición.
+                  </p>
+                  <button
+                    onClick={exportarPlantilla}
+                    disabled={exporting}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {exporting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Exportando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        <span>Exportar {miembros.length} miembros</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección de Importar */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3 mb-3">
+                <Upload className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">Importar desde Excel</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Sube un archivo Excel con miembros. Puedes agregar nuevos o actualizar existentes.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-2">
+                      {importing ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Importando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          <span>Seleccionar archivo</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleFileUpload}
+                        disabled={importing}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Resultado de la importación/exportación */}
+            {importResult && (
+              <div className={`p-4 rounded-lg border mb-4 ${
+                importResult.type === 'success' ? 'bg-green-50 border-green-200' :
+                importResult.type === 'error' ? 'bg-red-50 border-red-200' :
+                'bg-yellow-50 border-yellow-200'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {importResult.type === 'success' && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />}
+                  {importResult.type === 'error' && <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />}
+                  {importResult.type === 'warning' && <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />}
+                  <div className="flex-1">
+                    <h4 className={`font-semibold mb-1 ${
+                      importResult.type === 'success' ? 'text-green-900' :
+                      importResult.type === 'error' ? 'text-red-900' :
+                      'text-yellow-900'
+                    }`}>
+                      {importResult.title}
+                    </h4>
+                    <p className={`text-sm mb-2 ${
+                      importResult.type === 'success' ? 'text-green-700' :
+                      importResult.type === 'error' ? 'text-red-700' :
+                      'text-yellow-700'
+                    }`}>
+                      {importResult.message}
+                    </p>
+                    {importResult.details && importResult.details.length > 0 && (
+                      <div className={`text-xs font-mono bg-white p-3 rounded border max-h-48 overflow-y-auto ${
+                        importResult.type === 'success' ? 'border-green-300' :
+                        importResult.type === 'error' ? 'border-red-300' :
+                        'border-yellow-300'
+                      }`}>
+                        {importResult.details.map((detail, idx) => (
+                          <div key={idx} className="whitespace-pre-wrap">{detail}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Instrucciones */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-gray-700">
+                  <p className="font-semibold mb-2">Instrucciones:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Para agregar miembros nuevos, descarga la plantilla, agrega filas y súbela</li>
+                    <li>Para actualizar existentes, exporta primero, edita y vuelve a importar</li>
+                    <li>El archivo debe tener una hoja llamada "Miembros"</li>
+                    <li>No modifiques las columnas ocultas (IDs técnicos)</li>
+                    <li>Los barrios son requeridos - créalos antes si no existen</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowImportExportModal(false);
+                  setImportResult(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
