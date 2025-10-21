@@ -120,7 +120,7 @@ const REGENERAR_CREDENCIALES = gql`
   }
 `;
 
-const ROLES = ['CEA', 'MCA', 'COLABORADOR', 'MIEMBRO'];
+const ROLES = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'MIEMBRO'];
 const ROLES_FAMILIARES = ['Padre', 'Madre', 'Hijo', 'Hija', 'Abuelo', 'Abuela', 'Otro'];
 
 interface EditingState {
@@ -192,7 +192,7 @@ export function MiembrosPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [invitingMiembro, setInvitingMiembro] = useState<any>(null);
   const [isRegenerar, setIsRegenerar] = useState(false); // true = regenerar, false = crear nuevo
-  const [selectedRol, setSelectedRol] = useState<'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
+  const [selectedRol, setSelectedRol] = useState<'ADMIN' | 'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE'>('COLABORADOR');
   const [credencialesGeneradas, setCredencialesGeneradas] = useState<{ email: string; password: string; rol: string } | null>(null);
 
   // Estado del modal de conflictos de edición (OCC)
@@ -994,7 +994,7 @@ export function MiembrosPage() {
                         <span
                           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
                           title={
-                            miembro.usuario.rol === 'CEA' || miembro.usuario.rol === 'MCA'
+                            miembro.usuario.rol === 'ADMIN' || miembro.usuario.rol === 'CEA' || miembro.usuario.rol === 'MCA'
                               ? 'Acceso completo: Ver, crear, editar, eliminar y gestionar usuarios'
                               : miembro.usuario.rol === 'COLABORADOR'
                               ? 'Puede ver toda la información, crear y editar registros, y enviar invitaciones'
@@ -1187,8 +1187,8 @@ export function MiembrosPage() {
                     {/* Acciones */}
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        {/* Botón Invitar / Reenviar - Solo visible para CEA, MCA y COLABORADOR */}
-                        {(user?.rol === 'CEA' || user?.rol === 'MCA' || user?.rol === 'COLABORADOR') && (
+                        {/* Botón Invitar / Reenviar - Solo visible para ADMIN, CEA, MCA y COLABORADOR */}
+                        {(user?.rol === 'ADMIN' || user?.rol === 'CEA' || user?.rol === 'MCA' || user?.rol === 'COLABORADOR') && (
                           <>
                             {!miembro.usuario ? (
                               // Botón "Invitar" cuando no tiene usuario
@@ -1426,6 +1426,7 @@ export function MiembrosPage() {
                       onChange={(e) => setSelectedRol(e.target.value as any)}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     >
+                      <option value="ADMIN">ADMIN (Administrador del sistema)</option>
                       <option value="CEA">CEA (Administrador total)</option>
                       <option value="MCA">MCA (Administrador total)</option>
                       <option value="COLABORADOR">COLABORADOR (Puede crear y editar)</option>
@@ -1434,6 +1435,7 @@ export function MiembrosPage() {
                     <div className="flex items-start gap-1.5 text-xs text-gray-500 mt-1">
                       <CheckCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
                       <p>
+                        {selectedRol === 'ADMIN' && 'Acceso completo a todas las funciones del sistema'}
                         {selectedRol === 'CEA' && 'Acceso completo a todas las funciones'}
                         {selectedRol === 'MCA' && 'Acceso completo a todas las funciones'}
                         {selectedRol === 'COLABORADOR' && 'Puede crear, editar y enviar invitaciones'}
