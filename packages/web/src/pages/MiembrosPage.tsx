@@ -120,8 +120,19 @@ const REGENERAR_CREDENCIALES = gql`
   }
 `;
 
+const UPDATE_USUARIO_ROL = gql`
+  mutation UpdateUsuarioRol($input: UpdateUsuarioRolInput!) {
+    updateUsuarioRol(input: $input) {
+      id
+      email
+      rol
+    }
+  }
+`;
+
 const ROLES = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'MIEMBRO'];
 const ROLES_FAMILIARES = ['Padre', 'Madre', 'Hijo', 'Hija', 'Abuelo', 'Abuela', 'Otro'];
+const USUARIO_ROLES = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'VISITANTE'];
 
 interface EditingState {
   miembroId: string | null;
@@ -219,6 +230,7 @@ export function MiembrosPage() {
   const [deleteMiembro] = useMutation(DELETE_MIEMBRO);
   const [createUsuarioFromMiembro] = useMutation(CREATE_USUARIO_FROM_MIEMBRO);
   const [regenerarCredenciales] = useMutation(REGENERAR_CREDENCIALES);
+  const [updateUsuarioRol] = useMutation(UPDATE_USUARIO_ROL);
 
   const miembros = data?.miembros || [];
   const barrios = barriosData?.barrios || [];
@@ -509,6 +521,22 @@ export function MiembrosPage() {
     setIsRegenerar(true); // Regenerar credenciales
     setCredencialesGeneradas(null);
     setShowInviteModal(true);
+  };
+
+  const handleUpdateUsuarioRol = async (usuarioId: string, nuevoRol: string) => {
+    try {
+      await updateUsuarioRol({
+        variables: {
+          input: {
+            usuarioId,
+            rol: nuevoRol,
+          },
+        },
+      });
+      await refetch();
+    } catch (err: any) {
+      alert(`Error al actualizar rol: ${err.message}`);
+    }
   };
 
   const handleConfirmInvitar = async () => {
@@ -991,21 +1019,37 @@ export function MiembrosPage() {
                     {/* Estado de Cuenta */}
                     <td className="px-4 py-2">
                       {miembro.usuario ? (
-                        <span
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
-                          title={
-                            miembro.usuario.rol === 'ADMIN' || miembro.usuario.rol === 'CEA' || miembro.usuario.rol === 'MCA'
-                              ? 'Acceso completo: Ver, crear, editar, eliminar y gestionar usuarios'
-                              : miembro.usuario.rol === 'COLABORADOR'
-                              ? 'Puede ver toda la información, crear y editar registros, y enviar invitaciones'
-                              : miembro.usuario.rol === 'VISITANTE'
-                              ? 'Solo puede ver información, sin permisos de edición'
-                              : ''
-                          }
-                        >
-                          <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                          {miembro.usuario.rol}
-                        </span>
+                        (user?.rol === 'ADMIN' || user?.rol === 'CEA' || user?.rol === 'MCA') ? (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                            <select
+                              value={miembro.usuario.rol}
+                              onChange={(e) => handleUpdateUsuarioRol(miembro.usuario.id, e.target.value)}
+                              className="text-xs font-medium bg-green-100 text-green-800 rounded-full px-2.5 py-0.5 border-none focus:ring-2 focus:ring-green-500"
+                              title="Cambiar rol del usuario"
+                            >
+                              {USUARIO_ROLES.map(rol => (
+                                <option key={rol} value={rol}>{rol}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 cursor-help"
+                            title={
+                              miembro.usuario.rol === 'ADMIN' || miembro.usuario.rol === 'CEA' || miembro.usuario.rol === 'MCA'
+                                ? 'Acceso completo: Ver, crear, editar, eliminar y gestionar usuarios'
+                                : miembro.usuario.rol === 'COLABORADOR'
+                                ? 'Puede ver toda la información, crear y editar registros, y enviar invitaciones'
+                                : miembro.usuario.rol === 'VISITANTE'
+                                ? 'Solo puede ver información, sin permisos de edición'
+                                : ''
+                            }
+                          >
+                            <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                            {miembro.usuario.rol}
+                          </span>
+                        )
                       ) : (
                         <span
                           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 cursor-help"
