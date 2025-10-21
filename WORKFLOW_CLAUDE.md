@@ -195,35 +195,39 @@ Marcar cada tarea como completada cuando termine.
    - Mencionar breaking changes si los hay
    - Incluir automáticamente firma de Claude Code
 
-3. **Verificar que estamos en el directorio raíz:**
+3. **IMPORTANTE: Usar SIEMPRE el path absoluto del script:**
    ```bash
-   pwd  # Debe ser /Users/anibalfigueroaramirez/XYZ/devocionales4.0
+   # ⚠️ NUNCA uses ./deploy.sh (fallará si no estás en el directorio raíz)
+   # ✅ SIEMPRE usa el path absoluto:
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh
    ```
 
 ---
 
 ### PASO 6: Ejecutar Deployment
 
-**Usar el script automatizado:**
+**⚠️ IMPORTANTE: Usar siempre el PATH ABSOLUTO del script**
+
+El script `deploy.sh` debe ejecutarse usando su **path completo**, no con `./deploy.sh`, para evitar errores cuando estás en subdirectorios como `packages/backend` o `packages/web`.
 
 1. **Comando estándar (sin migraciones ni dependencias):**
    ```bash
-   ./deploy.sh -c "Descripción clara del cambio"
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Descripción clara del cambio"
    ```
 
 2. **Con migraciones:**
    ```bash
-   ./deploy.sh -c "Descripción del cambio" -m
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Descripción del cambio" -m
    ```
 
 3. **Con nuevas dependencias:**
    ```bash
-   ./deploy.sh -c "Descripción del cambio" -i
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Descripción del cambio" -i
    ```
 
 4. **Deployment completo:**
    ```bash
-   ./deploy.sh -c "Descripción del cambio" -m -i
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Descripción del cambio" -m -i
    ```
 
 **El script automáticamente:**
@@ -347,7 +351,7 @@ Marcar cada tarea como completada cuando termine.
 3. **No hacer cambios destructivos sin confirmar con usuario**
 4. **Ejemplo:**
    ```bash
-   ./deploy.sh -c "Agrega tabla de notificaciones" -m
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Agrega tabla de notificaciones" -m
    ```
 
 ### Cuando se Agregaron Dependencias
@@ -355,7 +359,7 @@ Marcar cada tarea como completada cuando termine.
 1. **SIEMPRE usar `-i` en el deployment**
 2. **Ejemplo:**
    ```bash
-   ./deploy.sh -c "Agrega librería de charts" -i
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Agrega librería de charts" -i
    ```
 
 ### Rollback de Emergencia
@@ -363,7 +367,7 @@ Marcar cada tarea como completada cuando termine.
 Si el deployment causó problemas:
 
 ```bash
-./deploy.sh -r
+/Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -r
 ```
 
 Luego investigar el problema antes de reintentar.
@@ -445,7 +449,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 5. **Deployment:**
    ```bash
-   ./deploy.sh -c "Agrega campo de teléfono a miembros
+   /Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh -c "Agrega campo de teléfono a miembros
 
    ## Backend
    - Campo telefono en schema Prisma
@@ -510,6 +514,7 @@ Comunicar al usuario
 6. ❌ Mensajes de commit vagos ("fix", "update")
 7. ❌ No usar TodoWrite para tracking
 8. ❌ Hacer deployment manual en vez de usar el script
+9. ❌ **Usar `./deploy.sh` en vez del path absoluto** - Causa "no such file or directory"
 
 ---
 
