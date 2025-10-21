@@ -105,9 +105,10 @@ export const timelineResolvers = {
       const hasMore = events.length > limit;
       const resultEvents = hasMore ? events.slice(0, limit) : events;
 
-      // Personalizar los summaries para el usuario actual
+      // Personalizar los summaries para el usuario actual y serializar timestamps
       const personalizedEvents = resultEvents.map((event) => ({
         ...event,
+        timestampUtc: event.timestampUtc.toISOString(),
         summary: EventLogger.personalizeSummary(event.summary, event.actorId, userId),
       }));
 
