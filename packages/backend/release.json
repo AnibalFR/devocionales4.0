@@ -1,11 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Hotfix: Correcciones críticas de TypeScript",
-    "Fix: Línea de Tiempo ahora muestra eventos correctamente",
-    "Mejora: Backend compilado sin errores de tipos",
-    "Optimización: Configuración PM2 con variables de entorno",
-    "Sistema estable y listo para uso"
+    "Feature: Nuevo rol ADMIN con permisos completos",
+    "Mejora: ADMIN tiene los mismos permisos que CEA/MCA",
+    "Sistema: Migración de base de datos incluida"
   ],
   "requiresReload": false,
   "requiresReauth": false

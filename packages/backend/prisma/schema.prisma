@@ -64,6 +64,7 @@ model Usuario {
 }
 
 enum RolUsuario {
+  ADMIN         // Administrador del Sistema - ROL ADMIN
   CEA           // Comité de Enseñanza de Agrupación - ROL ADMIN
   MCA           // Miembro del Comité de Agrupación - ROL ADMIN
   COLABORADOR

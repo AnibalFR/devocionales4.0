@@ -57,7 +57,7 @@ export const timelineResolvers = {
         // VISITANTE solo ve sus propias acciones
         where.actorId = userId;
       }
-      // CEA y MCA ven todos los eventos de la comunidad (sin filtro adicional)
+      // ADMIN, CEA y MCA ven todos los eventos de la comunidad (sin filtro adicional)
 
       // Aplicar filtros del usuario
       if (filters) {

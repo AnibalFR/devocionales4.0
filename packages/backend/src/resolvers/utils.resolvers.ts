@@ -10,14 +10,14 @@ export const utilsResolvers = {
         });
       }
 
-      // Verificar que el usuario sea CEA (administrador)
+      // Verificar que el usuario sea ADMIN, CEA o MCA (administradores)
       const user = await prisma.usuario.findUnique({
         where: { id: userId },
         select: { rol: true, comunidadId: true },
       });
 
-      if (!user || (user.rol !== 'CEA' && user.rol !== 'MCA')) {
-        throw new GraphQLError('Solo usuarios CEA y MCA pueden limpiar la base de datos', {
+      if (!user || (user.rol !== 'ADMIN' && user.rol !== 'CEA' && user.rol !== 'MCA')) {
+        throw new GraphQLError('Solo usuarios ADMIN, CEA y MCA pueden limpiar la base de datos', {
           extensions: { code: 'FORBIDDEN' },
         });
       }

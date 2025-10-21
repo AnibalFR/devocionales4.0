@@ -55,8 +55,8 @@ export const usuarioResolvers = {
         });
       }
 
-      // Solo CEA y MCA pueden ver todos los usuarios
-      if (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA') {
+      // Solo ADMIN, CEA y MCA pueden ver todos los usuarios
+      if (currentUser.rol !== 'ADMIN' && currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA') {
         throw new GraphQLError('No autorizado', {
           extensions: { code: 'FORBIDDEN' },
         });
@@ -81,13 +81,13 @@ export const usuarioResolvers = {
         });
       }
 
-      // Verificar que el usuario actual sea CEA o COLABORADOR
+      // Verificar que el usuario actual sea ADMIN, CEA, MCA o COLABORADOR
       const currentUser = await prisma.usuario.findUnique({
         where: { id: userId },
       });
 
-      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
-        throw new GraphQLError('Solo usuarios CEA, MCA y COLABORADOR pueden enviar invitaciones', {
+      if (!currentUser || (currentUser.rol !== 'ADMIN' && currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
+        throw new GraphQLError('Solo usuarios ADMIN, CEA, MCA y COLABORADOR pueden enviar invitaciones', {
           extensions: { code: 'FORBIDDEN' },
         });
       }
@@ -139,7 +139,7 @@ export const usuarioResolvers = {
           password: hashedPassword,
           nombre: miembro.nombre,
           apellidos: miembro.apellidos || '',
-          rol: input.rol as 'CEA' | 'COLABORADOR' | 'VISITANTE',
+          rol: input.rol as 'ADMIN' | 'CEA' | 'MCA' | 'COLABORADOR' | 'VISITANTE',
           comunidadId: currentUser.comunidadId,
           activo: true,
           mustChangePassword: true, // Forzar cambio de contraseña en primer login
@@ -172,13 +172,13 @@ export const usuarioResolvers = {
         });
       }
 
-      // Verificar que el usuario actual sea CEA o COLABORADOR
+      // Verificar que el usuario actual sea ADMIN, CEA, MCA o COLABORADOR
       const currentUser = await prisma.usuario.findUnique({
         where: { id: userId },
       });
 
-      if (!currentUser || (currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
-        throw new GraphQLError('Solo usuarios CEA, MCA y COLABORADOR pueden regenerar credenciales', {
+      if (!currentUser || (currentUser.rol !== 'ADMIN' && currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA' && currentUser.rol !== 'COLABORADOR')) {
+        throw new GraphQLError('Solo usuarios ADMIN, CEA, MCA y COLABORADOR pueden regenerar credenciales', {
           extensions: { code: 'FORBIDDEN' },
         });
       }

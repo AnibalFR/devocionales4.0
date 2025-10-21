@@ -32,6 +32,7 @@ export const typeDefs = `#graphql
   }
 
   enum RolUsuario {
+    ADMIN
     CEA
     MCA
     COLABORADOR
