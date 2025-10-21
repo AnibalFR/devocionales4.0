@@ -1,12 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Nueva Línea de Tiempo de Eventos Colaborativa",
-    "Visibilidad completa de actividad del sistema",
-    "Registro automático de login, CRUD y cambios",
-    "Filtros por permisos según rol de usuario",
-    "Timeline cronológica con eventos de últimos 90 días"
+    "Hotfix: Correcciones críticas de TypeScript",
+    "Fix: Línea de Tiempo ahora muestra eventos correctamente",
+    "Mejora: Backend compilado sin errores de tipos",
+    "Optimización: Configuración PM2 con variables de entorno",
+    "Sistema estable y listo para uso"
   ],
-  "requiresReload": true,
+  "requiresReload": false,
   "requiresReauth": false
 }

@@ -237,10 +237,10 @@ export const visitaResolvers = {
           motivoNoVisitaOtra: input.motivoNoVisitaOtra,
 
           // Actividades (JSON)
-          visitActivities: input.visitActivities || {},
+          visitActivities: (input.visitActivities || {}) as any,
 
           // Materiales (JSON)
-          materialDejado: input.materialDejado || {},
+          materialDejado: (input.materialDejado || {}) as any,
 
           // Seguimiento
           seguimientoVisita: input.seguimientoVisita || false,

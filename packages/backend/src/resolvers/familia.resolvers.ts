@@ -70,7 +70,7 @@ export const familiaResolvers = {
             include: {
               creadoPor: true,
             },
-            orderBy: { fecha: 'desc' },
+            orderBy: { visitDate: 'desc' },
           },
         },
       });

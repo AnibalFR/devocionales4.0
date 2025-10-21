@@ -78,7 +78,7 @@ async function calcularProgresoMeta(meta: any, prisma: any) {
   });
 
   const visitadoresUnicos = new Set<string>();
-  visitasConVisitadores.forEach(v => {
+  visitasConVisitadores.forEach((v: { visitorUserIds?: string[] }) => {
     if (v.visitorUserIds && Array.isArray(v.visitorUserIds)) {
       v.visitorUserIds.forEach((id: string) => visitadoresUnicos.add(id));
     }

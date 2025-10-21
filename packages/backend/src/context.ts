@@ -26,9 +26,14 @@ export function getUserIdFromToken(token?: string): string | undefined {
 }
 
 export function createToken(userId: string): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET no configurado');
+  }
+
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET!,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    secret,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
   );
 }

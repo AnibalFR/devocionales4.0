@@ -13,6 +13,7 @@ interface UpdateNucleoInput {
   barrioId?: string;
   descripcion?: string;
   activo?: boolean;
+  lastUpdatedAt?: string;
 }
 
 export const nucleoResolvers = {

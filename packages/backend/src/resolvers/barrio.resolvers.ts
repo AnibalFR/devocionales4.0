@@ -11,6 +11,7 @@ interface UpdateBarrioInput {
   nombre?: string;
   descripcion?: string;
   activo?: boolean;
+  lastUpdatedAt?: string;
 }
 
 export const barrioResolvers = {
