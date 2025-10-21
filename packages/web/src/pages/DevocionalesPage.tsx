@@ -38,7 +38,10 @@ const MIEMBROS_ACTIVOS = gql`
       id
       nombre
       apellidos
-      rol
+      usuario {
+        id
+        rol
+      }
       familia {
         id
         nombre
@@ -873,9 +876,11 @@ export function DevocionalesPage() {
                       .map((miembro: any) => {
                         const isSelected = selectedAcompanantes.includes(miembro.id);
                         const rolColors: Record<string, string> = {
+                          ADMIN: 'bg-purple-600',
                           CEA: 'bg-green-600',
+                          MCA: 'bg-green-600',
                           COLABORADOR: 'bg-blue-600',
-                          MIEMBRO: 'bg-gray-600',
+                          VISITANTE: 'bg-gray-500',
                         };
 
                         return (
@@ -900,13 +905,19 @@ export function DevocionalesPage() {
                               {miembro.nombre} {miembro.apellidos || ''}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-semibold text-white ${
-                                  rolColors[miembro.rol] || 'bg-gray-600'
-                                }`}
-                              >
-                                {miembro.rol}
-                              </span>
+                              {miembro.usuario ? (
+                                <span
+                                  className={`px-2 py-1 rounded text-xs font-semibold text-white ${
+                                    rolColors[miembro.usuario.rol] || 'bg-gray-600'
+                                  }`}
+                                >
+                                  {miembro.usuario.rol}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 rounded text-xs font-semibold text-gray-500 bg-gray-100">
+                                  Sin acceso
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-600">
                               {miembro.barrio?.nombre || '-'}

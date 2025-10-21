@@ -310,7 +310,6 @@ export function ExportarImportarPage() {
         { header: 'Email', key: 'email', width: 30 },
         { header: 'Teléfono', key: 'telefono', width: 15 },
         { header: 'Dirección', key: 'direccion', width: 40 },
-        { header: 'Rol', key: 'rol', width: 15 },
         { header: 'Rol Familiar', key: 'rolFamiliar', width: 15 },
         { header: 'Tiene Devocional', key: 'tieneDevocional', width: 15 },
         { header: 'Día Devocional', key: 'devocionalDia', width: 15 },
@@ -347,7 +346,6 @@ export function ExportarImportarPage() {
           email: 'juan@example.com',
           telefono: '1234567890',
           direccion: 'Calle Principal 123',
-          rol: 'CEA',
           rolFamiliar: 'Padre',
           tieneDevocional: 'NO',
           devocionalDia: '',
@@ -374,7 +372,6 @@ export function ExportarImportarPage() {
             email: m.email || '',
             telefono: m.telefono || '',
             direccion: m.direccion || '',
-            rol: m.rol || 'miembro',
             rolFamiliar: m.rolFamiliar || '',
             tieneDevocional: m.tieneDevocional ? 'SI' : 'NO',
             devocionalDia: m.devocionalDia || '',
@@ -1354,20 +1351,19 @@ export function ExportarImportarPage() {
           const email = row.getCell(5).value;
           const telefono = row.getCell(6).value;
           const direccion = row.getCell(7).value;
-          const rol = row.getCell(8).value;
-          const rolFamiliar = row.getCell(9).value;
-          const tieneDevocional = row.getCell(10).value;
-          const devocionalDia = row.getCell(11).value;
-          const devocionalHora = row.getCell(12).value;
-          const devocionalParticipantes = row.getCell(13).value;
-          const activo = row.getCell(14).value;
+          const rolFamiliar = row.getCell(8).value;
+          const tieneDevocional = row.getCell(9).value;
+          const devocionalDia = row.getCell(10).value;
+          const devocionalHora = row.getCell(11).value;
+          const devocionalParticipantes = row.getCell(12).value;
+          const activo = row.getCell(13).value;
           // NUEVAS COLUMNAS VISIBLES CON NOMBRES
-          const familiaNombre = row.getCell(15).value;
-          const barrioNombre = row.getCell(16).value;
-          const nucleoNombre = row.getCell(17).value;
+          const familiaNombre = row.getCell(14).value;
+          const barrioNombre = row.getCell(15).value;
+          const nucleoNombre = row.getCell(16).value;
           // Columnas ocultas
-          const devocionalMiembros = row.getCell(18).value;
-          const id = row.getCell(19).value;
+          const devocionalMiembros = row.getCell(17).value;
+          const id = row.getCell(18).value;
 
           if (!nombre) continue;
 
@@ -1387,7 +1383,6 @@ export function ExportarImportarPage() {
                 email: email ? String(email) : null,
                 telefono: telefono ? String(telefono) : null,
                 direccion: direccion ? String(direccion) : null,
-                rol: rol ? String(rol).toUpperCase() : 'MIEMBRO',
                 rolFamiliar: rolFamiliar ? String(rolFamiliar) : null,
                 tieneDevocional: tieneDevocional === 'SI',
                 devocionalDia: devocionalDia ? String(devocionalDia) : null,
@@ -1411,7 +1406,6 @@ export function ExportarImportarPage() {
                 email: email ? String(email) : null,
                 telefono: telefono ? String(telefono) : null,
                 direccion: direccion ? String(direccion) : null,
-                rol: rol ? String(rol).toUpperCase() : 'MIEMBRO',
                 rolFamiliar: rolFamiliar ? String(rolFamiliar) : null,
                 tieneDevocional: tieneDevocional === 'SI',
                 devocionalDia: devocionalDia ? String(devocionalDia) : null,
@@ -1743,11 +1737,11 @@ export function ExportarImportarPage() {
           const nombre = row.getCell(1).value;
           const direccion = row.getCell(7).value;
           // NUEVAS COLUMNAS VISIBLES CON NOMBRES
-          const familiaNombre = row.getCell(15).value;
-          const barrioNombre = row.getCell(16).value;
-          const nucleoNombre = row.getCell(17).value;
+          const familiaNombre = row.getCell(14).value;
+          const barrioNombre = row.getCell(15).value;
+          const nucleoNombre = row.getCell(16).value;
           // Columnas ocultas
-          const id = row.getCell(19).value;
+          const id = row.getCell(18).value;
 
           if (!nombre) continue;
 

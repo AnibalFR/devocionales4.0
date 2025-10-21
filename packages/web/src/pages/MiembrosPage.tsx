@@ -130,7 +130,6 @@ const UPDATE_USUARIO_ROL = gql`
   }
 `;
 
-const ROLES = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'MIEMBRO'];
 const ROLES_FAMILIARES = ['Padre', 'Madre', 'Hijo', 'Hija', 'Abuelo', 'Abuela', 'Otro'];
 const USUARIO_ROLES = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'VISITANTE'];
 
@@ -248,7 +247,6 @@ export function MiembrosPage() {
         variables: {
           input: {
             nombre: 'Nuevo Miembro',
-            rol: 'MIEMBRO',
             barrioId: barrios[0].id, // MEM-001: Asignar primer barrio automáticamente
             tieneDevocional: false,
           },
@@ -271,9 +269,9 @@ export function MiembrosPage() {
       );
     }
 
-    // Filtrar por rol
+    // Filtrar por rol de acceso (usuario)
     if (filtroRol) {
-      resultado = resultado.filter((m: any) => m.rol === filtroRol);
+      resultado = resultado.filter((m: any) => m.usuario?.rol === filtroRol);
     }
 
     // Filtrar por estatus
@@ -295,7 +293,11 @@ export function MiembrosPage() {
     } else if (ordenamiento === 'edad') {
       resultado.sort((a: any, b: any) => (b.edadCalculada || 0) - (a.edadCalculada || 0));
     } else if (ordenamiento === 'rol') {
-      resultado.sort((a: any, b: any) => a.rol.localeCompare(b.rol));
+      resultado.sort((a: any, b: any) => {
+        const rolA = a.usuario?.rol || 'ZZZ'; // Sin acceso va al final
+        const rolB = b.usuario?.rol || 'ZZZ';
+        return rolA.localeCompare(rolB);
+      });
     }
 
     return resultado;
@@ -703,13 +705,13 @@ export function MiembrosPage() {
             >
               <option value="fecha">Fecha de Registro</option>
               <option value="nombre">Nombre (A-Z)</option>
-              <option value="rol">Rol</option>
+              <option value="rol">Rol de Acceso</option>
               <option value="edad">Edad (mayor a menor)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Rol</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Rol de Acceso</label>
             <select
               value={filtroRol}
               onChange={(e) => {
@@ -719,7 +721,7 @@ export function MiembrosPage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
               <option value="">Todos</option>
-              {ROLES.map(rol => (
+              {USUARIO_ROLES.map(rol => (
                 <option key={rol} value={rol}>{rol}</option>
               ))}
             </select>
@@ -775,8 +777,32 @@ export function MiembrosPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '180px' }}>Email</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '110px' }}>Teléfono</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '200px' }}>Dirección</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '100px' }}>Rol</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '130px' }}>Estado de Cuenta</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '130px' }}>
+                    <div className="flex items-center gap-1">
+                      Estado de Cuenta
+                      <span
+                        className="cursor-help"
+                        title={`ROL DE ACCESO AL SISTEMA
+
+ADMIN/CEA/MCA:
+- Ver, crear, editar, eliminar: Todo sin restricciones
+- Gestionar usuarios y roles
+- Funciones administrativas
+
+COLABORADOR:
+- Ver: Solo su núcleo/barrio
+- Crear: Todo excepto barrios/núcleos
+- Editar/Eliminar: Solo su núcleo
+- Enviar invitaciones
+
+VISITANTE:
+- Ver y crear: Solo visitas
+- Sin acceso a catálogos`}
+                      >
+                        <Info className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      </span>
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '120px' }}>Barrio</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '120px' }}>Núcleo</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase" style={{ minWidth: '150px' }}>Familia</th>
@@ -981,37 +1007,6 @@ export function MiembrosPage() {
                           onClick={() => startEdit(miembro.id, 'direccion', miembro.direccion)}
                         >
                           {miembro.direccion || '-'}
-                        </span>
-                      </td>
-                    )}
-
-                    {/* Rol - MEM-005 Dropdown */}
-                    {editing.miembroId === miembro.id && editing.field === 'rol' ? (
-                      <td className="px-4 pt-8 pb-2 bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative">
-                        <EditingIndicator isEditing={true} isSaving={isSaving} />
-                        <select
-                          value={editing.value}
-                          onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                          onBlur={() => saveEdit(miembro.id)}
-                          onKeyDown={(e) => {
-                            const cell = e.currentTarget.parentElement as HTMLTableCellElement;
-                            handleKeyDown(e, miembro.id, cell);
-                          }}
-                          className="w-full border border-primary-500 rounded px-2 py-1 text-sm"
-                          autoFocus
-                        >
-                          {ROLES.map(rol => (
-                            <option key={rol} value={rol}>{rol}</option>
-                          ))}
-                        </select>
-                      </td>
-                    ) : (
-                      <td className="px-4 py-2">
-                        <span
-                          className="cursor-pointer hover:underline text-sm"
-                          onClick={() => startEdit(miembro.id, 'rol', miembro.rol)}
-                        >
-                          {miembro.rol}
                         </span>
                       </td>
                     )}

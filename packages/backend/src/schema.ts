@@ -335,7 +335,6 @@ export const typeDefs = `#graphql
     edadAproximada: Int
     telefono: String
     email: String
-    rol: String!  # 'CEA' | 'COLABORADOR' | 'MIEMBRO'
     rolFamiliar: String
     tieneDevocional: Boolean
     devocionalDia: String
@@ -356,7 +355,6 @@ export const typeDefs = `#graphql
     edadAproximada: Int
     telefono: String
     email: String
-    rol: String
     rolFamiliar: String
     tieneDevocional: Boolean
     devocionalDia: String

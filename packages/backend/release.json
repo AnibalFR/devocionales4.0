@@ -1,12 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "UX: Simplificacion del catalogo de miembros",
-    "Eliminada columna 'Rol' duplicada y confusa",
-    "Ahora solo se muestra 'Estado de Cuenta' con tooltip informativo",
-    "Filtros y badges actualizados para usar rol de acceso al sistema",
-    "Mejora de claridad: una sola fuente de verdad para permisos"
+    "UX: Eliminada columna Rol confusa del catalogo de miembros",
+    "Solo se usa Estado de Cuenta con tooltip de permisos",
+    "Backend: Campo rol eliminado de schema GraphQL",
+    "Exportar/Importar: Columna Rol eliminada del Excel",
+    "Una sola fuente de verdad para permisos del sistema"
   ],
-  "requiresReload": false,
+  "requiresReload": true,
   "requiresReauth": false
 }
