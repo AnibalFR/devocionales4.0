@@ -223,6 +223,62 @@ export const usuarioResolvers = {
         passwordTemporal,
       };
     },
+
+    updateUsuarioRol: async (
+      _parent: unknown,
+      { input }: { input: { usuarioId: string; rol: string } },
+      { prisma, userId }: Context
+    ) => {
+      if (!userId) {
+        throw new GraphQLError('No autenticado', {
+          extensions: { code: 'UNAUTHENTICATED' },
+        });
+      }
+
+      // Verificar que el usuario actual sea ADMIN, CEA o MCA (solo admins pueden cambiar roles)
+      const currentUser = await prisma.usuario.findUnique({
+        where: { id: userId },
+      });
+
+      if (!currentUser || (currentUser.rol !== 'ADMIN' && currentUser.rol !== 'CEA' && currentUser.rol !== 'MCA')) {
+        throw new GraphQLError('Solo usuarios ADMIN, CEA y MCA pueden cambiar roles', {
+          extensions: { code: 'FORBIDDEN' },
+        });
+      }
+
+      // Validar que el rol sea válido
+      const rolesValidos = ['ADMIN', 'CEA', 'MCA', 'COLABORADOR', 'VISITANTE'];
+      if (!rolesValidos.includes(input.rol)) {
+        throw new GraphQLError('Rol inválido', {
+          extensions: { code: 'BAD_REQUEST' },
+        });
+      }
+
+      // Buscar el usuario a actualizar
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: input.usuarioId },
+        include: { comunidad: true },
+      });
+
+      if (!usuario) {
+        throw new GraphQLError('Usuario no encontrado', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+
+      // Actualizar el rol del usuario
+      const usuarioActualizado = await prisma.usuario.update({
+        where: { id: input.usuarioId },
+        data: {
+          rol: input.rol as any,
+        },
+        include: {
+          comunidad: true,
+        },
+      });
+
+      return usuarioActualizado;
+    },
   },
 
   Usuario: {

@@ -15,7 +15,8 @@
       "Bash(python3:*)",
       "Bash(curl -s -X POST http://64.227.96.34:4000/ -H \"Content-Type: application/json\" -d '{\"\"\"\"query\"\"\"\": \"\"\"\"{ __typename }\"\"\"\"}')",
       "Bash(curl:*)",
-      "Bash(npx prisma migrate dev:*)"
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(/Users/anibalfigueroaramirez/XYZ/devocionales4.0/deploy.sh:*)"
     ],
     "deny": [],
     "ask": []

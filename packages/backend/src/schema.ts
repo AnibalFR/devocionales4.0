@@ -506,6 +506,11 @@ export const typeDefs = `#graphql
     miembroId: ID!
   }
 
+  input UpdateUsuarioRolInput {
+    usuarioId: ID!
+    rol: RolUsuario!
+  }
+
   # ============================================
   # TIMELINE EVENTS - Sistema de Auditoría
   # ============================================
@@ -631,5 +636,6 @@ export const typeDefs = `#graphql
     # Gestión de Usuarios
     createUsuarioFromMiembro(input: CreateUsuarioFromMiembroInput!): CreateUsuarioFromMiembroResult!
     regenerarCredenciales(input: RegenerarCredencialesInput!): CreateUsuarioFromMiembroResult!
+    updateUsuarioRol(input: UpdateUsuarioRolInput!): Usuario!
   }
 `;

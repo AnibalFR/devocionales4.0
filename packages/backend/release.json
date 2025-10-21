@@ -1,11 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Seguridad: Sistema de permisos granular implementado",
-    "COLABORADOR: Solo ve y edita su núcleo asignado",
-    "VISITANTE: Solo puede ver y crear visitas",
-    "Barrios/Núcleos: Solo ADMIN/CEA/MCA pueden gestionar",
-    "Protección completa contra accesos no autorizados"
+    "Feature: Permite cambiar rol de usuarios existentes",
+    "Backend: Nueva mutation updateUsuarioRol para ADMIN/CEA/MCA",
+    "UI: Dropdown inline para cambiar rol en catálogo de miembros",
+    "Mejora: Ya no es necesario regenerar credenciales para cambiar rol",
+    "Fix: Rol de usuario ahora editable directamente desde la tabla"
   ],
   "requiresReload": false,
   "requiresReauth": false
