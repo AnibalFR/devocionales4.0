@@ -31,6 +31,11 @@ interface TimelineEvent {
   summary: string;
 }
 
+interface GroupedEvent extends TimelineEvent {
+  count: number;
+  latestTimestamp: string;
+}
+
 const getActionIcon = (actionType: string) => {
   switch (actionType) {
     case 'login':
@@ -117,7 +122,49 @@ export default function TimelinePage() {
     return groups;
   };
 
-  const groupedEvents = groupEventsByDay(events);
+  const groupDuplicateEvents = (events: TimelineEvent[]): GroupedEvent[] => {
+    const grouped: { [key: string]: GroupedEvent } = {};
+
+    events.forEach((event) => {
+      // Crear una clave única basada en los campos que definen eventos "iguales"
+      const key = `${event.summary}|${event.actionType}|${event.actorName}|${event.entityType}`;
+
+      if (grouped[key]) {
+        // Si ya existe, incrementar el contador y actualizar el timestamp si es más reciente
+        grouped[key].count += 1;
+        const currentTimestamp = new Date(grouped[key].latestTimestamp);
+        const eventTimestamp = new Date(event.timestampUtc);
+        if (eventTimestamp > currentTimestamp) {
+          grouped[key].latestTimestamp = event.timestampUtc;
+        }
+      } else {
+        // Si es nuevo, crear el grupo
+        grouped[key] = {
+          ...event,
+          count: 1,
+          latestTimestamp: event.timestampUtc,
+        };
+      }
+    });
+
+    // Convertir a array y ordenar por timestamp más reciente
+    return Object.values(grouped).sort(
+      (a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
+    );
+  };
+
+  const groupEventsByDayWithCounts = (events: TimelineEvent[]) => {
+    const dayGroups = groupEventsByDay(events);
+    const result: { [key: string]: GroupedEvent[] } = {};
+
+    Object.entries(dayGroups).forEach(([day, dayEvents]) => {
+      result[day] = groupDuplicateEvents(dayEvents);
+    });
+
+    return result;
+  };
+
+  const groupedEvents = groupEventsByDayWithCounts(events);
 
   return (
     <div className="p-6">
@@ -178,11 +225,18 @@ export default function TimelinePage() {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 font-medium">{event.summary}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900 font-medium">{event.summary}</p>
+                        {event.count > 1 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {event.count}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {formatDistanceToNow(new Date(event.timestampUtc), {
+                          {formatDistanceToNow(new Date(event.latestTimestamp), {
                             addSuffix: true,
                             locale: es,
                           })}
