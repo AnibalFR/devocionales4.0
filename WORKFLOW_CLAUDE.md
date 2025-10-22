@@ -236,6 +236,7 @@ El script `deploy.sh` debe ejecutarse usando su **path completo**, no con `./dep
 - ✅ Git pull en servidor
 - ✅ Ejecuta migraciones (si `-m`)
 - ✅ Instala dependencias (si `-i`)
+- ✅ **Compila backend (TypeScript → JavaScript)**
 - ✅ Build del frontend
 - ✅ Reinicia backend
 - ✅ Verifica que todo funcione
@@ -515,6 +516,7 @@ Comunicar al usuario
 7. ❌ No usar TodoWrite para tracking
 8. ❌ Hacer deployment manual en vez de usar el script
 9. ❌ **Usar `./deploy.sh` en vez del path absoluto** - Causa "no such file or directory"
+10. ❌ **Compilar backend solo localmente** - Los cambios TypeScript NO se reflejan en producción si no se compila en servidor (el script ya lo hace automáticamente desde 2025-10-21)
 
 ---
 

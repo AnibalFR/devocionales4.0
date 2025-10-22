@@ -257,7 +257,18 @@ if [ "$RUN_MIGRATIONS" = true ]; then
 fi
 
 # ============================================
-# PASO 5: BUILD DEL FRONTEND
+# PASO 5: BUILD DEL BACKEND
+# ============================================
+
+print_step "🔨 COMPILANDO BACKEND"
+
+print_info "Compilando TypeScript del backend..."
+ssh $SERVER "cd $APP_DIR/packages/backend && npm run build"
+
+print_success "Backend compilado exitosamente"
+
+# ============================================
+# PASO 6: BUILD DEL FRONTEND
 # ============================================
 
 if [ "$SKIP_BUILD" = false ]; then
@@ -298,7 +309,7 @@ else
 fi
 
 # ============================================
-# PASO 6: REINICIAR BACKEND
+# PASO 7: REINICIAR BACKEND
 # ============================================
 
 print_step "♻️  REINICIANDO BACKEND"
@@ -312,7 +323,7 @@ sleep 2
 print_success "Backend reiniciado"
 
 # ============================================
-# PASO 7: VERIFICACIÓN
+# PASO 8: VERIFICACIÓN
 # ============================================
 
 print_step "✅ VERIFICACIÓN FINAL"
@@ -351,6 +362,7 @@ echo "📊 Resumen:"
 echo "   • Código actualizado: ✓"
 [ "$RUN_INSTALL" = true ] && echo "   • Dependencias instaladas: ✓"
 [ "$RUN_MIGRATIONS" = true ] && echo "   • Migraciones ejecutadas: ✓"
+echo "   • Backend compilado: ✓"
 [ "$SKIP_BUILD" = false ] && echo "   • Frontend construido: ✓"
 echo "   • Backend reiniciado: ✓"
 echo "   • Verificación exitosa: ✓"
