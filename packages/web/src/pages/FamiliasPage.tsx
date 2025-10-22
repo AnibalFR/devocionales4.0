@@ -465,10 +465,10 @@ export function FamiliasPage() {
       // Remove role when deselecting
       const newRoles = { ...modal.roles };
       delete newRoles[miembroId];
-      setModal({ ...modal, selectedMiembros: newSelected, roles: newRoles });
+      setModal(prev => ({ ...prev, selectedMiembros: newSelected, roles: newRoles }));
     } else {
       newSelected.add(miembroId);
-      setModal({ ...modal, selectedMiembros: newSelected });
+      setModal(prev => ({ ...prev, selectedMiembros: newSelected }));
     }
 
     // Update address selector based on new selection
@@ -495,10 +495,10 @@ export function FamiliasPage() {
   };
 
   const setMiembroRol = (miembroId: string, rol: string) => {
-    setModal({
-      ...modal,
-      roles: { ...modal.roles, [miembroId]: rol },
-    });
+    setModal(prev => ({
+      ...prev,
+      roles: { ...prev.roles, [miembroId]: rol },
+    }));
   };
 
   const handleLigarMiembros = async () => {
@@ -1324,7 +1324,7 @@ export function FamiliasPage() {
                     <select
                       value={modal.selectedAddress}
                       onChange={(e) =>
-                        setModal({ ...modal, selectedAddress: e.target.value })
+                        setModal(prev => ({ ...prev, selectedAddress: e.target.value }))
                       }
                       className="select select-bordered w-full select-sm"
                     >
@@ -1341,7 +1341,7 @@ export function FamiliasPage() {
                         type="text"
                         placeholder="Escribe la dirección"
                         onChange={(e) =>
-                          setModal({ ...modal, selectedAddress: e.target.value })
+                          setModal(prev => ({ ...prev, selectedAddress: e.target.value }))
                         }
                         className="input input-bordered w-full input-sm mt-2"
                         autoFocus
@@ -1357,11 +1357,11 @@ export function FamiliasPage() {
                     <select
                       value={modal.selectedBarrioId}
                       onChange={(e) =>
-                        setModal({
-                          ...modal,
+                        setModal(prev => ({
+                          ...prev,
                           selectedBarrioId: e.target.value,
                           selectedNucleoId: null,
-                        })
+                        }))
                       }
                       className="select select-bordered w-full select-sm"
                     >
@@ -1382,10 +1382,10 @@ export function FamiliasPage() {
                     <select
                       value={modal.selectedNucleoId || ''}
                       onChange={(e) =>
-                        setModal({
-                          ...modal,
+                        setModal(prev => ({
+                          ...prev,
                           selectedNucleoId: e.target.value || null,
-                        })
+                        }))
                       }
                       className="select select-bordered w-full select-sm"
                       disabled={!modal.selectedBarrioId}
@@ -1409,7 +1409,7 @@ export function FamiliasPage() {
                   type="text"
                   placeholder="🔍 Buscar por nombre..."
                   value={modal.searchMember}
-                  onChange={(e) => setModal({ ...modal, searchMember: e.target.value })}
+                  onChange={(e) => setModal(prev => ({ ...prev, searchMember: e.target.value }))}
                   className="input input-bordered w-full"
                 />
               </div>
