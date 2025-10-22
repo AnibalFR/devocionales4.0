@@ -1356,13 +1356,15 @@ export function FamiliasPage() {
                     </label>
                     <select
                       value={modal.selectedBarrioId}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        console.log('DEBUG - Barrio seleccionado del dropdown:', e.target.value);
+                        console.log('DEBUG - Barrios disponibles:', barrios.map((b: any) => ({ id: b.id, nombre: b.nombre })));
                         setModal(prev => ({
                           ...prev,
                           selectedBarrioId: e.target.value,
                           selectedNucleoId: null,
-                        }))
-                      }
+                        }));
+                      }}
                       className="select select-bordered w-full select-sm"
                     >
                       <option value="">Seleccionar barrio...</option>
