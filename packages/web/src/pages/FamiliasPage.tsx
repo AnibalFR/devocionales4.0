@@ -1047,7 +1047,7 @@ export function FamiliasPage() {
                               >
                                 <option value="">Sin núcleo</option>
                                 {nucleos
-                                  .filter((n: any) => n.barrioId === familia.barrioId)
+                                  .filter((n: any) => String(n.barrioId) === String(familia.barrioId))
                                   .map((n: any) => (
                                     <option key={n.id} value={n.id}>
                                       {n.nombre}
@@ -1392,7 +1392,7 @@ export function FamiliasPage() {
                     >
                       <option value="">Sin núcleo</option>
                       {nucleos
-                        .filter((n: any) => n.barrioId === modal.selectedBarrioId)
+                        .filter((n: any) => String(n.barrioId) === String(modal.selectedBarrioId))
                         .map((n: any) => (
                           <option key={n.id} value={n.id}>
                             {n.nombre}
