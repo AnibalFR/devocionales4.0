@@ -1356,15 +1356,13 @@ export function FamiliasPage() {
                     </label>
                     <select
                       value={modal.selectedBarrioId}
-                      onChange={(e) => {
-                        console.log('DEBUG - Barrio seleccionado del dropdown:', e.target.value);
-                        console.log('DEBUG - Barrios disponibles:', barrios.map((b: any) => ({ id: b.id, nombre: b.nombre })));
+                      onChange={(e) =>
                         setModal(prev => ({
                           ...prev,
                           selectedBarrioId: e.target.value,
                           selectedNucleoId: null,
-                        }));
-                      }}
+                        }))
+                      }
                       className="select select-bordered w-full select-sm"
                     >
                       <option value="">Seleccionar barrio...</option>
@@ -1393,17 +1391,8 @@ export function FamiliasPage() {
                       disabled={!modal.selectedBarrioId}
                     >
                       <option value="">Sin núcleo</option>
-                      {(() => {
-                        console.log('DEBUG - Barrio seleccionado:', modal.selectedBarrioId);
-                        console.log('DEBUG - Todos los núcleos:', nucleos.map((n: any) => ({
-                          nombre: n.nombre,
-                          barrioId: n.barrioId,
-                          barrioIdType: typeof n.barrioId
-                        })));
-                        const filtrados = nucleos.filter((n: any) => String(n.barrioId) === String(modal.selectedBarrioId));
-                        console.log('DEBUG - Núcleos filtrados:', filtrados.length);
-                        return filtrados;
-                      })()
+                      {nucleos
+                        .filter((n: any) => String(n.barrioId) === String(modal.selectedBarrioId))
                         .map((n: any) => (
                           <option key={n.id} value={n.id}>
                             {n.nombre}
