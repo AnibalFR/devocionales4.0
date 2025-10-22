@@ -441,34 +441,10 @@ export function FamiliasPage() {
       roles[m.id] = m.rolFamiliar || '';
     });
 
-    // Get current familia data
+    // Get current familia data - simplified without member analysis
     const selectedAddress = familia.direccion || '';
-
-    // Analyze nucleos from linked members first
-    const miembrosNucleos = familia.miembros
-      .map((m: any) => m.nucleoId)
-      .filter((id: string) => id);
-    const uniqueNucleos = [...new Set(miembrosNucleos)];
-
-    let selectedBarrioId = '';
-    let selectedNucleoId: string | null = null;
-
-    // If all members have the same nucleo, use it and get its barrio
-    if (uniqueNucleos.length === 1) {
-      selectedNucleoId = uniqueNucleos[0] as string;
-      // Get the barrio of this nucleo from the nucleos data
-      const nucleoData = data?.nucleos?.find((n: any) => String(n.id) === String(selectedNucleoId));
-      selectedBarrioId = (nucleoData?.barrioId as string) || familia.barrioId || '';
-    } else {
-      // If nucleos differ or none, analyze barrios
-      const miembrosBarrios = familia.miembros
-        .map((m: any) => m.barrioId)
-        .filter((id: string) => id);
-      const uniqueBarrios = [...new Set(miembrosBarrios)];
-
-      selectedBarrioId = uniqueBarrios.length === 1 ? uniqueBarrios[0] : (familia.barrioId || '');
-      selectedNucleoId = familia.nucleoId || null;
-    }
+    const selectedBarrioId = familia.barrioId || '';
+    const selectedNucleoId = familia.nucleoId || null;
 
     setModal({
       isOpen: true,
@@ -514,40 +490,8 @@ export function FamiliasPage() {
       setModal(prev => ({ ...prev, selectedAddress: uniqueAddresses[0] as string }));
     }
 
-    // Analyze nucleos first to coordinate with barrios
-    const nucleoIds = selectedMiembrosData
-      .map((m: any) => m.nucleoId)
-      .filter((id: string) => id);
-    const uniqueNucleos = [...new Set(nucleoIds)];
-
-    // If all selected members have the same nucleo, use it and get its barrio
-    if (uniqueNucleos.length === 1) {
-      const nucleoId = uniqueNucleos[0] as string;
-      const nucleoData = data?.nucleos?.find((n: any) => String(n.id) === String(nucleoId));
-      const barrioId = (nucleoData?.barrioId as string) || '';
-
-      setModal(prev => ({
-        ...prev,
-        selectedNucleoId: nucleoId,
-        selectedBarrioId: barrioId
-      }));
-    } else {
-      // If nucleos differ or none, analyze barrios independently
-      const barrioIds = selectedMiembrosData
-        .map((m: any) => m.barrioId)
-        .filter((id: string) => id);
-      const uniqueBarrios = [...new Set(barrioIds)];
-
-      if (uniqueBarrios.length === 1) {
-        // All have same barrio but different/no nucleos
-        setModal(prev => ({
-          ...prev,
-          selectedBarrioId: uniqueBarrios[0] as string,
-          selectedNucleoId: null // Clear nucleo since they differ
-        }));
-      }
-      // If no common barrio either, keep current selection
-    }
+    // Simplified: No automatic barrio/nucleo selection based on members
+    // User will manually select from dropdowns showing all available options
   };
 
   const setMiembroRol = (miembroId: string, rol: string) => {
