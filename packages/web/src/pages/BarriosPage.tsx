@@ -46,6 +46,15 @@ const GET_BARRIOS = gql`
       descripcion
       createdAt
       updatedAt
+      nucleos {
+        id
+        nombre
+      }
+    }
+    nucleos {
+      id
+      nombre
+      barrioId
     }
   }
 `;
@@ -79,6 +88,16 @@ const DELETE_BARRIO = gql`
   }
 `;
 
+const UPDATE_NUCLEO = gql`
+  mutation UpdateNucleo($id: ID!, $input: UpdateNucleoInput!) {
+    updateNucleo(id: $id, input: $input) {
+      id
+      nombre
+      barrioId
+    }
+  }
+`;
+
 export function BarriosPage() {
   const { data, loading, error, refetch } = useQuery(GET_BARRIOS);
   const [createBarrio] = useMutation(CREATE_BARRIO, {
@@ -88,6 +107,7 @@ export function BarriosPage() {
   const [deleteBarrio] = useMutation(DELETE_BARRIO, {
     refetchQueries: [{ query: GET_BARRIOS }],
   });
+  const [updateNucleo] = useMutation(UPDATE_NUCLEO);
 
   const [editing, setEditing] = useState<{
     barrioId: string | null;
@@ -115,6 +135,21 @@ export function BarriosPage() {
   // Refs para navegación con Tab
   const tableRef = useRef<HTMLTableElement>(null);
   const isSavingRef = useRef(false);
+
+  // Estado para modal de reasignación de núcleos
+  const [reassignModal, setReassignModal] = useState<{
+    isOpen: boolean;
+    barrioId: string | null;
+    barrioNombre: string;
+    nucleos: Array<{ id: string; nombre: string }>;
+    targetBarrioId: string;
+  }>({
+    isOpen: false,
+    barrioId: null,
+    barrioNombre: '',
+    nucleos: [],
+    targetBarrioId: '',
+  });
 
   const startEdit = (barrioId: string, field: string, value: string) => {
     // OCC Fix: Capturar updatedAt al INICIAR edición, no al guardar
@@ -304,15 +339,72 @@ export function BarriosPage() {
   };
 
   const handleEliminar = async (barrioId: string, nombre: string) => {
-    if (confirm(`¿Eliminar el barrio "${nombre}"?`)) {
-      try {
-        await deleteBarrio({
-          variables: { id: barrioId },
-        });
-      } catch (error) {
-        console.error('Error deleting barrio:', error);
-        alert('Error al eliminar el barrio');
+    // Buscar el barrio en los datos
+    const barrios = data?.barrios || [];
+    const barrio = barrios.find((b: any) => b.id === barrioId);
+
+    // Verificar si tiene núcleos asignados
+    if (barrio && barrio.nucleos && barrio.nucleos.length > 0) {
+      // Mostrar modal de reasignación
+      setReassignModal({
+        isOpen: true,
+        barrioId,
+        barrioNombre: nombre,
+        nucleos: barrio.nucleos,
+        targetBarrioId: '',
+      });
+    } else {
+      // No tiene núcleos, proceder con borrado normal
+      if (confirm(`¿Eliminar el barrio "${nombre}"?`)) {
+        try {
+          await deleteBarrio({
+            variables: { id: barrioId },
+          });
+        } catch (error) {
+          console.error('Error deleting barrio:', error);
+          alert('Error al eliminar el barrio');
+        }
       }
+    }
+  };
+
+  const handleReassignAndDelete = async () => {
+    if (!reassignModal.targetBarrioId) {
+      alert('Por favor selecciona un barrio destino');
+      return;
+    }
+
+    try {
+      // 1. Reasignar todos los núcleos al nuevo barrio
+      for (const nucleo of reassignModal.nucleos) {
+        await updateNucleo({
+          variables: {
+            id: nucleo.id,
+            input: {
+              barrioId: reassignModal.targetBarrioId,
+            },
+          },
+        });
+      }
+
+      // 2. Borrar el barrio original
+      await deleteBarrio({
+        variables: { id: reassignModal.barrioId },
+      });
+
+      // 3. Cerrar modal
+      setReassignModal({
+        isOpen: false,
+        barrioId: null,
+        barrioNombre: '',
+        nucleos: [],
+        targetBarrioId: '',
+      });
+
+      alert('Núcleos reasignados y barrio eliminado correctamente');
+    } catch (error) {
+      console.error('Error reassigning nucleos:', error);
+      alert('Error al reasignar núcleos. Por favor intenta de nuevo.');
     }
   };
 
@@ -487,6 +579,90 @@ export function BarriosPage() {
           entityType="barrio"
           fieldName={conflictModal.field || undefined}
         />
+
+        {/* Modal de Reasignación de Núcleos */}
+        {reassignModal.isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  Reasignar Núcleos Antes de Eliminar
+                </h2>
+
+                <div className="mb-6">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>⚠️ Atención:</strong> El barrio <strong>"{reassignModal.barrioNombre}"</strong> tiene{' '}
+                      <strong>{reassignModal.nucleos.length}</strong> núcleo(s) asignado(s).
+                      <br />
+                      Debes reasignarlos a otro barrio antes de eliminarlo.
+                    </p>
+                  </div>
+
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-700 mb-2">
+                      Núcleos que serán reasignados:
+                    </h3>
+                    <ul className="space-y-1">
+                      {reassignModal.nucleos.map((nucleo) => (
+                        <li key={nucleo.id} className="text-sm text-gray-600 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          {nucleo.nombre}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Barrio destino: <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={reassignModal.targetBarrioId}
+                      onChange={(e) =>
+                        setReassignModal({ ...reassignModal, targetBarrioId: e.target.value })
+                      }
+                      className="select select-bordered w-full"
+                    >
+                      <option value="">Seleccionar barrio...</option>
+                      {(data?.barrios || [])
+                        .filter((b: any) => b.id !== reassignModal.barrioId)
+                        .map((b: any) => (
+                          <option key={b.id} value={b.id}>
+                            {b.nombre}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() =>
+                      setReassignModal({
+                        isOpen: false,
+                        barrioId: null,
+                        barrioNombre: '',
+                        nucleos: [],
+                        targetBarrioId: '',
+                      })
+                    }
+                    className="btn btn-ghost"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleReassignAndDelete}
+                    disabled={!reassignModal.targetBarrioId}
+                    className="btn btn-error"
+                  >
+                    Reasignar y Eliminar Barrio
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 }
