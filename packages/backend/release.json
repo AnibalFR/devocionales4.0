@@ -1,12 +1,11 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "UX: Eliminada columna Rol confusa del catalogo de miembros",
-    "Solo se usa Estado de Cuenta con tooltip de permisos",
-    "Backend: Campo rol eliminado de schema GraphQL",
-    "Exportar/Importar: Columna Rol eliminada del Excel",
-    "Una sola fuente de verdad para permisos del sistema"
+    "UX: Modal de actualización ahora espera 45s después del deploy",
+    "Evita notificaciones prematuras durante deployment",
+    "Notificación solo aparece cuando el deploy está completo",
+    "Mejora experiencia durante actualizaciones del sistema"
   ],
-  "requiresReload": true,
+  "requiresReload": false,
   "requiresReauth": false
 }
