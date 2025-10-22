@@ -457,7 +457,7 @@ export function FamiliasPage() {
     if (uniqueNucleos.length === 1) {
       selectedNucleoId = uniqueNucleos[0] as string;
       // Get the barrio of this nucleo from the nucleos data
-      const nucleoData = data?.nucleos?.find((n: any) => n.id === selectedNucleoId);
+      const nucleoData = data?.nucleos?.find((n: any) => String(n.id) === String(selectedNucleoId));
       selectedBarrioId = (nucleoData?.barrioId as string) || familia.barrioId || '';
     } else {
       // If nucleos differ or none, analyze barrios
@@ -523,7 +523,7 @@ export function FamiliasPage() {
     // If all selected members have the same nucleo, use it and get its barrio
     if (uniqueNucleos.length === 1) {
       const nucleoId = uniqueNucleos[0] as string;
-      const nucleoData = data?.nucleos?.find((n: any) => n.id === nucleoId);
+      const nucleoData = data?.nucleos?.find((n: any) => String(n.id) === String(nucleoId));
       const barrioId = (nucleoData?.barrioId as string) || '';
 
       setModal(prev => ({
