@@ -729,17 +729,18 @@ export function MiembrosPage() {
         { campo: 'Dirección', descripcion: 'Dirección física', valores: 'Texto' },
         { campo: 'Rol Familiar', descripcion: 'Rol en la familia', valores: 'Padre, Madre, Hijo, Hija, Abuelo, Abuela, Otro' },
         { campo: 'Tiene Devocional', descripcion: 'Si es anfitrión de devocional', valores: 'SI o NO' },
-        { campo: 'Activo', descripcion: 'Estado del miembro', valores: 'SI o NO' },
+        { campo: 'Activo', descripcion: 'Estado del miembro (solo para actualizar existentes)', valores: 'SI o NO (ignorado al crear nuevos)' },
         { campo: 'Barrio', descripcion: 'Nombre del barrio', valores: barrios.map((b: any) => b.nombre).join(', ') || 'Crear barrios primero' },
         { campo: 'Núcleo', descripcion: 'Nombre del núcleo', valores: nucleos.map((n: any) => n.nombre).join(', ') || 'Opcional' },
         { campo: 'Familia', descripcion: 'Nombre de la familia', valores: 'Nombre exacto de la familia (opcional)' },
         { campo: '', descripcion: '', valores: '' },
         { campo: 'NOTAS IMPORTANTES', descripcion: '', valores: '' },
         { campo: '1', descripcion: 'Para agregar miembros nuevos, deje la columna ID vacía', valores: '' },
-        { campo: '2', descripcion: 'Para actualizar miembros existentes, NO modifique la columna ID (está oculta)', valores: '' },
-        { campo: '3', descripcion: 'Las filas de ejemplo (con ID "ejemplo-*") se ignoran al importar', valores: '' },
-        { campo: '4', descripcion: 'Los nombres de Barrio, Núcleo y Familia NO distinguen mayúsculas/minúsculas', valores: '' },
-        { campo: '5', descripcion: 'Si un Barrio/Núcleo/Familia no existe, se debe crear primero en la aplicación', valores: '' },
+        { campo: '2', descripcion: 'Los nuevos miembros se crean ACTIVOS por defecto', valores: '' },
+        { campo: '3', descripcion: 'Para actualizar miembros existentes, NO modifique la columna ID (está oculta)', valores: '' },
+        { campo: '4', descripcion: 'Las filas de ejemplo (con ID "ejemplo-*") se ignoran al importar', valores: '' },
+        { campo: '5', descripcion: 'Los nombres de Barrio, Núcleo y Familia NO distinguen mayúsculas/minúsculas', valores: '' },
+        { campo: '6', descripcion: 'Si un Barrio/Núcleo/Familia no existe, se debe crear primero en la aplicación', valores: '' },
       ];
 
       instrucciones.forEach(inst => {
@@ -864,7 +865,8 @@ export function MiembrosPage() {
         }
 
         try {
-          const input: any = {
+          // Campos comunes a CREATE y UPDATE
+          const commonFields: any = {
             nombre: String(nombre),
             apellidos: apellidos ? String(apellidos) : null,
             fechaNacimiento: fechaNacimiento ? String(fechaNacimiento) : null,
@@ -874,18 +876,21 @@ export function MiembrosPage() {
             direccion: direccion ? String(direccion) : null,
             rolFamiliar: rolFamiliar ? String(rolFamiliar) : null,
             tieneDevocional: String(tieneDevocional).toUpperCase() === 'SI',
-            activo: String(activo).toUpperCase() === 'SI',
             barrioId,
             nucleoId,
           };
 
           if (id && existingMiembros.has(String(id))) {
-            // Actualizar miembro existente
-            await updateMiembro({ variables: { id: String(id), input } });
+            // Actualizar miembro existente - UpdateMiembroInput SÍ acepta "activo"
+            const updateInput = {
+              ...commonFields,
+              activo: String(activo).toUpperCase() === 'SI',
+            };
+            await updateMiembro({ variables: { id: String(id), input: updateInput } });
             miembrosUpdated++;
           } else {
-            // Crear nuevo miembro
-            await createMiembro({ variables: { input } });
+            // Crear nuevo miembro - CreateMiembroInput NO acepta "activo" (se crea activo por defecto)
+            await createMiembro({ variables: { input: commonFields } });
             miembrosAdded++;
           }
         } catch (error: any) {
