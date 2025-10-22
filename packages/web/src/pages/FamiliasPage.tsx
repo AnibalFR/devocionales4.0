@@ -1391,8 +1391,17 @@ export function FamiliasPage() {
                       disabled={!modal.selectedBarrioId}
                     >
                       <option value="">Sin núcleo</option>
-                      {nucleos
-                        .filter((n: any) => String(n.barrioId) === String(modal.selectedBarrioId))
+                      {(() => {
+                        console.log('DEBUG - Barrio seleccionado:', modal.selectedBarrioId);
+                        console.log('DEBUG - Todos los núcleos:', nucleos.map((n: any) => ({
+                          nombre: n.nombre,
+                          barrioId: n.barrioId,
+                          barrioIdType: typeof n.barrioId
+                        })));
+                        const filtrados = nucleos.filter((n: any) => String(n.barrioId) === String(modal.selectedBarrioId));
+                        console.log('DEBUG - Núcleos filtrados:', filtrados.length);
+                        return filtrados;
+                      })()
                         .map((n: any) => (
                           <option key={n.id} value={n.id}>
                             {n.nombre}
