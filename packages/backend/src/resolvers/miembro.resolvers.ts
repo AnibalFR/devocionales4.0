@@ -20,7 +20,6 @@ interface CreateMiembroInput {
   edadAproximada?: number;
   telefono?: string;
   email?: string;
-  rol: string;
   rolFamiliar?: string;
   tieneDevocional?: boolean;
   devocionalDia?: string;

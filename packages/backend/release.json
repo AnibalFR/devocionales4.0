@@ -1,10 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "UX: Modal de actualización ahora espera 45s después del deploy",
-    "Evita notificaciones prematuras durante deployment",
-    "Notificación solo aparece cuando el deploy está completo",
-    "Mejora experiencia durante actualizaciones del sistema"
+    "Fix: Importación de Excel en Miembros ahora funciona correctamente",
+    "Fix: Modal de importación con scroll para evitar ocultar botones",
+    "Corregido campo 'rol' que causaba error al importar miembros nuevos"
   ],
   "requiresReload": false,
   "requiresReauth": false
