@@ -443,8 +443,23 @@ export function FamiliasPage() {
 
     // Get current familia data
     const selectedAddress = familia.direccion || '';
-    const selectedBarrioId = familia.barrioId || '';
-    const selectedNucleoId = familia.nucleoId || null;
+
+    // Analyze barrios and nucleos from linked members
+    const miembrosBarrios = familia.miembros
+      .map((m: any) => m.barrioId)
+      .filter((id: string) => id);
+    const uniqueBarrios = [...new Set(miembrosBarrios)];
+
+    const miembrosNucleos = familia.miembros
+      .map((m: any) => m.nucleoId)
+      .filter((id: string) => id);
+    const uniqueNucleos = [...new Set(miembrosNucleos)];
+
+    // If all linked members have the same barrio, use it; otherwise use familia's barrio
+    const selectedBarrioId = uniqueBarrios.length === 1 ? uniqueBarrios[0] : (familia.barrioId || '');
+
+    // If all linked members have the same nucleo, use it; otherwise use familia's nucleo
+    const selectedNucleoId = uniqueNucleos.length === 1 ? uniqueNucleos[0] : (familia.nucleoId || null);
 
     setModal({
       isOpen: true,
@@ -490,22 +505,34 @@ export function FamiliasPage() {
       setModal(prev => ({ ...prev, selectedAddress: uniqueAddresses[0] as string }));
     }
 
-    // Auto-select barrio if only one unique
+    // Get unique barrios from selected members
     const barrioIds = selectedMiembrosData
       .map((m: any) => m.barrioId)
       .filter((id: string) => id);
     const uniqueBarrios = [...new Set(barrioIds)];
-    if (uniqueBarrios.length === 1 && !modal.selectedBarrioId) {
+
+    // If all selected members have the same barrio, auto-select it
+    // If they have different barrios or no barrios, keep current selection or clear
+    if (uniqueBarrios.length === 1) {
       setModal(prev => ({ ...prev, selectedBarrioId: uniqueBarrios[0] as string }));
+    } else if (selectedMiembrosSet.size > 0 && uniqueBarrios.length === 0) {
+      // If no members have barrios, keep the current selection (don't clear)
+      // User can manually select a barrio for all members
     }
 
-    // Auto-select nucleo if only one unique
+    // Get unique nucleos from selected members
     const nucleoIds = selectedMiembrosData
       .map((m: any) => m.nucleoId)
       .filter((id: string) => id);
     const uniqueNucleos = [...new Set(nucleoIds)];
-    if (uniqueNucleos.length === 1 && !modal.selectedNucleoId) {
+
+    // If all selected members have the same nucleo, auto-select it
+    // If they have different nucleos or no nucleos, keep current selection or clear
+    if (uniqueNucleos.length === 1) {
       setModal(prev => ({ ...prev, selectedNucleoId: uniqueNucleos[0] as string }));
+    } else if (selectedMiembrosSet.size > 0 && uniqueNucleos.length === 0) {
+      // If no members have nucleos, keep the current selection (don't clear)
+      // User can manually select a nucleo for all members
     }
   };
 
