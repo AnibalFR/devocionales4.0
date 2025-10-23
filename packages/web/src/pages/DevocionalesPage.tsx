@@ -546,7 +546,7 @@ export function DevocionalesPage() {
                       {editing.miembroId === miembro.id && editing.field === 'dia' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}
-                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <select
                             className="border border-gray-300 rounded px-2 py-1 text-sm"
                             value={editing.value as string}
@@ -606,7 +606,7 @@ export function DevocionalesPage() {
                       {editing.miembroId === miembro.id && editing.field === 'hora' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}
-                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="time"
                             className="border border-gray-300 rounded px-2 py-1 text-sm"
@@ -682,7 +682,7 @@ export function DevocionalesPage() {
                       {editing.miembroId === miembro.id && editing.field === 'participantes' ? (
                         <div className="flex items-center space-x-2 relative">
                           {/* FASE 2: Indicador visual */}
-                          <EditingIndicator isEditing={true} isSaving={isSaving} position="top-left" />
+                          <EditingIndicator isEditing={true} isSaving={isSaving} />
                           <input
                             type="number"
                             min="1"
