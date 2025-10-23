@@ -92,10 +92,17 @@ export function VisitaDetallesModal({ visita, onClose }: VisitaDetallesModalProp
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop oscuro */}
+      <div
+        className="absolute inset-0 bg-black bg-opacity-50"
+        onClick={onClose}
+      ></div>
+
+      {/* Modal box */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-6 p-6 pb-0">
           <div>
             <h3 className="font-bold text-xl text-gray-900">Detalles de la Visita</h3>
             <p className="text-sm text-gray-500 mt-1">
@@ -111,7 +118,7 @@ export function VisitaDetallesModal({ visita, onClose }: VisitaDetallesModalProp
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 px-6">
           {/* Sección 1: Información General */}
           <section className="border-b pb-4">
             <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -353,14 +360,12 @@ export function VisitaDetallesModal({ visita, onClose }: VisitaDetallesModalProp
         </div>
 
         {/* Footer con botón Cerrar */}
-        <div className="modal-action mt-6">
+        <div className="flex justify-end gap-2 mt-6 p-6 pt-4 border-t">
           <button onClick={onClose} className="btn btn-primary">
             Cerrar
           </button>
         </div>
       </div>
-      {/* Backdrop - permite cerrar al hacer clic fuera del modal */}
-      <div className="modal-backdrop" onClick={onClose}></div>
     </div>
   );
 }
