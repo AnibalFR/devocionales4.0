@@ -615,6 +615,13 @@ export function DevocionalesPage() {
                               className="border border-gray-300 rounded px-2 py-1 text-sm"
                               value={editing.value as string}
                               onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                              onFocus={(e) => {
+                                try {
+                                  e.currentTarget.showPicker();
+                                } catch (err) {
+                                  // showPicker() no soportado en este navegador
+                                }
+                              }}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
