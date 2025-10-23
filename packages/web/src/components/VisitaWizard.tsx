@@ -197,31 +197,46 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   useEffect(() => {
     if (initialData && isOpen) {
       setFormData({
-        barrioId: initialData.barrioId || '',
+        // Mapear IDs de objetos relacionados
+        barrioId: initialData.barrio?.id || initialData.barrioId || '',
         barrioOtro: initialData.barrioOtro || '',
-        nucleoId: initialData.nucleoId || '',
-        familiaId: initialData.familiaId || '',
+        nucleoId: initialData.nucleo?.id || initialData.nucleoId || '',
+        familiaId: initialData.familia?.id || initialData.familiaId || '',
+
+        // Fecha y hora
         visitDate: initialData.visitDate || new Date().toISOString().split('T')[0],
         visitTime: initialData.visitTime || '18:00',
-        visitorUserIds: initialData.visitorUserIds || [],
+
+        // Mapear visitadores (array de objetos a array de IDs)
+        visitorUserIds: initialData.visitadores
+          ? initialData.visitadores.map((v: any) => v.id)
+          : (initialData.visitorUserIds || []),
+
+        // Tipo de visita
         visitType: initialData.visitType || '',
         motivoNoVisita: initialData.motivoNoVisita || '',
         motivoNoVisitaOtra: initialData.motivoNoVisitaOtra || '',
-        visitActivities: initialData.visitActivities || {
-          conversacion_preocupaciones: false,
-          oraciones: false,
-          estudio_instituto: false,
-          estudio_instituto_especificar: '',
-          otro_estudio: false,
-          otro_estudio_especificar: '',
-          invitacion_actividad: false,
-          invitacion_especificar: '',
+
+        // Actividades de la visita - mapear todos los campos
+        visitActivities: {
+          conversacion_preocupaciones: initialData.visitActivities?.conversacion_preocupaciones || false,
+          oraciones: initialData.visitActivities?.oraciones || false,
+          estudio_instituto: initialData.visitActivities?.estudio_instituto || false,
+          estudio_instituto_especificar: initialData.visitActivities?.estudio_instituto_especificar || '',
+          otro_estudio: initialData.visitActivities?.otro_estudio || false,
+          otro_estudio_especificar: initialData.visitActivities?.otro_estudio_especificar || '',
+          invitacion_actividad: initialData.visitActivities?.invitacion_actividad || false,
+          invitacion_especificar: initialData.visitActivities?.invitacion_especificar || '',
         },
-        materialDejado: initialData.materialDejado || {
-          libro_oraciones: false,
-          otro: false,
-          otro_especificar: '',
+
+        // Materiales dejados - mapear todos los campos
+        materialDejado: {
+          libro_oraciones: initialData.materialDejado?.libro_oraciones || false,
+          otro: initialData.materialDejado?.otro || false,
+          otro_especificar: initialData.materialDejado?.otro_especificar || '',
         },
+
+        // Seguimiento
         seguimientoVisita: initialData.seguimientoVisita || false,
         tipoSeguimiento: initialData.tipoSeguimiento || '',
         seguimientoFecha: initialData.seguimientoFecha || '',
@@ -229,6 +244,8 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
         seguimientoActividadBasica: initialData.seguimientoActividadBasica || false,
         seguimientoActividadBasicaEspecificar: initialData.seguimientoActividadBasicaEspecificar || '',
         seguimientoNinguno: initialData.seguimientoNinguno || false,
+
+        // Notas adicionales
         additionalNotes: initialData.additionalNotes || '',
       });
     }
