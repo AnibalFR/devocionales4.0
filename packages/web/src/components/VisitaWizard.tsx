@@ -196,6 +196,17 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   // Initialize formData from initialData when editing
   useEffect(() => {
     if (initialData && isOpen) {
+      // Mapear visitadores (array de objetos a array de IDs)
+      const visitadorIds = initialData.visitadores
+        ? initialData.visitadores.map((v: any) => v.id)
+        : (initialData.visitorUserIds || []);
+
+      console.log('[VisitaWizard] Precargando datos:', {
+        visitadores: initialData.visitadores,
+        visitorUserIds: initialData.visitorUserIds,
+        visitadorIds,
+      });
+
       setFormData({
         // Mapear IDs de objetos relacionados
         barrioId: initialData.barrio?.id || initialData.barrioId || '',
@@ -208,9 +219,7 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
         visitTime: initialData.visitTime || '18:00',
 
         // Mapear visitadores (array de objetos a array de IDs)
-        visitorUserIds: initialData.visitadores
-          ? initialData.visitadores.map((v: any) => v.id)
-          : (initialData.visitorUserIds || []),
+        visitorUserIds: visitadorIds,
 
         // Tipo de visita
         visitType: initialData.visitType || '',
@@ -393,6 +402,12 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
       seguimientoNinguno: formData.seguimientoNinguno,
       additionalNotes: formData.additionalNotes || undefined,
     };
+
+    console.log('[VisitaWizard] Enviando datos:', {
+      mode: visitaId ? 'UPDATE' : 'CREATE',
+      visitorUserIds: input.visitorUserIds,
+      input,
+    });
 
     if (visitaId) {
       // UPDATE mode
