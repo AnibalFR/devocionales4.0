@@ -858,12 +858,11 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Paso 7: Seguimiento</h3>
 
-              <div className="space-y-4 bg-gray-50 p-4 rounded-md">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de seguimiento
-                  </label>
-                    <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de seguimiento
+                </label>
+                <div className="space-y-2">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="radio"
@@ -963,29 +962,28 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                         )}
                       </div>
 
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="tipoSeguimiento"
-                          value="ninguno"
-                          checked={formData.seguimientoNinguno}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              updateFormData({
-                                tipoSeguimiento: '',
-                                seguimientoActividadBasica: false,
-                                seguimientoActividadBasicaEspecificar: '',
-                                seguimientoNinguno: true
-                              });
-                            }
-                          }}
-                          className="border-gray-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm text-gray-700">Ninguno</span>
-                      </label>
-                    </div>
-                  </div>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="tipoSeguimiento"
+                      value="ninguno"
+                      checked={formData.seguimientoNinguno}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          updateFormData({
+                            tipoSeguimiento: '',
+                            seguimientoActividadBasica: false,
+                            seguimientoActividadBasicaEspecificar: '',
+                            seguimientoNinguno: true
+                          });
+                        }
+                      }}
+                      className="border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">Ninguno</span>
+                  </label>
                 </div>
+              </div>
             </div>
           )}
 
