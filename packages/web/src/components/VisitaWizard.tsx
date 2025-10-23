@@ -336,6 +336,24 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
     // Calcular seguimientoVisita basándose en las opciones seleccionadas
     const tieneSeguimiento = formData.tipoSeguimiento !== '' || formData.seguimientoActividadBasica;
 
+    // Limpiar __typename de los objetos (agregado por Apollo Client)
+    const cleanVisitActivities = {
+      conversacion_preocupaciones: formData.visitActivities.conversacion_preocupaciones,
+      oraciones: formData.visitActivities.oraciones,
+      estudio_instituto: formData.visitActivities.estudio_instituto,
+      estudio_instituto_especificar: formData.visitActivities.estudio_instituto_especificar,
+      otro_estudio: formData.visitActivities.otro_estudio,
+      otro_estudio_especificar: formData.visitActivities.otro_estudio_especificar,
+      invitacion_actividad: formData.visitActivities.invitacion_actividad,
+      invitacion_especificar: formData.visitActivities.invitacion_especificar,
+    };
+
+    const cleanMaterialDejado = {
+      libro_oraciones: formData.materialDejado.libro_oraciones,
+      otro: formData.materialDejado.otro,
+      otro_especificar: formData.materialDejado.otro_especificar,
+    };
+
     const input = {
       familiaId: formData.familiaId,
       visitDate: formData.visitDate,
@@ -347,8 +365,8 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
       visitType: formData.visitType,
       motivoNoVisita: formData.motivoNoVisita || undefined,
       motivoNoVisitaOtra: formData.motivoNoVisitaOtra || undefined,
-      visitActivities: formData.visitActivities,
-      materialDejado: formData.materialDejado,
+      visitActivities: cleanVisitActivities,
+      materialDejado: cleanMaterialDejado,
       seguimientoVisita: tieneSeguimiento,
       tipoSeguimiento: formData.tipoSeguimiento || undefined,
       seguimientoFecha: formData.seguimientoFecha || undefined,
