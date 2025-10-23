@@ -291,6 +291,9 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   };
 
   const handleSubmit = () => {
+    // Calcular seguimientoVisita basándose en las opciones seleccionadas
+    const tieneSeguimiento = formData.tipoSeguimiento !== '' || formData.seguimientoActividadBasica;
+
     const input = {
       familiaId: formData.familiaId,
       visitDate: formData.visitDate,
@@ -304,7 +307,7 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
       motivoNoVisitaOtra: formData.motivoNoVisitaOtra || undefined,
       visitActivities: formData.visitActivities,
       materialDejado: formData.materialDejado,
-      seguimientoVisita: formData.seguimientoVisita,
+      seguimientoVisita: tieneSeguimiento,
       tipoSeguimiento: formData.tipoSeguimiento || undefined,
       seguimientoFecha: formData.seguimientoFecha || undefined,
       seguimientoHora: formData.seguimientoHora || undefined,
@@ -855,24 +858,11 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Paso 7: Seguimiento</h3>
 
-              <div>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.seguimientoVisita}
-                    onChange={(e) => updateFormData({ seguimientoVisita: e.target.checked })}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">¿Requiere seguimiento?</span>
-                </label>
-              </div>
-
-              {formData.seguimientoVisita && (
-                <div className="space-y-4 bg-gray-50 p-4 rounded-md">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de seguimiento
-                    </label>
+              <div className="space-y-4 bg-gray-50 p-4 rounded-md">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo de seguimiento
+                  </label>
                     <div className="space-y-3">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
@@ -996,7 +986,6 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                     </div>
                   </div>
                 </div>
-              )}
             </div>
           )}
 
