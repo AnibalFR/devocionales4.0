@@ -544,53 +544,55 @@ export function DevocionalesPage() {
                     {/* Día - Editable */}
                     <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'dia' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`} ref={(el) => el && editing.miembroId === miembro.id && editing.field === 'dia' ? (el as any)._currentCell = el : null}>
                       {editing.miembroId === miembro.id && editing.field === 'dia' ? (
-                        <div className="flex items-center space-x-2 relative">
+                        <>
                           {/* FASE 2: Indicador visual */}
                           <EditingIndicator isEditing={true} isSaving={isSaving} />
-                          <select
-                            className="border border-gray-300 rounded px-2 py-1 text-sm"
-                            value={editing.value as string}
-                            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                saveEdit(miembro.id);
-                              }
-                              if (e.key === 'Escape') {
-                                e.preventDefault();
-                                cancelEdit();
-                              }
-                              if (e.key === 'Tab') {
-                                e.preventDefault();
-                                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                const row = cell?.parentElement as HTMLTableRowElement;
-                                if (row && cell) {
-                                  const cellIndex = Array.from(row.cells).indexOf(cell);
-                                  saveEdit(miembro.id, true, cellIndex);
+                          <div className="flex items-center space-x-2">
+                            <select
+                              className="border border-gray-300 rounded px-2 py-1 text-sm"
+                              value={editing.value as string}
+                              onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  saveEdit(miembro.id);
                                 }
-                              }
-                            }}
-                            autoFocus
-                          >
-                            <option value="">Seleccionar...</option>
-                            {DIAS_SEMANA.map(dia => (
-                              <option key={dia.value} value={dia.value}>{dia.label}</option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => saveEdit(miembro.id)}
-                            className="text-green-600 hover:text-green-800"
-                            title="Guardar"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            ✗
-                          </button>
-                        </div>
+                                if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  cancelEdit();
+                                }
+                                if (e.key === 'Tab') {
+                                  e.preventDefault();
+                                  const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                                  const row = cell?.parentElement as HTMLTableRowElement;
+                                  if (row && cell) {
+                                    const cellIndex = Array.from(row.cells).indexOf(cell);
+                                    saveEdit(miembro.id, true, cellIndex);
+                                  }
+                                }
+                              }}
+                              autoFocus
+                            >
+                              <option value="">Seleccionar...</option>
+                              {DIAS_SEMANA.map(dia => (
+                                <option key={dia.value} value={dia.value}>{dia.label}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => saveEdit(miembro.id)}
+                              className="text-green-600 hover:text-green-800"
+                              title="Guardar"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <button
                           onClick={() => startEdit(miembro.id, 'dia', miembro.devocionalDia)}
@@ -604,49 +606,51 @@ export function DevocionalesPage() {
                     {/* Hora - Editable */}
                     <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'hora' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'hora' ? (
-                        <div className="flex items-center space-x-2 relative">
+                        <>
                           {/* FASE 2: Indicador visual */}
                           <EditingIndicator isEditing={true} isSaving={isSaving} />
-                          <input
-                            type="time"
-                            className="border border-gray-300 rounded px-2 py-1 text-sm"
-                            value={editing.value as string}
-                            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                saveEdit(miembro.id);
-                              }
-                              if (e.key === 'Escape') {
-                                e.preventDefault();
-                                cancelEdit();
-                              }
-                              if (e.key === 'Tab') {
-                                e.preventDefault();
-                                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                const row = cell?.parentElement as HTMLTableRowElement;
-                                if (row && cell) {
-                                  const cellIndex = Array.from(row.cells).indexOf(cell);
-                                  saveEdit(miembro.id, true, cellIndex);
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="time"
+                              className="border border-gray-300 rounded px-2 py-1 text-sm"
+                              value={editing.value as string}
+                              onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  saveEdit(miembro.id);
                                 }
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => saveEdit(miembro.id)}
-                            className="text-green-600 hover:text-green-800"
-                            title="Guardar"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            ✗
-                          </button>
-                        </div>
+                                if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  cancelEdit();
+                                }
+                                if (e.key === 'Tab') {
+                                  e.preventDefault();
+                                  const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                                  const row = cell?.parentElement as HTMLTableRowElement;
+                                  if (row && cell) {
+                                    const cellIndex = Array.from(row.cells).indexOf(cell);
+                                    saveEdit(miembro.id, true, cellIndex);
+                                  }
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveEdit(miembro.id)}
+                              className="text-green-600 hover:text-green-800"
+                              title="Guardar"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <button
                           onClick={() => startEdit(miembro.id, 'hora', miembro.devocionalHora)}
@@ -680,50 +684,52 @@ export function DevocionalesPage() {
                     {/* Participantes - Editable */}
                     <td className={`px-6 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'pt-8 pb-4' : 'py-4'} whitespace-nowrap text-sm text-gray-900 ${editing.miembroId === miembro.id && editing.field === 'participantes' ? 'bg-yellow-50 ring-2 ring-yellow-400 ring-inset relative' : ''}`}>
                       {editing.miembroId === miembro.id && editing.field === 'participantes' ? (
-                        <div className="flex items-center space-x-2 relative">
+                        <>
                           {/* FASE 2: Indicador visual */}
                           <EditingIndicator isEditing={true} isSaving={isSaving} />
-                          <input
-                            type="number"
-                            min="1"
-                            className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
-                            value={editing.value as number}
-                            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                saveEdit(miembro.id);
-                              }
-                              if (e.key === 'Escape') {
-                                e.preventDefault();
-                                cancelEdit();
-                              }
-                              if (e.key === 'Tab') {
-                                e.preventDefault();
-                                const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
-                                const row = cell?.parentElement as HTMLTableRowElement;
-                                if (row && cell) {
-                                  const cellIndex = Array.from(row.cells).indexOf(cell);
-                                  saveEdit(miembro.id, true, cellIndex);
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
+                              value={editing.value as number}
+                              onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  saveEdit(miembro.id);
                                 }
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => saveEdit(miembro.id)}
-                            className="text-green-600 hover:text-green-800"
-                            title="Guardar"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            ✗
-                          </button>
-                        </div>
+                                if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  cancelEdit();
+                                }
+                                if (e.key === 'Tab') {
+                                  e.preventDefault();
+                                  const cell = e.currentTarget.parentElement?.parentElement as HTMLTableCellElement;
+                                  const row = cell?.parentElement as HTMLTableRowElement;
+                                  if (row && cell) {
+                                    const cellIndex = Array.from(row.cells).indexOf(cell);
+                                    saveEdit(miembro.id, true, cellIndex);
+                                  }
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => saveEdit(miembro.id)}
+                              className="text-green-600 hover:text-green-800"
+                              title="Guardar"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <button
                           onClick={() => startEdit(miembro.id, 'participantes', miembro.devocionalParticipantes)}
