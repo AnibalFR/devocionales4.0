@@ -873,73 +873,84 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tipo de seguimiento
                     </label>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="radio"
                           name="tipoSeguimiento"
                           value="por_agendar"
                           checked={formData.tipoSeguimiento === 'por_agendar'}
-                          onChange={(e) => updateFormData({ tipoSeguimiento: e.target.value })}
+                          onChange={(e) => {
+                            updateFormData({
+                              tipoSeguimiento: e.target.value,
+                              seguimientoActividadBasica: false,
+                              seguimientoActividadBasicaEspecificar: '',
+                              seguimientoNinguno: false
+                            });
+                          }}
                           className="border-gray-300 text-primary-600 focus:ring-primary-500"
                         />
                         <span className="text-sm text-gray-700">Por agendar</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="tipoSeguimiento"
-                          value="agendado"
-                          checked={formData.tipoSeguimiento === 'agendado'}
-                          onChange={(e) => updateFormData({ tipoSeguimiento: e.target.value })}
-                          className="border-gray-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm text-gray-700">Agendado</span>
-                      </label>
-                    </div>
-                  </div>
 
-                  {formData.tipoSeguimiento === 'agendado' && (
-                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Fecha
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="tipoSeguimiento"
+                            value="agendado"
+                            checked={formData.tipoSeguimiento === 'agendado'}
+                            onChange={(e) => {
+                              updateFormData({
+                                tipoSeguimiento: e.target.value,
+                                seguimientoActividadBasica: false,
+                                seguimientoActividadBasicaEspecificar: '',
+                                seguimientoNinguno: false
+                              });
+                            }}
+                            className="border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm text-gray-700">Agendado</span>
                         </label>
-                        <input
-                          type="date"
-                          value={formData.seguimientoFecha}
-                          onChange={(e) => updateFormData({ seguimientoFecha: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                        />
+                        {formData.tipoSeguimiento === 'agendado' && (
+                          <div className="grid grid-cols-2 gap-4 mt-2 ml-6">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">
+                                Fecha
+                              </label>
+                              <input
+                                type="date"
+                                value={formData.seguimientoFecha}
+                                onChange={(e) => updateFormData({ seguimientoFecha: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">
+                                Hora
+                              </label>
+                              <input
+                                type="time"
+                                value={formData.seguimientoHora}
+                                onChange={(e) => updateFormData({ seguimientoHora: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Hora
-                        </label>
-                        <input
-                          type="time"
-                          value={formData.seguimientoHora}
-                          onChange={(e) => updateFormData({ seguimientoHora: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                        />
-                      </div>
-                    </div>
-                  )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Opciones adicionales
-                    </label>
-                    <div className="space-y-2">
                       <div>
                         <label className="flex items-start space-x-2 cursor-pointer">
                           <input
                             type="radio"
-                            name="seguimientoOpcion"
+                            name="tipoSeguimiento"
+                            value="actividad_basica"
                             checked={formData.seguimientoActividadBasica}
                             onChange={(e) => {
                               if (e.target.checked) {
                                 updateFormData({
+                                  tipoSeguimiento: '',
                                   seguimientoActividadBasica: true,
                                   seguimientoNinguno: false
                                 });
@@ -965,11 +976,13 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="radio"
-                          name="seguimientoOpcion"
+                          name="tipoSeguimiento"
+                          value="ninguno"
                           checked={formData.seguimientoNinguno}
                           onChange={(e) => {
                             if (e.target.checked) {
                               updateFormData({
+                                tipoSeguimiento: '',
                                 seguimientoActividadBasica: false,
                                 seguimientoActividadBasicaEspecificar: '',
                                 seguimientoNinguno: true
