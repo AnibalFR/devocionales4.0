@@ -927,37 +927,61 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                   )}
 
                   <div>
-                    <label className="flex items-start space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.seguimientoActividadBasica}
-                        onChange={(e) => updateFormData({ seguimientoActividadBasica: e.target.checked })}
-                        className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="text-sm text-gray-700">Invitar a actividad básica</span>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Opciones adicionales
                     </label>
-                    {formData.seguimientoActividadBasica && (
-                      <input
-                        type="text"
-                        value={formData.seguimientoActividadBasicaEspecificar}
-                        onChange={(e) =>
-                          updateFormData({ seguimientoActividadBasicaEspecificar: e.target.value })
-                        }
-                        className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                        placeholder="¿Cuál actividad?"
-                      />
-                    )}
-                  </div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="flex items-start space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="seguimientoOpcion"
+                            checked={formData.seguimientoActividadBasica}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                updateFormData({
+                                  seguimientoActividadBasica: true,
+                                  seguimientoNinguno: false
+                                });
+                              }
+                            }}
+                            className="mt-1 border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm text-gray-700">Invitar a actividad básica</span>
+                        </label>
+                        {formData.seguimientoActividadBasica && (
+                          <input
+                            type="text"
+                            value={formData.seguimientoActividadBasicaEspecificar}
+                            onChange={(e) =>
+                              updateFormData({ seguimientoActividadBasicaEspecificar: e.target.value })
+                            }
+                            className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="¿Cuál actividad?"
+                          />
+                        )}
+                      </div>
 
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.seguimientoNinguno}
-                      onChange={(e) => updateFormData({ seguimientoNinguno: e.target.checked })}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700">Ninguno</span>
-                  </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="seguimientoOpcion"
+                          checked={formData.seguimientoNinguno}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              updateFormData({
+                                seguimientoActividadBasica: false,
+                                seguimientoActividadBasicaEspecificar: '',
+                                seguimientoNinguno: true
+                              });
+                            }
+                          }}
+                          className="border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm text-gray-700">Ninguno</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
