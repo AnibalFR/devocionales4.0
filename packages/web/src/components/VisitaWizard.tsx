@@ -284,20 +284,20 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
         }
 
         // Validar campos condicionales de actividades
-        if (formData.visitActivities.estudio_instituto && !formData.visitActivities.estudio_instituto_especificar.trim()) {
+        if (formData.visitActivities.estudio_instituto && (!formData.visitActivities.estudio_instituto_especificar || !formData.visitActivities.estudio_instituto_especificar.trim())) {
           return { isValid: false, message: 'Especifica cuál estudio del instituto se realizó' };
         }
-        if (formData.visitActivities.otro_estudio && !formData.visitActivities.otro_estudio_especificar.trim()) {
+        if (formData.visitActivities.otro_estudio && (!formData.visitActivities.otro_estudio_especificar || !formData.visitActivities.otro_estudio_especificar.trim())) {
           return { isValid: false, message: 'Especifica cuál otro estudio se realizó' };
         }
-        if (formData.visitActivities.invitacion_actividad && !formData.visitActivities.invitacion_especificar.trim()) {
+        if (formData.visitActivities.invitacion_actividad && (!formData.visitActivities.invitacion_especificar || !formData.visitActivities.invitacion_especificar.trim())) {
           return { isValid: false, message: 'Especifica a cuál actividad se invitó' };
         }
         return { isValid: true };
 
       case 6: // Materiales
         // Validar campo condicional de materiales
-        if (formData.materialDejado.otro && !formData.materialDejado.otro_especificar.trim()) {
+        if (formData.materialDejado.otro && (!formData.materialDejado.otro_especificar || !formData.materialDejado.otro_especificar.trim())) {
           return { isValid: false, message: 'Especifica cuál otro material se dejó' };
         }
         return { isValid: true };
