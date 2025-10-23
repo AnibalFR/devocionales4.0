@@ -93,7 +93,7 @@ export function VisitaDetallesModal({ visita, onClose }: VisitaDetallesModalProp
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-4xl">
+      <div className="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -359,6 +359,8 @@ export function VisitaDetallesModal({ visita, onClose }: VisitaDetallesModalProp
           </button>
         </div>
       </div>
+      {/* Backdrop - permite cerrar al hacer clic fuera del modal */}
+      <div className="modal-backdrop" onClick={onClose}></div>
     </div>
   );
 }
