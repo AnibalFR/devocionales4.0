@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Fix: Importación de Excel en Miembros ahora funciona correctamente",
-    "Fix: Modal de importación con scroll para evitar ocultar botones",
-    "Corregido campo 'rol' que causaba error al importar miembros nuevos"
+    "Mejora UX: Preselección automática de Barrio/Núcleo en Ligar Miembros",
+    "Al seleccionar un miembro, se preselecciona su barrio y núcleo asignado",
+    "Facilita y agiliza el proceso de ligar miembros a familias"
   ],
   "requiresReload": false,
   "requiresReauth": false

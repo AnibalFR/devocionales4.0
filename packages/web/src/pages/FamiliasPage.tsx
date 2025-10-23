@@ -468,7 +468,21 @@ export function FamiliasPage() {
       setModal(prev => ({ ...prev, selectedMiembros: newSelected, roles: newRoles }));
     } else {
       newSelected.add(miembroId);
-      setModal(prev => ({ ...prev, selectedMiembros: newSelected }));
+
+      // Preseleccionar barrio y núcleo del miembro seleccionado
+      const allMiembros = data?.miembros || [];
+      const miembro = allMiembros.find((m: any) => m.id === miembroId);
+
+      if (miembro) {
+        setModal(prev => ({
+          ...prev,
+          selectedMiembros: newSelected,
+          selectedBarrioId: miembro.barrioId || prev.selectedBarrioId,
+          selectedNucleoId: miembro.nucleoId || prev.selectedNucleoId,
+        }));
+      } else {
+        setModal(prev => ({ ...prev, selectedMiembros: newSelected }));
+      }
     }
 
     // Update address selector based on new selection
