@@ -1,9 +1,8 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Mejora UX: Preselección automática de Barrio/Núcleo en Ligar Miembros",
-    "Al seleccionar un miembro, se preselecciona su barrio y núcleo asignado",
-    "Facilita y agiliza el proceso de ligar miembros a familias"
+    "Debug Backend: Logs en createVisita resolver",
+    "Rastreando input.visitorUserIds antes y después de guardar en BD"
   ],
   "requiresReload": false,
   "requiresReauth": false

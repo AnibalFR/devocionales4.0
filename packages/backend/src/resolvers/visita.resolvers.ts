@@ -249,6 +249,13 @@ export const visitaResolvers = {
       // Derivar automáticamente el visitStatus según VIS-002
       const visitStatus = derivarVisitStatus(input);
 
+      console.log('[createVisita] Input recibido:', {
+        visitorUserIds: input.visitorUserIds,
+        visitorUserIdsType: typeof input.visitorUserIds,
+        visitorUserIdsLength: input.visitorUserIds?.length,
+        fullInput: input,
+      });
+
       const visita = await prisma.visita.create({
         data: {
           // IDs
@@ -302,6 +309,12 @@ export const visitaResolvers = {
           barrio: true,
           nucleo: true,
         },
+      });
+
+      console.log('[createVisita] Visita creada:', {
+        id: visita.id,
+        visitorUserIds: visita.visitorUserIds,
+        visitorUserIdsLength: visita.visitorUserIds?.length,
       });
 
       // Registrar evento
