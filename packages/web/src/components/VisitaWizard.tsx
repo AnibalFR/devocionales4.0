@@ -249,38 +249,80 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
     onClose();
   };
 
-  const validateStep = (step: number): boolean => {
+  const validateStep = (step: number): { isValid: boolean; message?: string } => {
     switch (step) {
       case 1: // Barrio
-        return formData.barrioId !== '' || formData.barrioOtro !== '';
+        if (formData.barrioId === '' && formData.barrioOtro === '') {
+          return { isValid: false, message: 'Selecciona un barrio' };
+        }
+        return { isValid: true };
+
       case 2: // Familia
-        return formData.familiaId !== '';
+        if (formData.familiaId === '') {
+          return { isValid: false, message: 'Selecciona una familia' };
+        }
+        return { isValid: true };
+
       case 3: // Fecha y Hora
-        return formData.visitDate !== '' && formData.visitTime !== '';
+        if (formData.visitDate === '') {
+          return { isValid: false, message: 'Ingresa la fecha de la visita' };
+        }
+        if (formData.visitTime === '') {
+          return { isValid: false, message: 'Ingresa la hora de la visita' };
+        }
+        return { isValid: true };
+
       case 4: // Visitadores
-        return formData.visitorUserIds.length > 0;
-      case 5: // Tipo
-        return formData.visitType !== '';
-      case 6: // Materiales (opcional)
-        return true;
+        if (formData.visitorUserIds.length === 0) {
+          return { isValid: false, message: 'Selecciona al menos un visitador' };
+        }
+        return { isValid: true };
+
+      case 5: // Tipo y Actividades
+        if (formData.visitType === '') {
+          return { isValid: false, message: 'Selecciona el tipo de visita' };
+        }
+
+        // Validar campos condicionales de actividades
+        if (formData.visitActivities.estudio_instituto && !formData.visitActivities.estudio_instituto_especificar.trim()) {
+          return { isValid: false, message: 'Especifica cuál estudio del instituto se realizó' };
+        }
+        if (formData.visitActivities.otro_estudio && !formData.visitActivities.otro_estudio_especificar.trim()) {
+          return { isValid: false, message: 'Especifica cuál otro estudio se realizó' };
+        }
+        if (formData.visitActivities.invitacion_actividad && !formData.visitActivities.invitacion_especificar.trim()) {
+          return { isValid: false, message: 'Especifica a cuál actividad se invitó' };
+        }
+        return { isValid: true };
+
+      case 6: // Materiales
+        // Validar campo condicional de materiales
+        if (formData.materialDejado.otro && !formData.materialDejado.otro_especificar.trim()) {
+          return { isValid: false, message: 'Especifica cuál otro material se dejó' };
+        }
+        return { isValid: true };
+
       case 7: // Seguimiento (opcional)
-        return true;
+        return { isValid: true };
+
       case 8: // Notas (opcional)
-        return true;
+        return { isValid: true };
+
       default:
-        return true;
+        return { isValid: true };
     }
   };
 
   const handleNext = () => {
-    if (validateStep(currentStep)) {
+    const validation = validateStep(currentStep);
+    if (validation.isValid) {
       if (currentStep < 8) {
         setCurrentStep(prev => prev + 1);
       } else {
         handleSubmit();
       }
     } else {
-      alert('Por favor completa los campos requeridos');
+      alert(validation.message || 'Por favor completa los campos requeridos');
     }
   };
 
