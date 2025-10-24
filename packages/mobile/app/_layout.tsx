@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { ApolloProvider } from '@apollo/client/react';
-import { GluestackUIProvider } from '@gluestack-ui/themed';
-import { config as gluestackConfig } from '@gluestack-ui/config';
+import { PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import { apolloClient } from '../src/graphql/apollo';
@@ -33,13 +32,13 @@ function RootLayoutNav() {
 // Layout root con todos los providers
 export default function RootLayout() {
   return (
-    <ApolloProvider client={apolloClient}>
-      <GluestackUIProvider config={gluestackConfig}>
+    <PaperProvider>
+      <ApolloProvider client={apolloClient}>
         <AuthProvider>
           <StatusBar style="auto" />
           <RootLayoutNav />
         </AuthProvider>
-      </GluestackUIProvider>
-    </ApolloProvider>
+      </ApolloProvider>
+    </PaperProvider>
   );
 }

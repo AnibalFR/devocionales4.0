@@ -1,19 +1,7 @@
 import { useState } from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { TextInput, Button, Text, HelperText, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import {
-  Box,
-  VStack,
-  Heading,
-  Text,
-  Input,
-  InputField,
-  Button,
-  ButtonText,
-  FormControl,
-  FormControlError,
-  FormControlErrorText,
-} from '@gluestack-ui/themed';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 export default function LoginScreen() {
@@ -41,7 +29,6 @@ export default function LoginScreen() {
     } catch (err: any) {
       console.error('Error de login:', err);
       setError(err.message || 'Credenciales inválidas');
-      Alert.alert('Error de autenticación', err.message || 'Credenciales inválidas');
     } finally {
       setIsLoading(false);
     }
@@ -56,66 +43,64 @@ export default function LoginScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Box style={styles.content}>
-          <VStack space="xl" width="100%">
-            {/* Header */}
-            <VStack space="sm" alignItems="center">
-              <Heading size="2xl">Devocionales 4.0</Heading>
-              <Text size="sm" color="$gray600">
-                Inicia sesión para continuar
-              </Text>
-            </VStack>
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text variant="headlineLarge" style={styles.title}>
+              Devocionales 4.0
+            </Text>
+            <Text variant="bodyMedium" style={styles.subtitle}>
+              Inicia sesión para continuar
+            </Text>
+          </View>
 
-            {/* Form */}
-            <VStack space="md">
-              <FormControl isInvalid={!!error}>
-                <VStack space="sm">
-                  <Text fontWeight="$medium">Email</Text>
-                  <Input>
-                    <InputField
-                      placeholder="tu@email.com"
-                      value={email}
-                      onChangeText={setEmail}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                  </Input>
-                </VStack>
-              </FormControl>
+          {/* Form */}
+          <View style={styles.form}>
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              mode="outlined"
+              error={!!error}
+              disabled={isLoading}
+              style={styles.input}
+            />
 
-              <FormControl isInvalid={!!error}>
-                <VStack space="sm">
-                  <Text fontWeight="$medium">Contraseña</Text>
-                  <Input>
-                    <InputField
-                      placeholder="••••••••"
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry
-                    />
-                  </Input>
-                </VStack>
-                {error && (
-                  <FormControlError>
-                    <FormControlErrorText>{error}</FormControlErrorText>
-                  </FormControlError>
-                )}
-              </FormControl>
+            <TextInput
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              mode="outlined"
+              error={!!error}
+              disabled={isLoading}
+              style={styles.input}
+            />
 
-              <Button
-                onPress={handleLogin}
-                isDisabled={isLoading}
-                size="lg"
-                marginTop="$4"
-              >
-                <ButtonText>
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                </ButtonText>
-              </Button>
-            </VStack>
-          </VStack>
-        </Box>
+            {error && (
+              <HelperText type="error" visible={!!error}>
+                {error}
+              </HelperText>
+            )}
+
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              disabled={isLoading}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+            >
+              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
+
+            {isLoading && (
+              <ActivityIndicator animating={true} style={styles.loader} />
+            )}
+          </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -135,5 +120,31 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  title: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#666',
+  },
+  form: {
+    gap: 16,
+  },
+  input: {
+    backgroundColor: '#fff',
+  },
+  button: {
+    marginTop: 16,
+  },
+  buttonContent: {
+    paddingVertical: 8,
+  },
+  loader: {
+    marginTop: 16,
   },
 });
