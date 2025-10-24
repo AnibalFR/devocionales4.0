@@ -1,6 +1,6 @@
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { VISITAS_QUERY } from '../../src/graphql/visitas';
 import VisitaCard from '../../src/components/VisitaCard';

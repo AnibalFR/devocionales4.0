@@ -1,6 +1,6 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, ActivityIndicator, Divider, Chip, Button } from 'react-native-paper';
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VISITA_QUERY } from '../src/graphql/visitas';
 import type { VisitaDetalle } from '../src/types/visita';
