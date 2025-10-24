@@ -868,7 +868,7 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                   <div className="flex items-start gap-2 text-sm text-yellow-700">
                     <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <p>No hay familias registradas para el barrio{formData.nucleoId ? ' y núcleo' : ''} seleccionado. Deberás crear la familia desde el módulo de Familias asignándola al barrio{formData.nucleoId ? ' y núcleo' : ''} correspondiente.</p>
+                    <p>No hay familias registradas para el barrio{formData.nucleoId ? ' y núcleo' : ''} seleccionado. Usa el botón "+ Crear Familia" para crear una nueva familia ahora.</p>
                   </div>
                 </div>
               )}
