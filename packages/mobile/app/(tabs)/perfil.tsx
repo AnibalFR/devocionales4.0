@@ -1,9 +1,16 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 export default function PerfilScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/(auth)/login');
+  };
 
   return (
     <View style={styles.container}>
@@ -15,7 +22,7 @@ export default function PerfilScreen() {
           <Text variant="bodyMedium">Rol: {user.rol}</Text>
         </View>
       )}
-      <Button mode="contained" onPress={logout} style={styles.button}>
+      <Button mode="contained" onPress={handleLogout} style={styles.button}>
         Cerrar Sesión
       </Button>
     </View>
