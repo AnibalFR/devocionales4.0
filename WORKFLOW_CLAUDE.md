@@ -4,6 +4,28 @@ Este documento establece el procedimiento estándar que Claude debe seguir al re
 
 ---
 
+## 📁 Paths Importantes del Proyecto
+
+**Raíz del proyecto:** `/Users/anibalfigueroaramirez/XYZ/devocionales4.0/`
+
+**Estructura del proyecto:**
+```
+/Users/anibalfigueroaramirez/XYZ/devocionales4.0/
+├── packages/
+│   ├── backend/          # Servidor GraphQL, resolvers, Prisma
+│   ├── web/              # Frontend web React
+│   └── mobile/           # App móvil React Native + Expo
+├── deploy.sh             # Script de deployment (solo para backend/web)
+└── WORKFLOW_CLAUDE.md    # Este documento
+```
+
+**⚠️ IMPORTANTE para comandos git:**
+- Si estás en el directorio raíz: usa `packages/backend/...`, `packages/web/...`, `packages/mobile/...`
+- Si estás en un subdirectorio (ej: `packages/mobile`): usa paths relativos (`.`, `package.json`, etc.)
+- **NUNCA** uses `packages/mobile/...` si ya estás EN `packages/mobile` (causará error de path duplicado)
+
+---
+
 ## 📋 Pasos Estándar para Cualquier Cambio
 
 ### PASO 1: Análisis y Planificación
@@ -613,6 +635,7 @@ Comunicar al usuario
 9. ❌ **Usar `./deploy.sh` en vez del path absoluto** - Causa "no such file or directory"
 10. ❌ **Compilar backend solo localmente** - Los cambios TypeScript NO se reflejan en producción si no se compila en servidor (el script ya lo hace automáticamente desde 2025-10-21)
 11. ❌ **Usar deploy.sh para cambios en mobile** - La app móvil NO se despliega en servidor
+12. ❌ **Usar paths git incorrectos desde subdirectorios** - Si estás en `packages/mobile`, NO uses `git add packages/mobile/file.json` (causará error "pathspec did not match any files"). Usa `git add .` o `git add file.json`
 
 ---
 
@@ -687,9 +710,46 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
 
 #### PASO 4: Commit y Push
 
+**⚠️ IMPORTANTE: Manejo correcto de paths en Git**
+
+El directorio de la app móvil es: `/Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile`
+
+Cuando trabajes con git, el path que uses depende de tu **directorio actual**:
+
+- **Si estás en el directorio RAÍZ del proyecto** (`/Users/anibalfigueroaramirez/XYZ/devocionales4.0/`):
+  ```bash
+  git add packages/mobile
+  # o específicamente:
+  git add packages/mobile/package.json packages/mobile/package-lock.json
+  ```
+
+- **Si estás EN packages/mobile** (`/Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile`):
+  ```bash
+  git add .
+  # o específicamente:
+  git add package.json package-lock.json
+  ```
+
+**❌ ERROR COMÚN:** Si estás en `packages/mobile` y ejecutas `git add packages/mobile/...`, git buscará `packages/mobile/packages/mobile/...` (duplicado) y fallará con:
+```
+warning: could not open directory 'packages/mobile/packages/mobile/': No such file or directory
+fatal: pathspec 'packages/mobile/package.json' did not match any files
+```
+
+**✅ SOLUCIÓN:** Usa paths relativos a tu directorio actual. Si estás en `packages/mobile`, usa `git add .` o nombres de archivo sin el prefijo `packages/mobile/`.
+
+---
+
 1. **Agregar archivos modificados:**
+
+   **Opción A - Desde el directorio raíz del proyecto:**
    ```bash
    git add packages/mobile
+   ```
+
+   **Opción B - Desde packages/mobile (tu directorio actual habitual):**
+   ```bash
+   git add .
    ```
 
 2. **Crear commit descriptivo:**
@@ -851,6 +911,7 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
 - ❌ **NO actualizar release.json** - Eso es para la web app
 - ❌ **NO hacer deployment al servidor** - Mobile no vive en el servidor
 - ❌ **NO preocuparse por PM2 o Nginx** - Son para backend/web
+- ❌ **NO usar paths relativos incorrectos en git** - Si estás en `packages/mobile`, NO uses `git add packages/mobile/...`
 
 ### ✅ Checklist para Cambios en Mobile
 
