@@ -164,6 +164,14 @@ export function VisitasPage() {
     refetchQueries: [{ query: VISITAS_QUERY }],
   });
 
+  // DEBUG: Ver datos de visitas
+  console.log('[VisitasPage] Query data:', {
+    totalVisitas: data?.visitas?.length,
+    primeraVisita: data?.visitas?.[0],
+    visitadoresEnPrimera: data?.visitas?.[0]?.visitadores,
+    visitorUserIdsEnPrimera: data?.visitas?.[0]?.visitorUserIds,
+  });
+
   // Filtros y ordenamiento
   const [filterType, setFilterType] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
