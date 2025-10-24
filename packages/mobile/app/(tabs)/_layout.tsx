@@ -3,23 +3,12 @@ import { Platform, Text } from 'react-native';
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: '#3B82F6',
-        tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          height: Platform.OS === 'ios' ? 85 : 65,
-        },
-        headerShown: true,
-      }}
-    >
+    <Tabs>
       <Tabs.Screen
         name="visitas"
         options={{
           title: 'Visitas',
           tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
-          headerTitle: 'Mis Visitas',
         }}
       />
       <Tabs.Screen
@@ -27,7 +16,6 @@ export default function TabsLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-          headerTitle: 'Mi Perfil',
         }}
       />
     </Tabs>
