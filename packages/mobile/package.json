@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "@apollo/client": "^4.0.7",
+    "@expo/html-elements": "^0.13.7",
+    "@gluestack-style/animation-resolver": "^1.0.4",
+    "@gluestack-style/legend-motion-animation-driver": "^1.0.3",
     "@gluestack-style/react": "^1.0.57",
     "@gluestack-ui/config": "^1.1.20",
     "@gluestack-ui/themed": "^1.1.73",
+    "@legendapp/motion": "^2.5.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "date-fns": "^4.1.0",
     "expo": "~54.0.20",

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { ApolloProvider } from '@apollo/client';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
-import { config } from '@gluestack-ui/config';
+import { config as gluestackConfig } from '@gluestack-ui/config';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import { apolloClient } from '../src/graphql/apollo';
@@ -34,7 +34,7 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <ApolloProvider client={apolloClient}>
-      <GluestackUIProvider config={config}>
+      <GluestackUIProvider config={gluestackConfig}>
         <AuthProvider>
           <StatusBar style="auto" />
           <RootLayoutNav />
