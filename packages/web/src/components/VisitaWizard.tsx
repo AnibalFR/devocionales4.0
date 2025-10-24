@@ -27,6 +27,8 @@ const FAMILIAS_QUERY = gql`
       id
       nombre
       direccion
+      barrioId
+      nucleoId
     }
   }
 `;
@@ -258,6 +260,24 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   const nucleos = nucleosData?.nucleos || [];
   const familias = familiasData?.familias || [];
   const miembros = miembrosData?.miembros || [];
+
+  // Filtrar familias según barrio y núcleo seleccionados en Paso 1
+  const familiasFiltradas = familias.filter((familia: any) => {
+    // Si no se ha seleccionado barrio, mostrar todas
+    if (!formData.barrioId) return true;
+
+    // Si se seleccionó "OTRO" en barrio, no filtrar (las familias no tienen "OTRO" como barrioId)
+    if (formData.barrioId === 'OTRO') return true;
+
+    // Filtrar por barrioId
+    const coincideBarrio = familia.barrioId === formData.barrioId;
+
+    // Si no hay núcleo seleccionado, solo filtrar por barrio
+    if (!formData.nucleoId) return coincideBarrio;
+
+    // Filtrar por barrio Y núcleo
+    return coincideBarrio && familia.nucleoId === formData.nucleoId;
+  });
 
   const updateFormData = (updates: Partial<VisitaFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -544,7 +564,7 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="">Selecciona una familia</option>
-                  {familias.map((familia: any) => (
+                  {familiasFiltradas.map((familia: any) => (
                     <option key={familia.id} value={familia.id}>
                       {familia.nombre} {familia.direccion ? `- ${familia.direccion}` : ''}
                     </option>
@@ -552,10 +572,19 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
                 </select>
               </div>
 
+              {formData.barrioId && formData.barrioId !== 'OTRO' && familiasFiltradas.length === 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <div className="flex items-start gap-2 text-sm text-yellow-700">
+                    <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p>No hay familias registradas para el barrio{formData.nucleoId ? ' y núcleo' : ''} seleccionado. Deberás crear la familia desde el módulo de Familias asignándola al barrio{formData.nucleoId ? ' y núcleo' : ''} correspondiente.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex items-start gap-2 text-sm text-blue-700">
                   <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <p>Si la familia no aparece en la lista, deberás crearla desde el módulo de Familias primero.</p>
+                  <p>Mostrando familias del {formData.nucleoId ? 'núcleo y ' : ''}barrio seleccionado. Si no encuentras la familia, verifica que esté asignada al barrio{formData.nucleoId ? ' y núcleo' : ''} correcto en el catálogo de familias.</p>
                 </div>
               </div>
             </div>
