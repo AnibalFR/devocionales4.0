@@ -35,6 +35,43 @@ Este documento establece el procedimiento estándar que Claude debe seguir al re
 
 ---
 
+### PASO 1.5: Identificar Alcance del Cambio
+
+**Determinar qué partes del proyecto se ven afectadas:**
+
+- [ ] **Backend** (`packages/backend/`) - GraphQL, resolvers, schema, base de datos
+- [ ] **Frontend Web** (`packages/web/`) - React, páginas, componentes
+- [ ] **App Móvil** (`packages/mobile/`) - React Native, Expo
+
+#### 🔀 Flujos según Alcance:
+
+**A. Si el cambio afecta BACKEND o WEB (o ambos):**
+```
+→ Continuar con PASO 2
+→ Usar deploy.sh al final (PASO 6)
+→ El cambio se desplegará al servidor
+```
+
+**B. Si el cambio afecta SOLO MOBILE:**
+```
+→ Saltar a "WORKFLOW PARA APP MÓVIL" (sección al final de este documento)
+→ NO usar deploy.sh (mobile no se despliega en servidor)
+→ Solo commit y push
+```
+
+**C. Si el cambio afecta BACKEND + MOBILE:**
+```
+1. Primero: Implementar cambios en backend
+2. Ejecutar deploy.sh (backend actualizado)
+3. Después: Implementar cambios en mobile
+4. Commit mobile por separado (sin deploy.sh)
+5. Mobile usará nuevo backend automáticamente vía HTTPS
+```
+
+**Nota Importante:** La app móvil NO requiere deployment al servidor. Los cambios en mobile solo necesitan commit y push. Los usuarios actualizarán cuando descarguen nueva versión desde App Store / Play Store.
+
+---
+
 ### PASO 2: Búsqueda y Análisis de Código
 
 1. **Usar herramientas apropiadas:**
@@ -517,9 +554,275 @@ Comunicar al usuario
 8. ❌ Hacer deployment manual en vez de usar el script
 9. ❌ **Usar `./deploy.sh` en vez del path absoluto** - Causa "no such file or directory"
 10. ❌ **Compilar backend solo localmente** - Los cambios TypeScript NO se reflejan en producción si no se compila en servidor (el script ya lo hace automáticamente desde 2025-10-21)
+11. ❌ **Usar deploy.sh para cambios en mobile** - La app móvil NO se despliega en servidor
 
 ---
 
-**Este workflow debe seguirse en TODOS los cambios que requieran deployment.**
+## 📱 WORKFLOW PARA APP MÓVIL
+
+### Cuándo usar este workflow:
+
+- ✅ Cambios SOLO en `packages/mobile/`
+- ✅ No requieren deployment al servidor
+- ✅ No afectan backend ni frontend web
+- ✅ Son cambios visuales, de UI, o de funcionalidad de la app
+
+### ⚠️ Importante: La App Móvil es Diferente
+
+La app móvil tiene un ciclo de desarrollo completamente independiente:
+
+- **NO se despliega en el servidor** (como backend/web)
+- **NO usa deploy.sh**
+- Los cambios se prueban con **Expo Go** o **simuladores**
+- Los usuarios actualizan desde **App Store / Play Store**
+
+### 📋 Proceso para Cambios en Mobile
+
+#### PASO 1: Análisis y Planificación
+
+1. **Entender el requerimiento**
+   - Identificar qué pantallas o componentes cambiar
+   - Verificar si necesita cambios en queries/mutations GraphQL
+   - Determinar si afecta autenticación o storage
+
+2. **Crear plan con TodoWrite**
+   ```
+   - Analizar código existente
+   - Identificar archivos a modificar
+   - Implementar cambios
+   - Probar en Expo Go/Simulador
+   - Commit y push
+   ```
+
+#### PASO 2: Implementación
+
+1. **Modificar archivos en `packages/mobile/`:**
+   - Pantallas: `app/` (Login, Visitas, Perfil, Detalle)
+   - Componentes: `src/components/`
+   - GraphQL: `src/graphql/`
+   - Contextos: `src/contexts/`
+   - Utilidades: `src/utils/`
+   - Configuración: `src/config/`
+
+2. **Seguir convenciones de React Native:**
+   - Usar `StyleSheet.create()` para estilos
+   - Componentes de Gluestack UI para UI
+   - TypeScript types en `src/types/`
+   - Formatters en `src/utils/`
+
+#### PASO 3: Testing Local
+
+1. **Iniciar servidor de desarrollo:**
+   ```bash
+   cd /Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile
+   npm start
+   ```
+
+2. **Probar cambios:**
+   - **Opción A**: Expo Go en dispositivo físico (escanear QR)
+   - **Opción B**: iOS Simulator (presionar `i` en terminal)
+   - **Opción C**: Android Emulator (presionar `a` en terminal)
+
+3. **Verificar:**
+   - [ ] Los cambios son visibles en la app
+   - [ ] No hay errores en consola
+   - [ ] La funcionalidad funciona correctamente
+   - [ ] La navegación sigue funcionando
+   - [ ] El login/logout funcionan
+
+#### PASO 4: Commit y Push
+
+1. **Agregar archivos modificados:**
+   ```bash
+   git add packages/mobile
+   ```
+
+2. **Crear commit descriptivo:**
+   ```bash
+   git commit -m "Feature/Fix: Descripción clara del cambio
+
+   ## Mobile
+   - Cambio específico 1
+   - Cambio específico 2
+   - Cambio específico 3
+
+   ## Testing
+   - Probado en iOS/Android
+   - Funcionalidad verificada
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+3. **Push al repositorio:**
+   ```bash
+   git push
+   ```
+
+#### PASO 5: Comunicar al Usuario
+
+**Mensaje al usuario debe incluir:**
+
+1. **Resumen de cambios:**
+   ```markdown
+   ## Cambios Implementados en App Móvil
+
+   ### Pantallas/Componentes Modificados
+   - Pantalla de Visitas: Agregado filtro por fecha
+   - VisitaCard: Mejorado diseño de badges
+
+   ### Funcionalidad
+   - Nuevo filtro permite buscar visitas por rango de fechas
+   - UI más limpia y moderna
+   ```
+
+2. **Instrucciones de testing:**
+   ```markdown
+   ## 🧪 Cómo Probar
+
+   1. cd packages/mobile
+   2. npm start
+   3. Escanear QR con Expo Go
+   4. Verificar que los filtros funcionen
+   ```
+
+3. **Notas importantes:**
+   ```markdown
+   ## 📝 Notas
+
+   - ✅ Cambios commiteados y pusheados
+   - ✅ Probado en iOS y Android
+   - ⚠️ Los usuarios verán cambios cuando descarguen nueva versión
+   - ℹ️ Para distribución: usar EAS Build cuando esté listo
+   ```
+
+### 🚫 LO QUE NO DEBES HACER para Mobile
+
+- ❌ **NO usar deploy.sh** - El script es solo para backend/web
+- ❌ **NO actualizar release.json** - Eso es para la web app
+- ❌ **NO hacer deployment al servidor** - Mobile no vive en el servidor
+- ❌ **NO preocuparse por PM2 o Nginx** - Son para backend/web
+
+### ✅ Checklist para Cambios en Mobile
+
+Antes de hacer commit:
+
+- [ ] Código modificado en `packages/mobile/`
+- [ ] Testing realizado con `npm start` + Expo Go/Simulador
+- [ ] No hay errores en consola
+- [ ] Funcionalidad verificada manualmente
+- [ ] Navegación sigue funcionando
+- [ ] Login/logout funcionan (si aplica)
+- [ ] Commit descriptivo creado
+- [ ] Push al repositorio realizado
+- [ ] Usuario informado sobre cambios
+
+### 📦 Distribución (Opcional)
+
+**Solo cuando necesites publicar nueva versión a las stores:**
+
+```bash
+# Instalar EAS CLI (una vez)
+npm install -g eas-cli
+
+# Login a Expo
+eas login
+
+# Build para iOS (TestFlight)
+eas build --platform ios --profile production
+
+# Build para Android (Play Store)
+eas build --platform android --profile production
+
+# Submit a stores
+eas submit --platform ios
+eas submit --platform android
+```
+
+**Nota:** La distribución normalmente se hace cuando hay múltiples cambios acumulados, no por cada commit.
+
+### 🎯 Ejemplo Completo: Cambio en Mobile
+
+**Escenario:** Usuario pide "Agregar búsqueda de visitas por familia en la app móvil"
+
+1. **Identificar alcance:**
+   - Solo Mobile ✓
+   - Pantalla: `app/(tabs)/visitas.tsx`
+   - Componente: posiblemente `VisitaCard.tsx`
+
+2. **TodoWrite:**
+   ```
+   1. [in_progress] Analizar VisitasPage actual
+   2. [pending] Agregar campo de búsqueda
+   3. [pending] Implementar filtrado
+   4. [pending] Probar en Expo Go
+   5. [pending] Commit y push
+   ```
+
+3. **Implementación:**
+   - Agregar `SearchBar` component
+   - Implementar filtrado en `visitas.tsx`
+   - Actualizar estado local
+
+4. **Testing:**
+   ```bash
+   cd packages/mobile
+   npm start
+   # Probar búsqueda en app
+   ```
+
+5. **Commit:**
+   ```bash
+   git add packages/mobile
+   git commit -m "Feature: Búsqueda de visitas por familia en app móvil
+
+   ## Mobile
+   - Agregado campo de búsqueda en VisitasPage
+   - Implementado filtrado local por nombre de familia
+   - UI mejorada con Gluestack SearchBar
+
+   ## Testing
+   - Probado en iOS Simulator
+   - Probado en Android Emulator
+   - Búsqueda funciona correctamente
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   git push
+   ```
+
+6. **Comunicar:**
+   ```markdown
+   ## ✅ Cambios Implementados
+
+   He agregado funcionalidad de búsqueda en la app móvil:
+
+   ### Pantalla de Visitas
+   - Campo de búsqueda en la parte superior
+   - Filtrado en tiempo real por nombre de familia
+   - UI integrada con Gluestack
+
+   ### Testing
+   - ✅ Probado en iOS y Android
+   - ✅ Búsqueda funciona correctamente
+   - ✅ Sin errores
+
+   ### Para Probar
+   ```bash
+   cd packages/mobile
+   npm start
+   # Escanear QR con Expo Go
+   ```
+
+   Los cambios están en el repositorio. Para que los usuarios los vean, necesitarás publicar una nueva versión en las stores cuando estés listo.
+   ```
+
+---
+
+**Este workflow debe seguirse en TODOS los cambios que requieran deployment (backend/web).**
+
+**Para cambios en mobile, usar el "WORKFLOW PARA APP MÓVIL" descrito arriba.**
 
 La consistencia es clave para mantener el proyecto estable y deployments exitosos. 🚀
