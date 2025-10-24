@@ -19,10 +19,21 @@ Este documento establece el procedimiento estándar que Claude debe seguir al re
 └── WORKFLOW_CLAUDE.md    # Este documento
 ```
 
-**⚠️ IMPORTANTE para comandos git:**
-- Si estás en el directorio raíz: usa `packages/backend/...`, `packages/web/...`, `packages/mobile/...`
-- Si estás en un subdirectorio (ej: `packages/mobile`): usa paths relativos (`.`, `package.json`, etc.)
-- **NUNCA** uses `packages/mobile/...` si ya estás EN `packages/mobile` (causará error de path duplicado)
+**⚠️ IMPORTANTE - Directorio de Trabajo:**
+- **El usuario SIEMPRE inicia Claude en el directorio RAÍZ:** `/Users/anibalfigueroaramirez/XYZ/devocionales4.0/`
+- **Claude debe trabajar desde la raíz por defecto** (usar `pwd` para verificar si es necesario)
+- **Solo cambiar de directorio cuando sea estrictamente necesario** (ej: `npm install` en mobile)
+
+**Para comandos git:**
+- **DESDE LA RAÍZ (directorio default):** usa `packages/backend/...`, `packages/web/...`, `packages/mobile/...`
+  ```bash
+  git add packages/mobile/package.json packages/mobile/package-lock.json
+  ```
+- **Si Claude se movió a un subdirectorio:** usa paths relativos (`.`, `package.json`, etc.)
+  ```bash
+  git add package.json package-lock.json
+  ```
+- **REGLA DE ORO:** Verifica tu directorio actual con `pwd` antes de comandos git si hay dudas
 
 ---
 
@@ -635,7 +646,7 @@ Comunicar al usuario
 9. ❌ **Usar `./deploy.sh` en vez del path absoluto** - Causa "no such file or directory"
 10. ❌ **Compilar backend solo localmente** - Los cambios TypeScript NO se reflejan en producción si no se compila en servidor (el script ya lo hace automáticamente desde 2025-10-21)
 11. ❌ **Usar deploy.sh para cambios en mobile** - La app móvil NO se despliega en servidor
-12. ❌ **Usar paths git incorrectos desde subdirectorios** - Si estás en `packages/mobile`, NO uses `git add packages/mobile/file.json` (causará error "pathspec did not match any files"). Usa `git add .` o `git add file.json`
+12. ❌ **No verificar directorio actual antes de comandos git** - El usuario inicia Claude en la raíz, pero Claude puede moverse. SIEMPRE usa `pwd` para verificar dónde estás antes de `git add`. Si estás en la raíz, usa `packages/mobile/...`. Si estás en un subdirectorio, usa paths relativos
 
 ---
 
@@ -712,44 +723,57 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
 
 **⚠️ IMPORTANTE: Manejo correcto de paths en Git**
 
-El directorio de la app móvil es: `/Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile`
+**Contexto:**
+- El usuario inicia Claude en: `/Users/anibalfigueroaramirez/XYZ/devocionales4.0/` (RAÍZ)
+- Claude puede moverse temporalmente a subdirectorios (ej: para `npm install`)
+- Los comandos git deben usar paths correctos según el directorio actual de Claude
 
-Cuando trabajes con git, el path que uses depende de tu **directorio actual**:
-
-- **Si estás en el directorio RAÍZ del proyecto** (`/Users/anibalfigueroaramirez/XYZ/devocionales4.0/`):
-  ```bash
-  git add packages/mobile
-  # o específicamente:
-  git add packages/mobile/package.json packages/mobile/package-lock.json
-  ```
-
-- **Si estás EN packages/mobile** (`/Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile`):
-  ```bash
-  git add .
-  # o específicamente:
-  git add package.json package-lock.json
-  ```
-
-**❌ ERROR COMÚN:** Si estás en `packages/mobile` y ejecutas `git add packages/mobile/...`, git buscará `packages/mobile/packages/mobile/...` (duplicado) y fallará con:
+**REGLA #1:** Verifica tu directorio actual antes de usar git:
+```bash
+pwd  # Si tienes dudas, verifica primero
 ```
-warning: could not open directory 'packages/mobile/packages/mobile/': No such file or directory
+
+**REGLA #2:** Usa paths según dónde estés:
+
+- **Si estás en la RAÍZ** (lo más común - directorio donde el usuario inicia Claude):
+  ```bash
+  git add packages/mobile/package.json packages/mobile/package-lock.json
+  # o todo el directorio:
+  git add packages/mobile
+  ```
+
+- **Si Claude se movió a `packages/mobile`** (raro - solo después de comandos como `cd packages/mobile`):
+  ```bash
+  git add package.json package-lock.json
+  # o todo:
+  git add .
+  ```
+
+**❌ ERROR COMÚN:**
+Si Claude está en `packages/mobile` y ejecuta `git add packages/mobile/...`, git buscará `packages/mobile/packages/mobile/...` (duplicado) y fallará:
+```
 fatal: pathspec 'packages/mobile/package.json' did not match any files
 ```
 
-**✅ SOLUCIÓN:** Usa paths relativos a tu directorio actual. Si estás en `packages/mobile`, usa `git add .` o nombres de archivo sin el prefijo `packages/mobile/`.
+**✅ SOLUCIÓN:**
+1. Verifica con `pwd` dónde estás
+2. Usa paths absolutos desde raíz O paths relativos a tu ubicación actual
+3. Cuando hay dudas, regresa a la raíz del proyecto
 
 ---
 
 1. **Agregar archivos modificados:**
 
-   **Opción A - Desde el directorio raíz del proyecto:**
+   **Caso Normal - Claude está en la RAÍZ del proyecto (directorio donde el usuario inicia):**
    ```bash
-   git add packages/mobile
+   git add packages/mobile/package.json packages/mobile/package-lock.json
    ```
 
-   **Opción B - Desde packages/mobile (tu directorio actual habitual):**
+   **Caso Excepcional - Claude se movió a packages/mobile:**
    ```bash
-   git add .
+   # Primero verifica: pwd
+   # Si estás en packages/mobile, entonces usa:
+   git add package.json package-lock.json
    ```
 
 2. **Crear commit descriptivo:**
@@ -911,7 +935,7 @@ fatal: pathspec 'packages/mobile/package.json' did not match any files
 - ❌ **NO actualizar release.json** - Eso es para la web app
 - ❌ **NO hacer deployment al servidor** - Mobile no vive en el servidor
 - ❌ **NO preocuparse por PM2 o Nginx** - Son para backend/web
-- ❌ **NO usar paths relativos incorrectos en git** - Si estás en `packages/mobile`, NO uses `git add packages/mobile/...`
+- ❌ **NO usar comandos git sin verificar directorio actual** - Usa `pwd` primero, luego paths apropiados
 
 ### ✅ Checklist para Cambios en Mobile
 
