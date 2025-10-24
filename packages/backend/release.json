@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Fix Crítico: Visitadores ahora se muestran correctamente en tabla de visitas",
-    "Backend: Resolver visitadores corregido - busca en tabla Miembro en vez de Usuario",
-    "Eliminados logs de debug del resolver"
+    "Nueva Funcionalidad: App Móvil Devocionales 4.0",
+    "App nativa para iOS y Android con React Native",
+    "Login, visualización de visitas y perfil de usuario"
   ],
   "requiresReload": false,
   "requiresReauth": false
