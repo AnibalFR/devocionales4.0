@@ -132,9 +132,11 @@ Marcar cada tarea como completada cuando termine.
 
 ---
 
-### PASO 4: Verificación y Testing
+### PASO 4: Verificación de Compilación
 
-1. **Compilar código localmente:**
+**⚠️ Importante: El testing manual lo hace el usuario después del deployment. Aquí solo verificamos que el código compile sin errores.**
+
+1. **Compilar código localmente (solo para verificar errores):**
 
    **Backend:**
    ```bash
@@ -155,6 +157,8 @@ Marcar cada tarea como completada cuando termine.
    - Leer archivos modificados para confirmar cambios
    - Verificar que no se rompió código existente
    - Asegurar que imports son correctos
+
+**Nota:** NO hacer testing funcional aquí. El usuario hará testing manual después del deployment siguiendo las instrucciones que le proporcionaremos en el PASO 8.
 
 ---
 
@@ -321,7 +325,9 @@ El script `deploy.sh` debe ejecutarse usando su **path completo**, no con `./dep
 
 ---
 
-### PASO 8: Comunicar al Usuario
+### PASO 8: Comunicar al Usuario con Instrucciones de Testing
+
+**⚠️ IMPORTANTE: El usuario hace el testing manual. Proporcionar instrucciones claras y específicas de qué probar.**
 
 **Mensaje final al usuario debe incluir:**
 
@@ -359,13 +365,65 @@ El script `deploy.sh` debe ejecutarse usando su **path completo**, no con `./dep
    - GraphQL: https://www.registrodevocionales.com/graphql
    ```
 
-4. **Instrucciones de prueba (si aplica):**
-   ```markdown
-   ## 🧪 Cómo Probar
+4. **📋 INSTRUCCIONES DE TESTING (SIEMPRE INCLUIR):**
 
+   **Proporcionar pasos ESPECÍFICOS y DETALLADOS que el usuario debe seguir en la UI:**
+
+   ```markdown
+   ## 🧪 Testing Manual Requerido
+
+   Por favor, prueba lo siguiente en la aplicación:
+
+   ### Escenario 1: [Nombre del escenario]
+   1. Ir a [Página específica]
+   2. Click en [Botón/elemento específico]
+   3. Verificar que [comportamiento esperado]
+   4. [Acción adicional si aplica]
+   5. Verificar que [resultado esperado]
+
+   ### Escenario 2: [Nombre del escenario]
+   1. [Pasos específicos...]
+
+   ### Verificaciones Importantes
+   - ✅ [Verificación específica 1]
+   - ✅ [Verificación específica 2]
+   - ✅ [Verificación específica 3]
+
+   ### Casos Edge a Probar
+   - [ ] [Caso edge 1]
+   - [ ] [Caso edge 2]
+   ```
+
+   **Ejemplo Real:**
+   ```markdown
+   ## 🧪 Testing Manual Requerido
+
+   ### Escenario 1: Invitar nuevo miembro
    1. Ir a Catálogo de Miembros
-   2. Click en "Invitar" para miembro nuevo
-   3. Click en "Reenviar" para miembro existente
+   2. Click en el botón "Invitar" en un miembro SIN credenciales
+   3. Verificar que el modal se abre con título "Invitar Miembro"
+   4. Verificar que muestra el email del miembro
+   5. Click en "Enviar Invitación"
+   6. Verificar que muestra mensaje de éxito
+   7. Verificar que el botón cambia a "Reenviar"
+
+   ### Escenario 2: Reenviar invitación
+   1. En un miembro que YA tiene credenciales
+   2. Click en el botón "Reenviar"
+   3. Verificar que el modal muestra "Reenviar Invitación"
+   4. Click en "Reenviar Invitación"
+   5. Verificar mensaje de éxito
+
+   ### Verificaciones Importantes
+   - ✅ El botón es dinámico (cambia según si tiene credenciales)
+   - ✅ Los modales tienen textos correctos
+   - ✅ Las mutaciones GraphQL funcionan sin errores
+   - ✅ Los mensajes de éxito/error se muestran
+
+   ### Casos Edge a Probar
+   - [ ] Probar con miembro sin email (debe mostrar error)
+   - [ ] Probar con error de red (verificar mensaje)
+   - [ ] Probar múltiples invitaciones rápidas
    ```
 
 ---
@@ -610,25 +668,22 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
    - TypeScript types en `src/types/`
    - Formatters en `src/utils/`
 
-#### PASO 3: Testing Local
+#### PASO 3: Verificación de Código
 
-1. **Iniciar servidor de desarrollo:**
-   ```bash
-   cd /Users/anibalfigueroaramirez/XYZ/devocionales4.0/packages/mobile
-   npm start
-   ```
+**⚠️ Importante: El testing manual lo hace el usuario después del commit. Aquí solo verificamos que el código esté bien.**
 
-2. **Probar cambios:**
-   - **Opción A**: Expo Go en dispositivo físico (escanear QR)
-   - **Opción B**: iOS Simulator (presionar `i` en terminal)
-   - **Opción C**: Android Emulator (presionar `a` en terminal)
+1. **Verificar cambios específicos:**
+   - Leer archivos modificados para confirmar cambios
+   - Verificar que no se rompió código existente
+   - Asegurar que imports son correctos
+   - Verificar que tipos TypeScript están bien
 
-3. **Verificar:**
-   - [ ] Los cambios son visibles en la app
-   - [ ] No hay errores en consola
-   - [ ] La funcionalidad funciona correctamente
-   - [ ] La navegación sigue funcionando
-   - [ ] El login/logout funcionan
+2. **Verificar que no hay errores obvios:**
+   - Sintaxis correcta
+   - No faltan parámetros requeridos
+   - No hay imports rotos
+
+**Nota:** NO iniciar npm start ni hacer testing funcional aquí. El usuario hará testing manual después del commit siguiendo las instrucciones que le proporcionaremos en el PASO 5.
 
 #### PASO 4: Commit y Push
 
@@ -660,7 +715,9 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
    git push
    ```
 
-#### PASO 5: Comunicar al Usuario
+#### PASO 5: Comunicar al Usuario con Instrucciones de Testing
+
+**⚠️ IMPORTANTE: El usuario hace el testing manual en la app móvil. Proporcionar instrucciones claras y específicas de qué probar.**
 
 **Mensaje al usuario debe incluir:**
 
@@ -677,24 +734,115 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
    - UI más limpia y moderna
    ```
 
-2. **Instrucciones de testing:**
+2. **Confirmación de commit:**
    ```markdown
-   ## 🧪 Cómo Probar
+   ## ✅ Cambios Commiteados
 
-   1. cd packages/mobile
-   2. npm start
-   3. Escanear QR con Expo Go
-   4. Verificar que los filtros funcionen
+   - ✅ Código actualizado en repositorio
+   - ✅ Push completado
+   - ℹ️ Los cambios están listos para probar
    ```
 
-3. **Notas importantes:**
-   ```markdown
-   ## 📝 Notas
+3. **📋 INSTRUCCIONES DE TESTING (SIEMPRE INCLUIR):**
 
-   - ✅ Cambios commiteados y pusheados
-   - ✅ Probado en iOS y Android
-   - ⚠️ Los usuarios verán cambios cuando descarguen nueva versión
-   - ℹ️ Para distribución: usar EAS Build cuando esté listo
+   **Proporcionar pasos ESPECÍFICOS y DETALLADOS que el usuario debe seguir en la app móvil:**
+
+   ```markdown
+   ## 🧪 Testing Manual Requerido
+
+   ### Setup Inicial
+   1. cd packages/mobile
+   2. npm start
+   3. **Opción A**: Escanear QR con Expo Go en tu teléfono
+   4. **Opción B**: Presionar `i` para iOS Simulator
+   5. **Opción C**: Presionar `a` para Android Emulator
+
+   ### Escenario 1: [Nombre del escenario]
+   1. Abrir la app
+   2. Navegar a [Pantalla específica]
+   3. [Acción específica]
+   4. Verificar que [comportamiento esperado]
+   5. [Acción adicional]
+   6. Verificar que [resultado esperado]
+
+   ### Escenario 2: [Nombre del escenario]
+   1. [Pasos específicos...]
+
+   ### Verificaciones Importantes
+   - ✅ [Verificación visual específica]
+   - ✅ [Verificación de funcionalidad]
+   - ✅ [Verificación de navegación]
+   - ✅ [Verificación de estado]
+
+   ### Casos Edge a Probar
+   - [ ] [Caso edge 1]
+   - [ ] [Caso edge 2]
+
+   ### Probar en Ambas Plataformas
+   - [ ] iOS (Simulator o dispositivo)
+   - [ ] Android (Emulator o dispositivo)
+   ```
+
+   **Ejemplo Real:**
+   ```markdown
+   ## 🧪 Testing Manual Requerido
+
+   ### Setup Inicial
+   1. cd packages/mobile
+   2. npm start
+   3. Escanear QR con Expo Go (o presionar `i` para iOS / `a` para Android)
+
+   ### Escenario 1: Ver lista de visitas con filtro
+   1. Abrir la app y hacer login
+   2. Navegar al tab "Visitas"
+   3. Verificar que se muestra la lista de visitas
+   4. Tocar el campo de búsqueda en la parte superior
+   5. Escribir el nombre de una familia
+   6. Verificar que la lista se filtra en tiempo real
+   7. Borrar el texto
+   8. Verificar que muestra todas las visitas de nuevo
+
+   ### Escenario 2: Pull to refresh
+   1. En la pantalla de Visitas
+   2. Deslizar hacia abajo (pull down)
+   3. Verificar que muestra el indicador de carga
+   4. Verificar que la lista se actualiza
+
+   ### Escenario 3: Ver detalle de visita
+   1. Tap en cualquier card de visita
+   2. Verificar que navega a pantalla de detalle
+   3. Verificar que muestra toda la información
+   4. Scroll down para ver todo el contenido
+   5. Tap en "Volver"
+   6. Verificar que regresa a la lista
+
+   ### Verificaciones Importantes
+   - ✅ Los badges de tipo y status se ven con colores correctos
+   - ✅ El campo de búsqueda filtra correctamente
+   - ✅ Pull-to-refresh funciona suavemente
+   - ✅ La navegación entre pantallas es fluida
+   - ✅ No hay errores en la consola de Expo
+   - ✅ Los íconos y textos se ven correctamente
+
+   ### Casos Edge a Probar
+   - [ ] Buscar algo que no existe (debe mostrar "No hay visitas")
+   - [ ] Probar con conexión lenta (verificar loading states)
+   - [ ] Probar sin conexión (verificar mensajes de error)
+
+   ### Probar en Ambas Plataformas
+   - [ ] iOS: Verificar que la navegación superior funciona
+   - [ ] Android: Verificar que el botón back funciona
+   - [ ] Ambos: Verificar que los tabs en la parte inferior funcionan
+   ```
+
+4. **Notas importantes:**
+   ```markdown
+   ## 📝 Notas Adicionales
+
+   - ✅ Cambios commiteados y pusheados al repositorio
+   - ⚠️ Los usuarios finales verán estos cambios cuando descarguen nueva versión
+   - ℹ️ Para distribución a stores: usar EAS Build cuando esté listo
+   - 📱 Recomendación: Probar en dispositivos físicos cuando sea posible
    ```
 
 ### 🚫 LO QUE NO DEBES HACER para Mobile
@@ -709,14 +857,20 @@ La app móvil tiene un ciclo de desarrollo completamente independiente:
 Antes de hacer commit:
 
 - [ ] Código modificado en `packages/mobile/`
+- [ ] Verificado que no hay errores de sintaxis/imports
+- [ ] Verificado que tipos TypeScript están correctos
+- [ ] Commit descriptivo creado
+- [ ] Push al repositorio realizado
+- [ ] Instrucciones de testing proporcionadas al usuario
+
+Después del commit (el usuario hace esto):
+
 - [ ] Testing realizado con `npm start` + Expo Go/Simulador
 - [ ] No hay errores en consola
 - [ ] Funcionalidad verificada manualmente
 - [ ] Navegación sigue funcionando
 - [ ] Login/logout funcionan (si aplica)
-- [ ] Commit descriptivo creado
-- [ ] Push al repositorio realizado
-- [ ] Usuario informado sobre cambios
+- [ ] Probado en iOS y Android
 
 ### 📦 Distribución (Opcional)
 
