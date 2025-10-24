@@ -61,6 +61,7 @@ const VISITAS_QUERY = gql`
         id
         nombre
       }
+      visitorUserIds
       visitadores {
         id
         nombre

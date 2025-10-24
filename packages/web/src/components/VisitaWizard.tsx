@@ -201,12 +201,6 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
         ? initialData.visitadores.map((v: any) => v.id)
         : (initialData.visitorUserIds || []);
 
-      console.log('[VisitaWizard] Precargando datos:', {
-        visitadores: initialData.visitadores,
-        visitorUserIds: initialData.visitorUserIds,
-        visitadorIds,
-      });
-
       setFormData({
         // Mapear IDs de objetos relacionados
         barrioId: initialData.barrio?.id || initialData.barrioId || '',
@@ -402,12 +396,6 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
       seguimientoNinguno: formData.seguimientoNinguno,
       additionalNotes: formData.additionalNotes || undefined,
     };
-
-    console.log('[VisitaWizard] Enviando datos:', {
-      mode: visitaId ? 'UPDATE' : 'CREATE',
-      visitorUserIds: input.visitorUserIds,
-      input,
-    });
 
     if (visitaId) {
       // UPDATE mode
