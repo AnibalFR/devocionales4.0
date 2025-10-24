@@ -39,6 +39,43 @@ const MIEMBROS_QUERY = gql`
       id
       nombre
       apellidos
+      familiaId
+    }
+  }
+`;
+
+const CREATE_FAMILIA_MUTATION = gql`
+  mutation CreateFamilia($input: CreateFamiliaInput!) {
+    createFamilia(input: $input) {
+      id
+      nombre
+      direccion
+      telefono
+      email
+      barrioId
+      nucleoId
+    }
+  }
+`;
+
+const CREATE_MIEMBRO_MUTATION = gql`
+  mutation CreateMiembro($input: CreateMiembroInput!) {
+    createMiembro(input: $input) {
+      id
+      nombre
+      apellidos
+      familiaId
+    }
+  }
+`;
+
+const UPDATE_MIEMBRO_MUTATION = gql`
+  mutation UpdateMiembro($id: ID!, $input: UpdateMiembroInput!) {
+    updateMiembro(id: $id, input: $input) {
+      id
+      nombre
+      apellidos
+      familiaId
     }
   }
 `;
@@ -166,10 +203,16 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<VisitaFormData>(INITIAL_FORM_DATA);
 
+  // Estado para crear familia
+  const [mostrarCrearFamilia, setMostrarCrearFamilia] = useState(false);
+  const [nuevaFamilia, setNuevaFamilia] = useState({ nombre: '', direccion: '', telefono: '', email: '' });
+  const [miembrosSeleccionados, setMiembrosSeleccionados] = useState<string[]>([]);
+  const [nuevosMiembros, setNuevosMiembros] = useState<Array<{ nombre: string; apellidos: string; rolFamiliar: string }>>([]);
+
   const { data: barriosData } = useQuery(BARRIOS_QUERY);
   const { data: nucleosData } = useQuery(NUCLEOS_QUERY);
-  const { data: familiasData } = useQuery(FAMILIAS_QUERY);
-  const { data: miembrosData } = useQuery(MIEMBROS_QUERY);
+  const { data: familiasData, refetch: refetchFamilias } = useQuery(FAMILIAS_QUERY);
+  const { data: miembrosData, refetch: refetchMiembros } = useQuery(MIEMBROS_QUERY);
 
   const [createVisita, { loading: creating }] = useMutation(CREATE_VISITA_MUTATION, {
     refetchQueries: ['Visitas'],
@@ -194,6 +237,10 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
       alert(`Error al actualizar visita: ${error.message}`);
     },
   });
+
+  const [createFamilia, { loading: creandoFamilia }] = useMutation(CREATE_FAMILIA_MUTATION);
+  const [createMiembro] = useMutation(CREATE_MIEMBRO_MUTATION);
+  const [updateMiembro] = useMutation(UPDATE_MIEMBRO_MUTATION);
 
   // Initialize formData from initialData when editing
   useEffect(() => {
@@ -283,9 +330,80 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
+  const handleCrearFamilia = async () => {
+    if (!nuevaFamilia.nombre.trim()) {
+      alert('El nombre de la familia es requerido');
+      return;
+    }
+
+    try {
+      // Crear la familia
+      const { data: familiaData } = await createFamilia({
+        variables: {
+          input: {
+            nombre: nuevaFamilia.nombre.trim(),
+            direccion: nuevaFamilia.direccion?.trim() || undefined,
+            telefono: nuevaFamilia.telefono?.trim() || undefined,
+            email: nuevaFamilia.email?.trim() || undefined,
+            barrioId: formData.barrioId !== 'OTRO' ? formData.barrioId : undefined,
+            nucleoId: formData.nucleoId || undefined,
+          },
+        },
+      });
+
+      const familiaId = familiaData.createFamilia.id;
+
+      // Ligar miembros existentes seleccionados a la familia
+      for (const miembroId of miembrosSeleccionados) {
+        await updateMiembro({
+          variables: {
+            id: miembroId,
+            input: { familiaId },
+          },
+        });
+      }
+
+      // Crear nuevos miembros para la familia
+      for (const nuevoMiembro of nuevosMiembros) {
+        if (nuevoMiembro.nombre.trim()) {
+          await createMiembro({
+            variables: {
+              input: {
+                nombre: nuevoMiembro.nombre.trim(),
+                apellidos: nuevoMiembro.apellidos?.trim() || undefined,
+                rolFamiliar: nuevoMiembro.rolFamiliar || undefined,
+                familiaId,
+                barrioId: formData.barrioId !== 'OTRO' ? formData.barrioId : undefined,
+                nucleoId: formData.nucleoId || undefined,
+              },
+            },
+          });
+        }
+      }
+
+      // Refrescar datos y seleccionar la nueva familia
+      await refetchFamilias();
+      await refetchMiembros();
+
+      updateFormData({ familiaId });
+      setMostrarCrearFamilia(false);
+      setNuevaFamilia({ nombre: '', direccion: '', telefono: '', email: '' });
+      setMiembrosSeleccionados([]);
+      setNuevosMiembros([]);
+
+      alert('Familia creada exitosamente');
+    } catch (error: any) {
+      alert(`Error al crear familia: ${error.message}`);
+    }
+  };
+
   const handleClose = () => {
     setCurrentStep(1);
     setFormData(INITIAL_FORM_DATA);
+    setMostrarCrearFamilia(false);
+    setNuevaFamilia({ nombre: '', direccion: '', telefono: '', email: '' });
+    setMiembrosSeleccionados([]);
+    setNuevosMiembros([]);
     onClose();
   };
 
@@ -552,25 +670,199 @@ export function VisitaWizard({ isOpen, onClose, onSuccess, initialData, visitaId
           {/* Paso 2: Familia */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Paso 2: Selecciona la Familia</h3>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Familia <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.familiaId}
-                  onChange={(e) => updateFormData({ familiaId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">Paso 2: Selecciona la Familia</h3>
+                <button
+                  type="button"
+                  onClick={() => setMostrarCrearFamilia(!mostrarCrearFamilia)}
+                  className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700"
                 >
-                  <option value="">Selecciona una familia</option>
-                  {familiasFiltradas.map((familia: any) => (
-                    <option key={familia.id} value={familia.id}>
-                      {familia.nombre} {familia.direccion ? `- ${familia.direccion}` : ''}
-                    </option>
-                  ))}
-                </select>
+                  {mostrarCrearFamilia ? 'Cancelar' : '+ Crear Familia'}
+                </button>
               </div>
+
+              {!mostrarCrearFamilia ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Familia <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.familiaId}
+                      onChange={(e) => updateFormData({ familiaId: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="">Selecciona una familia</option>
+                      {familiasFiltradas.map((familia: any) => (
+                        <option key={familia.id} value={familia.id}>
+                          {familia.nombre} {familia.direccion ? `- ${familia.direccion}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 space-y-4">
+                  <h4 className="font-medium text-gray-900">Crear Nueva Familia</h4>
+
+                  {/* Datos de la Familia */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nombre de la Familia <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={nuevaFamilia.nombre}
+                        onChange={(e) => setNuevaFamilia({ ...nuevaFamilia, nombre: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Ej: Familia García"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                      <input
+                        type="text"
+                        value={nuevaFamilia.direccion}
+                        onChange={(e) => setNuevaFamilia({ ...nuevaFamilia, direccion: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Calle 123"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                      <input
+                        type="tel"
+                        value={nuevaFamilia.telefono}
+                        onChange={(e) => setNuevaFamilia({ ...nuevaFamilia, telefono: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="1234567890"
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={nuevaFamilia.email}
+                        onChange={(e) => setNuevaFamilia({ ...nuevaFamilia, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="familia@ejemplo.com"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Miembros Existentes */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-900 mb-2">Ligar Miembros Existentes (opcional)</h5>
+                    <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2 bg-white space-y-1">
+                      {miembros.filter((m: any) => !m.familiaId).map((miembro: any) => (
+                        <label key={miembro.id} className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={miembrosSeleccionados.includes(miembro.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setMiembrosSeleccionados([...miembrosSeleccionados, miembro.id]);
+                              } else {
+                                setMiembrosSeleccionados(miembrosSeleccionados.filter(id => id !== miembro.id));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm">{miembro.nombre} {miembro.apellidos}</span>
+                        </label>
+                      ))}
+                      {miembros.filter((m: any) => !m.familiaId).length === 0 && (
+                        <p className="text-sm text-gray-500 text-center py-2">No hay miembros sin familia</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Nuevos Miembros */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h5 className="text-sm font-medium text-gray-900">Agregar Nuevos Miembros (opcional)</h5>
+                      <button
+                        type="button"
+                        onClick={() => setNuevosMiembros([...nuevosMiembros, { nombre: '', apellidos: '', rolFamiliar: '' }])}
+                        className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                      >
+                        + Agregar Miembro
+                      </button>
+                    </div>
+
+                    {nuevosMiembros.length > 0 && (
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {nuevosMiembros.map((miembro, index) => (
+                          <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-white border border-gray-200 rounded">
+                            <input
+                              type="text"
+                              value={miembro.nombre}
+                              onChange={(e) => {
+                                const updated = [...nuevosMiembros];
+                                updated[index].nombre = e.target.value;
+                                setNuevosMiembros(updated);
+                              }}
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-primary-500 focus:border-primary-500"
+                              placeholder="Nombre *"
+                            />
+                            <input
+                              type="text"
+                              value={miembro.apellidos}
+                              onChange={(e) => {
+                                const updated = [...nuevosMiembros];
+                                updated[index].apellidos = e.target.value;
+                                setNuevosMiembros(updated);
+                              }}
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-primary-500 focus:border-primary-500"
+                              placeholder="Apellidos"
+                            />
+                            <div className="flex gap-1">
+                              <select
+                                value={miembro.rolFamiliar}
+                                onChange={(e) => {
+                                  const updated = [...nuevosMiembros];
+                                  updated[index].rolFamiliar = e.target.value;
+                                  setNuevosMiembros(updated);
+                                }}
+                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-primary-500 focus:border-primary-500"
+                              >
+                                <option value="">Rol</option>
+                                <option value="Padre">Padre</option>
+                                <option value="Madre">Madre</option>
+                                <option value="Hijo">Hijo</option>
+                                <option value="Hija">Hija</option>
+                                <option value="Abuelo">Abuelo</option>
+                                <option value="Abuela">Abuela</option>
+                                <option value="Otro">Otro</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => setNuevosMiembros(nuevosMiembros.filter((_, i) => i !== index))}
+                                className="px-2 text-red-600 hover:text-red-800"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCrearFamilia}
+                    disabled={creandoFamilia}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400"
+                  >
+                    {creandoFamilia ? 'Creando...' : 'Guardar Familia y Continuar'}
+                  </button>
+                </div>
+              )}
 
               {formData.barrioId && formData.barrioId !== 'OTRO' && familiasFiltradas.length === 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
