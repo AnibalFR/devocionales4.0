@@ -1,8 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Debug Backend: Logs en createVisita resolver",
-    "Rastreando input.visitorUserIds antes y después de guardar en BD"
+    "Bug Fix COMPLETO: Visitadores ahora se guardan, muestran y precargan correctamente",
+    "Agregado campo visitorUserIds al query de visitas para que el resolver funcione",
+    "Wizard de edición ahora precarga visitadores correctamente"
   ],
   "requiresReload": false,
   "requiresReauth": false
