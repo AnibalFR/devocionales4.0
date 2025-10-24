@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { Box, VStack, Text, Spinner, Center } from '@gluestack-ui/themed';
 import { VISITAS_QUERY } from '../../src/graphql/queries';
 import { VisitaCard } from '../../src/components/VisitaCard';
