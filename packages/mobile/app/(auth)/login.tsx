@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 export default function LoginScreen() {
@@ -9,12 +10,15 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
       setError('');
       setLoading(true);
       await login(email, password);
+      // Navigate to visitas after successful login
+      router.replace('/(tabs)/visitas');
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
