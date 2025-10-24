@@ -1,10 +1,23 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Text, Button } from 'react-native-paper';
+import { useAuth } from '../../src/contexts/AuthContext';
 
 export default function PerfilScreen() {
+  const { user, logout } = useAuth();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Perfil</Text>
-      <Text style={styles.text}>Pantalla de perfil funcionando</Text>
+      <Text variant="headlineMedium">Perfil</Text>
+      {user && (
+        <View style={styles.userInfo}>
+          <Text variant="bodyLarge">Nombre: {user.nombre}</Text>
+          <Text variant="bodyMedium">Email: {user.email}</Text>
+          <Text variant="bodyMedium">Rol: {user.rol}</Text>
+        </View>
+      )}
+      <Button mode="contained" onPress={logout} style={styles.button}>
+        Cerrar Sesión
+      </Button>
     </View>
   );
 }
@@ -12,18 +25,15 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  userInfo: {
+    marginVertical: 20,
+    alignItems: 'center',
   },
-  text: {
-    fontSize: 16,
-    color: '#666',
+  button: {
+    marginTop: 20,
   },
 });

@@ -1,84 +1,76 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { useMutation } from '@apollo/client/react';
-import * as SecureStore from 'expo-secure-store';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apolloClient } from '../graphql/apollo';
-import { LOGIN_MUTATION } from '../graphql/mutations';
-import type { User, AuthContextType } from '../types';
+import { useMutation } from '@apollo/client/react';
+import { LOGIN_MUTATION } from '../graphql/auth';
+
+interface User {
+  id: string;
+  email: string;
+  nombre: string;
+  rol: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_KEY = '@devocionales_token';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const [loginMutation] = useMutation(LOGIN_MUTATION);
 
   useEffect(() => {
-    // Cargar usuario y token al montar
-    loadStoredAuth();
+    checkToken();
   }, []);
 
-  const loadStoredAuth = async () => {
+  const checkToken = async () => {
     try {
-      const storedToken = await SecureStore.getItemAsync('token');
-      const storedUserJson = await AsyncStorage.getItem('user');
-
-      if (storedToken && storedUserJson) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUserJson));
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      if (token) {
+        // TODO: Validate token with ME_QUERY
+        // For now, just set isLoading to false
       }
     } catch (error) {
-      console.error('Error al cargar autenticación:', error);
+      console.error('Error checking token:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (email: string, password: string) => {
     try {
       const { data } = await loginMutation({
-        variables: {
-          input: { email, password },
-        },
+        variables: { email, password },
       });
 
-      const { token: newToken, user: newUser } = data.login;
-
-      // Guardar en SecureStore y AsyncStorage
-      await SecureStore.setItemAsync('token', newToken);
-      await AsyncStorage.setItem('user', JSON.stringify(newUser));
-
-      setToken(newToken);
-      setUser(newUser);
-
-      return newUser;
+      if (data?.login?.token) {
+        await AsyncStorage.setItem(TOKEN_KEY, data.login.token);
+        setUser(data.login.user);
+      }
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('Login error:', error);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      // Limpiar storage
-      await SecureStore.deleteItemAsync('token');
-      await AsyncStorage.removeItem('user');
-
-      // Limpiar cache de Apollo
-      await apolloClient.clearStore();
-
-      setToken(null);
+      await AsyncStorage.removeItem(TOKEN_KEY);
       setUser(null);
     } catch (error) {
-      console.error('Error en logout:', error);
+      console.error('Logout error:', error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

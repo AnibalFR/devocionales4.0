@@ -1,10 +1,13 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Text } from 'react-native-paper';
 
 export default function VisitasScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Visitas</Text>
-      <Text style={styles.text}>Pantalla de visitas funcionando</Text>
+      <Text variant="headlineMedium">Visitas</Text>
+      <Text variant="bodyLarge" style={styles.subtitle}>
+        Lista de visitas pendiente
+      </Text>
     </View>
   );
 }
@@ -12,18 +15,12 @@ export default function VisitasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  text: {
-    fontSize: 16,
+  subtitle: {
+    marginTop: 10,
     color: '#666',
   },
 });

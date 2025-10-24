@@ -7,12 +7,14 @@ export default function TabsLayout() {
         name="visitas"
         options={{
           title: 'Visitas',
+          headerShown: true
         }}
       />
       <Tabs.Screen
         name="perfil"
         options={{
           title: 'Perfil',
+          headerShown: true
         }}
       />
     </Tabs>
