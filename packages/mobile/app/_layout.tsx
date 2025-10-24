@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import { ApolloProvider } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client/react';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config as gluestackConfig } from '@gluestack-ui/config';
 import { StatusBar } from 'expo-status-bar';
