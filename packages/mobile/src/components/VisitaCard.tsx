@@ -81,7 +81,7 @@ export default function VisitaCard({ visita, onPress }: VisitaCardProps) {
         <Card.Content>
           <View style={styles.header}>
             <Text variant="titleMedium" style={styles.familyName}>
-              {visita.familia.nombreFamilia}
+              {visita.familia.nombre}
             </Text>
             <Text variant="bodySmall" style={styles.date}>
               {formatDate(visita.visitDate)} {visita.visitTime}

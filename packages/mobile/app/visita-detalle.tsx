@@ -142,7 +142,7 @@ export default function VisitaDetalleScreen() {
           👨‍👩‍👧‍👦 Familia
         </Text>
         <Text variant="headlineSmall" style={styles.familyName}>
-          {visita.familia.nombreFamilia}
+          {visita.familia.nombre}
         </Text>
         {visita.familia.direccion && (
           <Text variant="bodyMedium" style={styles.info}>

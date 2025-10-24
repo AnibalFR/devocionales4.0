@@ -12,7 +12,7 @@ export const VISITAS_QUERY = gql`
       additionalNotes
       familia {
         id
-        nombreFamilia
+        nombre
         direccion
       }
       barrio {
@@ -75,7 +75,7 @@ export const VISITA_QUERY = gql`
       additionalNotes
       familia {
         id
-        nombreFamilia
+        nombre
         direccion
         telefono
         email
