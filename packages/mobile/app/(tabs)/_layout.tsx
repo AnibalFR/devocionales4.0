@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, Text } from 'react-native';
 
 export default function TabsLayout() {
   return (
@@ -34,12 +34,12 @@ export default function TabsLayout() {
   );
 }
 
-// Simple icon component (puedes reemplazar con Expo Icons después)
+// Simple icon component usando Text de React Native
 function TabBarIcon({ name, color }: { name: string; color: string }) {
   const icons: Record<string, string> = {
     list: '📋',
     user: '👤',
   };
 
-  return <span style={{ fontSize: 24 }}>{icons[name]}</span>;
+  return <Text style={{ fontSize: 24, color }}>{icons[name]}</Text>;
 }
