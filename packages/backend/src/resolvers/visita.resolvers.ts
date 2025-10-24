@@ -516,34 +516,22 @@ export const visitaResolvers = {
     },
 
     visitadores: async (parent: any, _args: unknown, { prisma }: Context) => {
-      // DEBUG: Ver qué llega al resolver
-      console.log('[visitadores resolver] parent:', {
-        visitaId: parent.id,
-        visitorUserIds: parent.visitorUserIds,
-        visitorUserIdsLength: parent.visitorUserIds?.length,
-        visitorUserIdsType: typeof parent.visitorUserIds,
-      });
-
-      // Resolver los IDs de visitadores a objetos Usuario completos
+      // Resolver los IDs de visitadores a objetos Miembro completos
       if (!parent.visitorUserIds || parent.visitorUserIds.length === 0) {
-        console.log('[visitadores resolver] No hay visitorUserIds, retornando []');
         return [];
       }
 
-      const usuarios = await prisma.usuario.findMany({
+      const miembros = await prisma.miembro.findMany({
         where: {
           id: { in: parent.visitorUserIds },
         },
-        include: { comunidad: true },
+        include: {
+          familia: true,
+          nucleo: true,
+        },
       });
 
-      console.log('[visitadores resolver] Usuarios encontrados:', {
-        visitaId: parent.id,
-        usuariosEncontrados: usuarios.length,
-        usuarios: usuarios.map(u => ({ id: u.id, nombre: u.nombre })),
-      });
-
-      return usuarios;
+      return miembros;
     },
 
     // Field resolvers para los objetos JSON

@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Debug: Logs completos para diagnosticar problema de visitadores",
-    "Frontend: console.log con datos del query de visitas",
-    "Backend: console.log en resolver de visitadores"
+    "Fix Crítico: Visitadores ahora se muestran correctamente en tabla de visitas",
+    "Backend: Resolver visitadores corregido - busca en tabla Miembro en vez de Usuario",
+    "Eliminados logs de debug del resolver"
   ],
   "requiresReload": false,
   "requiresReauth": false
