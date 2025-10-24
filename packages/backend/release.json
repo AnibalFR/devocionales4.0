@@ -1,9 +1,9 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Bug Fix COMPLETO: Visitadores ahora se guardan, muestran y precargan correctamente",
-    "Agregado campo visitorUserIds al query de visitas para que el resolver funcione",
-    "Wizard de edición ahora precarga visitadores correctamente"
+    "Debug: Logs completos para diagnosticar problema de visitadores",
+    "Frontend: console.log con datos del query de visitas",
+    "Backend: console.log en resolver de visitadores"
   ],
   "requiresReload": false,
   "requiresReauth": false
