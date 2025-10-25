@@ -3,9 +3,9 @@
  */
 export const colors = {
   // Primary colors
-  primary: '#9C88D4', // Pastel purple
-  primaryLight: '#B5A8E0',
-  primaryDark: '#7B68B8',
+  primary: '#7B68BE', // Medium purple with good contrast
+  primaryLight: '#9C88D4',
+  primaryDark: '#5E4D9E',
 
   // Secondary colors
   secondary: '#03DAC6',

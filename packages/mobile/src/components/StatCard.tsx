@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E8E0F5', // Pastel purple light background
+    backgroundColor: '#E5DFF7', // Light purple background matching new primary
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
