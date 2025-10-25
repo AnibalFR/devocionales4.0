@@ -20,7 +20,42 @@ export const ME_QUERY = gql`
       id
       email
       nombre
+      apellidos
       rol
+      comunidad {
+        id
+        nombre
+      }
+    }
+  }
+`;
+
+export const ME_DETAILED_QUERY = gql`
+  query MeDetailed {
+    me {
+      id
+      email
+      nombre
+      apellidos
+      rol
+      comunidad {
+        id
+        nombre
+      }
+    }
+    miembros {
+      id
+      usuarioId
+      nucleoId
+      barrioId
+      nucleo {
+        id
+        nombre
+        barrio {
+          id
+          nombre
+        }
+      }
     }
   }
 `;

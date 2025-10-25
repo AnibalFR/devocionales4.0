@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card, Text, Chip } from 'react-native-paper';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Visita } from '../types/visita';
+import { formatDate, getVisitTypeLabel, getVisitStatusLabel } from '../utils/formatters';
+import { getVisitTypeIcon, getVisitStatusIcon } from '../utils/iconHelpers';
 
 interface VisitaCardProps {
   visita: Visita;
@@ -9,15 +12,9 @@ interface VisitaCardProps {
 }
 
 export default function VisitaCard({ visita, onPress }: VisitaCardProps) {
-  // Formatear fecha
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
+  // Get icon configuration for visit type and status
+  const typeIcon = getVisitTypeIcon(visita.visitType);
+  const statusIcon = getVisitStatusIcon(visita.visitStatus);
 
   // Color del chip según tipo de visita
   const getVisitTypeColor = (type: string) => {
@@ -47,32 +44,14 @@ export default function VisitaCard({ visita, onPress }: VisitaCardProps) {
     }
   };
 
-  // Texto legible para tipo de visita
-  const getVisitTypeLabel = (type: string) => {
-    switch (type) {
-      case 'primera_visita':
-        return 'Primera Visita';
-      case 'visita_seguimiento':
-        return 'Seguimiento';
-      case 'no_se_pudo_realizar':
-        return 'No Realizada';
-      default:
-        return type;
+  // Render icon component based on family
+  const renderIcon = (iconConfig: { family: string; name: string }, size: number, color: string) => {
+    if (iconConfig.family === 'MaterialIcons') {
+      return <MaterialIcons name={iconConfig.name as any} size={size} color={color} />;
+    } else if (iconConfig.family === 'MaterialCommunityIcons') {
+      return <MaterialCommunityIcons name={iconConfig.name as any} size={size} color={color} />;
     }
-  };
-
-  // Texto legible para status
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'realizada':
-        return 'Realizada';
-      case 'programada':
-        return 'Programada';
-      case 'cancelada':
-        return 'Cancelada';
-      default:
-        return status;
-    }
+    return null;
   };
 
   return (
@@ -89,9 +68,12 @@ export default function VisitaCard({ visita, onPress }: VisitaCardProps) {
           </View>
 
           {visita.familia.direccion && (
-            <Text variant="bodySmall" style={styles.address}>
-              📍 {visita.familia.direccion}
-            </Text>
+            <View style={styles.addressRow}>
+              <MaterialIcons name="location-on" size={16} color="#666" />
+              <Text variant="bodySmall" style={styles.address}>
+                {visita.familia.direccion}
+              </Text>
+            </View>
           )}
 
           {(visita.barrio || visita.nucleo) && (
@@ -103,23 +85,28 @@ export default function VisitaCard({ visita, onPress }: VisitaCardProps) {
 
           <View style={styles.chips}>
             <Chip
+              icon={() => renderIcon(typeIcon, 16, '#FFF')}
               style={[styles.chip, { backgroundColor: getVisitTypeColor(visita.visitType) }]}
               textStyle={styles.chipText}
             >
               {getVisitTypeLabel(visita.visitType)}
             </Chip>
             <Chip
+              icon={() => renderIcon(statusIcon, 16, '#FFF')}
               style={[styles.chip, { backgroundColor: getStatusColor(visita.visitStatus) }]}
               textStyle={styles.chipText}
             >
-              {getStatusLabel(visita.visitStatus)}
+              {getVisitStatusLabel(visita.visitStatus)}
             </Chip>
           </View>
 
           {visita.visitadores.length > 0 && (
-            <Text variant="bodySmall" style={styles.visitors}>
-              👥 {visita.visitadores.map((v) => v.nombre).join(', ')}
-            </Text>
+            <View style={styles.visitorsRow}>
+              <MaterialIcons name="people" size={16} color="#666" />
+              <Text variant="bodySmall" style={styles.visitors}>
+                {visita.visitadores.map((v) => v.nombre).join(', ')}
+              </Text>
+            </View>
           )}
 
           {visita.additionalNotes && (
@@ -158,9 +145,15 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 8,
   },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
   address: {
     color: '#666',
-    marginBottom: 4,
+    flex: 1,
   },
   location: {
     color: '#2196F3',
@@ -180,10 +173,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
+  visitorsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
   visitors: {
     color: '#666',
-    marginTop: 4,
     fontStyle: 'italic',
+    flex: 1,
   },
   notes: {
     color: '#999',
