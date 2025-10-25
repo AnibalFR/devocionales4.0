@@ -116,7 +116,26 @@ export default function MiProgresoScreen() {
     );
   }
 
-  const estaArribaPromedio = stats.misVisitasRealizadas >= stats.promedioNucleo;
+  // Determinar el mensaje y estilo según las visitas
+  const ambosEnCero = stats.misVisitasRealizadas === 0 && stats.promedioNucleo === 0;
+  const estaArribaPromedio = stats.misVisitasRealizadas > stats.promedioNucleo;
+
+  // Mensaje dinámico
+  let mensajeComparacion = '¡Sigue participando!';
+  let iconoComparacion: any = "chart-timeline-variant";
+  let colorIcono = "#2196F3";
+  let estiloExito = false;
+
+  if (ambosEnCero) {
+    mensajeComparacion = '¡Es momento de comenzar!';
+    iconoComparacion = "rocket-launch";
+    colorIcono = "#9C27B0";
+  } else if (estaArribaPromedio) {
+    mensajeComparacion = '¡Estás por encima del promedio!';
+    iconoComparacion = "trophy";
+    colorIcono = "#FFC107";
+    estiloExito = true;
+  }
 
   return (
     <View style={styles.container}>
@@ -172,9 +191,9 @@ export default function MiProgresoScreen() {
                 <Card.Content>
                   <View style={styles.comparisonHeader}>
                     <MaterialCommunityIcons
-                      name={estaArribaPromedio ? "trophy" : "chart-timeline-variant"}
+                      name={iconoComparacion}
                       size={32}
-                      color={estaArribaPromedio ? "#FFC107" : "#2196F3"}
+                      color={colorIcono}
                     />
                     <Text variant="titleMedium" style={styles.comparisonTitle}>
                       Comparación con el Núcleo
@@ -201,11 +220,9 @@ export default function MiProgresoScreen() {
                     </View>
                   </View>
 
-                  <View style={[styles.badge, estaArribaPromedio ? styles.badgeSuccess : styles.badgeInfo]}>
+                  <View style={[styles.badge, estiloExito ? styles.badgeSuccess : styles.badgeInfo]}>
                     <Text variant="bodyMedium" style={styles.badgeText}>
-                      {estaArribaPromedio
-                        ? '¡Estás por encima del promedio!'
-                        : '¡Sigue participando!'}
+                      {mensajeComparacion}
                     </Text>
                   </View>
                 </Card.Content>
