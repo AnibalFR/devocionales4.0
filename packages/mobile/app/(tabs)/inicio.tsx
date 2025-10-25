@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Text, ActivityIndicator, FAB } from 'react-native-paper';
+import { Text, ActivityIndicator } from 'react-native-paper';
 import { useQuery } from '@apollo/client/react';
-import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { DASHBOARD_QUERY, MY_NUCLEO_STATS_QUERY } from '../../src/graphql/dashboard';
 import { ME_DETAILED_QUERY } from '../../src/graphql/auth';
@@ -11,11 +10,9 @@ import MetaProgressCard from '../../src/components/MetaProgressCard';
 import PertenenciaCard from '../../src/components/PertenenciaCard';
 import NucleoStatsCard from '../../src/components/NucleoStatsCard';
 import type { MetaActiva } from '../../src/types/dashboard';
-import { colors } from '../../src/constants/colors';
 
 export default function InicioScreen() {
   const { user } = useAuth();
-  const router = useRouter();
 
   const { data: dashboardData, loading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useQuery(DASHBOARD_QUERY, {
     fetchPolicy: 'cache-and-network',
@@ -139,13 +136,6 @@ export default function InicioScreen() {
           )}
         </View>
       </ScrollView>
-
-      <FAB
-        icon="plus"
-        label="Registrar Visita"
-        style={styles.fab}
-        onPress={() => router.push('/visitas')}
-      />
     </View>
   );
 }
@@ -185,12 +175,5 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 20,
     fontStyle: 'italic',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.primary,
   },
 });
