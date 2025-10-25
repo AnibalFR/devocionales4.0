@@ -60,18 +60,18 @@ export default function CalendarVisitaCard({ visita, onPress }: CalendarVisitaCa
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.card, { borderLeftColor: borderColor, backgroundColor }]}>
         {/* Hora */}
-        <Text variant="labelLarge" style={styles.time}>
+        <Text variant="labelMedium" style={styles.time}>
           {visita.visitTime}
         </Text>
 
         {/* Familia */}
-        <Text variant="bodySmall" style={styles.familia} numberOfLines={2}>
+        <Text variant="bodySmall" style={styles.familia} numberOfLines={1}>
           {visita.familia.nombre}
         </Text>
 
         {/* Tipo de visita (ícono pequeño) */}
         <View style={styles.typeIcon}>
-          {renderIcon(typeIcon, 14, colors.gray600)}
+          {renderIcon(typeIcon, 12, colors.gray600)}
         </View>
       </View>
     </TouchableOpacity>
@@ -82,9 +82,9 @@ const styles = StyleSheet.create({
   card: {
     borderLeftWidth: 3,
     borderRadius: 6,
-    padding: 8,
-    marginBottom: 6,
-    minHeight: 64,
+    padding: 6,
+    marginBottom: 4,
+    minHeight: 44,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -92,18 +92,20 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   time: {
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.textPrimary,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   familia: {
     color: colors.textPrimary,
-    lineHeight: 16,
-    marginBottom: 4,
+    fontSize: 11,
+    lineHeight: 14,
+    marginBottom: 2,
   },
   typeIcon: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 4,
+    right: 4,
+    opacity: 0.7,
   },
 });
