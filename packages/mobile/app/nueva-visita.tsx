@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useMutation, useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../src/constants/colors';
 import { VISITAS_QUERY } from '../src/graphql/visitas';
 
@@ -166,6 +167,10 @@ export default function NuevaVisitaScreen() {
   const [formData, setFormData] = useState<VisitaFormData>(INITIAL_FORM_DATA);
   const [validationError, setValidationError] = useState<string>('');
 
+  // DateTimePicker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
   // Queries
   const { data: barriosData } = useQuery(BARRIOS_QUERY);
   const { data: nucleosData } = useQuery(NUCLEOS_QUERY);
@@ -201,6 +206,42 @@ export default function NuevaVisitaScreen() {
   const updateFormData = (updates: Partial<VisitaFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
     setValidationError('');
+  };
+
+  // DateTimePicker handlers
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
+    if (selectedDate) {
+      const dateString = selectedDate.toISOString().split('T')[0];
+      updateFormData({ visitDate: dateString });
+    }
+  };
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, '0');
+      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      updateFormData({ visitTime: timeString });
+    }
+  };
+
+  // Helper to parse date string to Date object
+  const getDateFromString = (dateString: string): Date => {
+    if (!dateString) return new Date();
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  // Helper to parse time string to Date object
+  const getTimeFromString = (timeString: string): Date => {
+    if (!timeString) return new Date();
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    return date;
   };
 
   const validateStep = (step: number): { isValid: boolean; message?: string } => {
@@ -489,29 +530,84 @@ export default function NuevaVisitaScreen() {
               </Text>
             </View>
 
-            <TextInput
-              mode="outlined"
-              label="Fecha *"
-              value={formData.visitDate}
-              onChangeText={(text) => updateFormData({ visitDate: text })}
-              style={styles.input}
-              outlineColor={colors.gray300}
-              activeOutlineColor={colors.primary}
-              placeholder="YYYY-MM-DD"
-              keyboardType="numeric"
-            />
+            {/* Fecha */}
+            <View style={styles.dateTimeSection}>
+              <Text variant="labelLarge" style={styles.label}>
+                Fecha <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={styles.dateTimeButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
+                <Text variant="bodyLarge" style={styles.dateTimeText}>
+                  {formData.visitDate
+                    ? new Date(formData.visitDate + 'T00:00:00').toLocaleDateString('es-MX', {
+                        weekday: 'long',
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      })
+                    : 'Seleccionar fecha'}
+                </Text>
+                <MaterialIcons name="chevron-right" size={24} color={colors.gray400} />
+              </TouchableOpacity>
+            </View>
 
-            <TextInput
-              mode="outlined"
-              label="Hora *"
-              value={formData.visitTime}
-              onChangeText={(text) => updateFormData({ visitTime: text })}
-              style={styles.input}
-              outlineColor={colors.gray300}
-              activeOutlineColor={colors.primary}
-              placeholder="HH:MM"
-              keyboardType="numeric"
-            />
+            {/* Hora */}
+            <View style={styles.dateTimeSection}>
+              <Text variant="labelLarge" style={styles.label}>
+                Hora <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={styles.dateTimeButton}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <MaterialIcons name="access-time" size={24} color={colors.primary} />
+                <Text variant="bodyLarge" style={styles.dateTimeText}>
+                  {formData.visitTime || 'Seleccionar hora'}
+                </Text>
+                <MaterialIcons name="chevron-right" size={24} color={colors.gray400} />
+              </TouchableOpacity>
+            </View>
+
+            {/* DateTimePicker para Fecha */}
+            {showDatePicker && (
+              <DateTimePicker
+                value={getDateFromString(formData.visitDate)}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+                locale="es-MX"
+              />
+            )}
+
+            {/* DateTimePicker para Hora */}
+            {showTimePicker && (
+              <DateTimePicker
+                value={getTimeFromString(formData.visitTime)}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+                is24Hour={true}
+                locale="es-MX"
+              />
+            )}
+
+            {/* Botón Done para iOS */}
+            {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
+              <Button
+                mode="contained"
+                onPress={() => {
+                  setShowDatePicker(false);
+                  setShowTimePicker(false);
+                }}
+                style={styles.doneButton}
+                buttonColor={colors.primary}
+              >
+                Listo
+              </Button>
+            )}
           </View>
         )}
 
@@ -1236,5 +1332,25 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: colors.textSecondary,
+  },
+  dateTimeSection: {
+    marginBottom: 20,
+  },
+  dateTimeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    borderRadius: 8,
+    gap: 12,
+  },
+  dateTimeText: {
+    flex: 1,
+    color: colors.textPrimary,
+  },
+  doneButton: {
+    marginTop: 16,
   },
 });
