@@ -1,22 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, ScrollView } from 'react-native';
-import { Text, ActivityIndicator, Chip, FAB } from 'react-native-paper';
+import { View, StyleSheet, RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, ActivityIndicator, Chip, FAB, IconButton } from 'react-native-paper';
 import { useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { VISITAS_QUERY } from '../../src/graphql/visitas';
 import { ME_DETAILED_QUERY } from '../../src/graphql/auth';
-import VisitaCard from '../../src/components/VisitaCard';
+import WeekCalendar from '../../src/components/WeekCalendar';
 import type { Visita } from '../../src/types/visita';
 import { colors } from '../../src/constants/colors';
+import { getWeekStart, getWeekEnd, formatWeekRange } from '../../src/utils/dateHelpers';
 
-type FilterType = 'all' | 'mine' | 'nucleo' | 'completed' | 'scheduled';
+type FilterType = 'all' | 'mine' | 'nucleo';
 
 export default function VisitasScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getWeekStart(new Date()));
 
   const { data, loading, error, refetch } = useQuery(VISITAS_QUERY, {
     fetchPolicy: 'cache-and-network',
@@ -36,6 +38,30 @@ export default function VisitasScreen() {
     router.push(`/visita-detalle?id=${visitaId}`);
   };
 
+  // Week navigation handlers
+  const handlePrevWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() - 7);
+    setCurrentWeekStart(newStart);
+  };
+
+  const handleNextWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() + 7);
+    setCurrentWeekStart(newStart);
+  };
+
+  const handleToday = () => {
+    setCurrentWeekStart(getWeekStart(new Date()));
+  };
+
+  // Week range for display
+  const weekEnd = useMemo(() => getWeekEnd(currentWeekStart), [currentWeekStart]);
+  const weekRangeText = useMemo(
+    () => formatWeekRange(currentWeekStart, weekEnd),
+    [currentWeekStart, weekEnd]
+  );
+
   // Filter visitas based on active filter
   const filteredVisitas = useMemo(() => {
     const allVisitas: Visita[] = data?.visitas || [];
@@ -51,16 +77,15 @@ export default function VisitasScreen() {
         return allVisitas.filter((v) =>
           v.nucleo?.id === miembro?.nucleoId
         );
-      case 'completed':
-        // Show only completed visitas
-        return allVisitas.filter((v) => v.visitStatus === 'realizada');
-      case 'scheduled':
-        // Show only scheduled visitas
-        return allVisitas.filter((v) => v.visitStatus === 'programada');
       default:
         return allVisitas;
     }
   }, [data, activeFilter, user, miembro]);
+
+  // Count visitas for the current week
+  const weekVisitasCount = useMemo(() => {
+    return filteredVisitas.length;
+  }, [filteredVisitas]);
 
   if (loading && !data) {
     return (
@@ -86,7 +111,9 @@ export default function VisitasScreen() {
     );
   }
 
-  if (filteredVisitas.length === 0 && activeFilter === 'all' && !loading) {
+  const allVisitasEmpty = (data?.visitas || []).length === 0 && !loading;
+
+  if (allVisitasEmpty) {
     return (
       <View style={styles.centerContainer}>
         <MaterialCommunityIcons name="clipboard-text-outline" size={64} color="#999" />
@@ -96,12 +123,19 @@ export default function VisitasScreen() {
         <Text variant="bodyLarge" style={styles.emptyText}>
           Aún no se han registrado visitas
         </Text>
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          onPress={() => router.push('/nueva-visita')}
+          color="#fff"
+        />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <MaterialCommunityIcons name="calendar-check" size={32} color={colors.primary} />
@@ -110,11 +144,33 @@ export default function VisitasScreen() {
               Visitas
             </Text>
             <Text variant="bodyMedium" style={styles.count}>
-              {filteredVisitas.length} {filteredVisitas.length === 1 ? 'visita' : 'visitas'}
+              {weekVisitasCount} {weekVisitasCount === 1 ? 'visita' : 'visitas'}
             </Text>
           </View>
         </View>
 
+        {/* Week navigation */}
+        <View style={styles.weekNavigation}>
+          <IconButton
+            icon="chevron-left"
+            size={24}
+            onPress={handlePrevWeek}
+            iconColor={colors.primary}
+          />
+          <TouchableOpacity onPress={handleToday} style={styles.weekRangeButton}>
+            <Text variant="titleMedium" style={styles.weekRangeText}>
+              {weekRangeText}
+            </Text>
+          </TouchableOpacity>
+          <IconButton
+            icon="chevron-right"
+            size={24}
+            onPress={handleNextWeek}
+            iconColor={colors.primary}
+          />
+        </View>
+
+        {/* Filters - Simplified */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -147,48 +203,15 @@ export default function VisitasScreen() {
               Mi Núcleo
             </Chip>
           )}
-          <Chip
-            selected={activeFilter === 'completed'}
-            onPress={() => setActiveFilter('completed')}
-            style={styles.filterChip}
-            icon={() => <MaterialIcons name="check-circle" size={18} color={activeFilter === 'completed' ? colors.primary : '#666'} />}
-          >
-            Completadas
-          </Chip>
-          <Chip
-            selected={activeFilter === 'scheduled'}
-            onPress={() => setActiveFilter('scheduled')}
-            style={styles.filterChip}
-            icon={() => <MaterialIcons name="schedule" size={18} color={activeFilter === 'scheduled' ? colors.primary : '#666'} />}
-          >
-            Programadas
-          </Chip>
         </ScrollView>
       </View>
 
-      {filteredVisitas.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <MaterialCommunityIcons name="filter-remove-outline" size={64} color="#999" />
-          <Text variant="headlineMedium" style={styles.emptyTitle}>
-            No hay resultados
-          </Text>
-          <Text variant="bodyLarge" style={styles.emptyText}>
-            No hay visitas que coincidan con el filtro seleccionado
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredVisitas}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <VisitaCard visita={item} onPress={() => handleVisitaPress(item.id)} />
-          )}
-          refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={refetch} />
-          }
-          contentContainerStyle={styles.listContent}
-        />
-      )}
+      {/* Week Calendar */}
+      <WeekCalendar
+        visitas={filteredVisitas}
+        currentWeekStart={currentWeekStart}
+        onVisitPress={handleVisitaPress}
+      />
 
       {/* Floating Action Button */}
       <FAB
@@ -204,13 +227,14 @@ export default function VisitasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#f5f5f5',
   },
   header: {
     backgroundColor: '#fff',
@@ -218,7 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.gray200,
   },
   headerTop: {
     flexDirection: 'row',
@@ -231,11 +255,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: 'bold',
-    color: '#212121',
+    color: colors.textPrimary,
   },
   count: {
-    color: '#666',
+    color: colors.textSecondary,
     marginTop: 2,
+  },
+  weekNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  weekRangeButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  weekRangeText: {
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
   filtersScroll: {
     marginBottom: 4,
@@ -247,28 +286,25 @@ const styles = StyleSheet.create({
   filterChip: {
     height: 36,
   },
-  listContent: {
-    paddingVertical: 8,
-  },
   loadingText: {
     marginTop: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   errorText: {
-    color: '#F44336',
+    color: colors.error,
     marginBottom: 8,
   },
   errorDetail: {
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   emptyTitle: {
     marginTop: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   emptyText: {
     marginTop: 8,
-    color: '#999',
+    color: colors.gray400,
     textAlign: 'center',
   },
   fab: {
