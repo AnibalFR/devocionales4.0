@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MaterialIcons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { getRolLabel } from '../utils/formatters';
+import { colors } from '../constants/colors';
 
 interface PertenenciaCardProps {
   nucleoNombre?: string;
@@ -20,7 +21,7 @@ export default function PertenenciaCard({ nucleoNombre, barrioNombre, rol }: Per
 
         {nucleoNombre && (
           <View style={styles.infoRow}>
-            <MaterialIcons name="location-on" size={20} color="#6200EE" />
+            <MaterialIcons name="location-on" size={20} color={colors.primary} />
             <View style={styles.infoText}>
               <Text variant="bodySmall" style={styles.label}>
                 Núcleo

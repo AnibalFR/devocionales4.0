@@ -11,6 +11,7 @@ import MetaProgressCard from '../../src/components/MetaProgressCard';
 import PertenenciaCard from '../../src/components/PertenenciaCard';
 import NucleoStatsCard from '../../src/components/NucleoStatsCard';
 import type { MetaActiva } from '../../src/types/dashboard';
+import { colors } from '../../src/constants/colors';
 
 export default function InicioScreen() {
   const { user } = useAuth();
@@ -190,6 +191,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#6200EE',
+    backgroundColor: colors.primary,
   },
 });

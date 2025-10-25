@@ -7,6 +7,7 @@ import { useQuery } from '@apollo/client/react';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { ME_DETAILED_QUERY } from '../../src/graphql/auth';
 import { getRolLabel } from '../../src/utils/formatters';
+import { colors } from '../../src/constants/colors';
 
 export default function PerfilScreen() {
   const { user, logout } = useAuth();
@@ -53,7 +54,7 @@ export default function PerfilScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="person" size={24} color="#6200EE" />
+              <MaterialIcons name="person" size={24} color={colors.primary} />
               <Text variant="titleMedium" style={styles.cardTitle}>
                 Información Personal
               </Text>
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#6200EE',
+    backgroundColor: colors.primary,
     paddingTop: 48,
     paddingBottom: 32,
     paddingHorizontal: 24,

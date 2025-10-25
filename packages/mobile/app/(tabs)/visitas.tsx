@@ -9,6 +9,7 @@ import { VISITAS_QUERY } from '../../src/graphql/visitas';
 import { ME_DETAILED_QUERY } from '../../src/graphql/auth';
 import VisitaCard from '../../src/components/VisitaCard';
 import type { Visita } from '../../src/types/visita';
+import { colors } from '../../src/constants/colors';
 
 type FilterType = 'all' | 'mine' | 'nucleo' | 'completed' | 'scheduled';
 
@@ -103,7 +104,7 @@ export default function VisitasScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <MaterialCommunityIcons name="calendar-check" size={32} color="#6200EE" />
+          <MaterialCommunityIcons name="calendar-check" size={32} color={colors.primary} />
           <View style={styles.headerText}>
             <Text variant="headlineMedium" style={styles.title}>
               Visitas
@@ -124,7 +125,7 @@ export default function VisitasScreen() {
             selected={activeFilter === 'all'}
             onPress={() => setActiveFilter('all')}
             style={styles.filterChip}
-            icon={() => <MaterialIcons name="view-list" size={18} color={activeFilter === 'all' ? '#6200EE' : '#666'} />}
+            icon={() => <MaterialIcons name="view-list" size={18} color={activeFilter === 'all' ? colors.primary : '#666'} />}
           >
             Todas
           </Chip>
@@ -132,7 +133,7 @@ export default function VisitasScreen() {
             selected={activeFilter === 'mine'}
             onPress={() => setActiveFilter('mine')}
             style={styles.filterChip}
-            icon={() => <MaterialIcons name="person" size={18} color={activeFilter === 'mine' ? '#6200EE' : '#666'} />}
+            icon={() => <MaterialIcons name="person" size={18} color={activeFilter === 'mine' ? colors.primary : '#666'} />}
           >
             Mis Visitas
           </Chip>
@@ -141,7 +142,7 @@ export default function VisitasScreen() {
               selected={activeFilter === 'nucleo'}
               onPress={() => setActiveFilter('nucleo')}
               style={styles.filterChip}
-              icon={() => <MaterialIcons name="location-on" size={18} color={activeFilter === 'nucleo' ? '#6200EE' : '#666'} />}
+              icon={() => <MaterialIcons name="location-on" size={18} color={activeFilter === 'nucleo' ? colors.primary : '#666'} />}
             >
               Mi Núcleo
             </Chip>
@@ -150,7 +151,7 @@ export default function VisitasScreen() {
             selected={activeFilter === 'completed'}
             onPress={() => setActiveFilter('completed')}
             style={styles.filterChip}
-            icon={() => <MaterialIcons name="check-circle" size={18} color={activeFilter === 'completed' ? '#6200EE' : '#666'} />}
+            icon={() => <MaterialIcons name="check-circle" size={18} color={activeFilter === 'completed' ? colors.primary : '#666'} />}
           >
             Completadas
           </Chip>
@@ -158,7 +159,7 @@ export default function VisitasScreen() {
             selected={activeFilter === 'scheduled'}
             onPress={() => setActiveFilter('scheduled')}
             style={styles.filterChip}
-            icon={() => <MaterialIcons name="schedule" size={18} color={activeFilter === 'scheduled' ? '#6200EE' : '#666'} />}
+            icon={() => <MaterialIcons name="schedule" size={18} color={activeFilter === 'scheduled' ? colors.primary : '#666'} />}
           >
             Programadas
           </Chip>

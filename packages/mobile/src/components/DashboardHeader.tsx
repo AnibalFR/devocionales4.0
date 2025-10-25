@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from '../constants/colors';
 
 interface DashboardHeaderProps {
   nombre: string;
@@ -15,7 +16,7 @@ export default function DashboardHeader({ nombre, apellidos }: DashboardHeaderPr
   return (
     <View style={styles.container}>
       <View style={styles.avatarContainer}>
-        <MaterialIcons name="account-circle" size={56} color="#6200EE" />
+        <MaterialIcons name="account-circle" size={56} color={colors.primary} />
       </View>
       <View style={styles.textContainer}>
         <Text variant="bodyMedium" style={styles.greeting}>
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6200EE',
+    backgroundColor: colors.primary,
     padding: 16,
     paddingTop: 48,
     gap: 12,

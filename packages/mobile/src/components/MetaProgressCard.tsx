@@ -4,6 +4,7 @@ import { Card, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProgressBar from './ProgressBar';
 import type { MetaActiva } from '../types/dashboard';
+import { colors } from '../constants/colors';
 
 interface MetaProgressCardProps {
   meta: MetaActiva;
@@ -16,7 +17,7 @@ export default function MetaProgressCard({ meta }: MetaProgressCardProps) {
     <Card style={styles.card}>
       <Card.Content>
         <View style={styles.header}>
-          <MaterialCommunityIcons name="target" size={24} color="#6200EE" />
+          <MaterialCommunityIcons name="target" size={24} color={colors.primary} />
           <Text variant="titleLarge" style={styles.title}>
             {meta.trimestre}
           </Text>
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: 'bold',
-    color: '#6200EE',
+    color: colors.primary,
   },
   subtitle: {
     color: '#666',

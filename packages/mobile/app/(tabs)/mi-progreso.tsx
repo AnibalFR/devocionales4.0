@@ -8,6 +8,7 @@ import { DASHBOARD_QUERY } from '../../src/graphql/dashboard';
 import { ME_DETAILED_QUERY } from '../../src/graphql/auth';
 import StatCard from '../../src/components/StatCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors } from '../../src/constants/colors';
 
 export default function MiProgresoScreen() {
   const { user } = useAuth();
@@ -126,7 +127,7 @@ export default function MiProgresoScreen() {
         }
       >
         <View style={styles.header}>
-          <MaterialCommunityIcons name="chart-line" size={48} color="#6200EE" />
+          <MaterialCommunityIcons name="chart-line" size={48} color={colors.primary} />
           <Text variant="headlineMedium" style={styles.title}>
             Mi Progreso
           </Text>

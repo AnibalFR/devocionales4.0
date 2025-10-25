@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors } from '../constants/colors';
 
 interface StatCardProps {
   label: string;
@@ -17,7 +18,7 @@ export default function StatCard({
   value,
   iconFamily = 'MaterialIcons',
   iconName,
-  iconColor = '#6200EE',
+  iconColor = colors.primary,
   subtitle,
 }: StatCardProps) {
   const IconComponent = iconFamily === 'MaterialCommunityIcons'
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#E8E0F5', // Pastel purple light background
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
