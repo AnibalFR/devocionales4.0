@@ -5,6 +5,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Visita } from '../types/visita';
 import { getVisitTypeIcon } from '../utils/iconHelpers';
 import { colors } from '../constants/colors';
+import VisitadoresIcons from './VisitadoresIcons';
 
 interface CalendarVisitaCardProps {
   visita: Visita;
@@ -60,18 +61,21 @@ export default function CalendarVisitaCard({ visita, onPress }: CalendarVisitaCa
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.card, { borderLeftColor: borderColor, backgroundColor }]}>
         {/* Hora */}
-        <Text variant="labelMedium" style={styles.time}>
+        <Text variant="titleMedium" style={[styles.time, { color: borderColor }]}>
           {visita.visitTime}
         </Text>
 
         {/* Familia */}
-        <Text variant="bodySmall" style={styles.familia} numberOfLines={1}>
+        <Text variant="bodyMedium" style={styles.familia} numberOfLines={3}>
           {visita.familia.nombre}
         </Text>
 
-        {/* Tipo de visita (ícono pequeño) */}
+        {/* Visitadores */}
+        <VisitadoresIcons visitadores={visita.visitadores} maxVisible={3} iconSize={16} />
+
+        {/* Tipo de visita (ícono) */}
         <View style={styles.typeIcon}>
-          {renderIcon(typeIcon, 12, colors.gray600)}
+          {renderIcon(typeIcon, 20, borderColor)}
         </View>
       </View>
     </TouchableOpacity>
@@ -80,32 +84,30 @@ export default function CalendarVisitaCard({ visita, onPress }: CalendarVisitaCa
 
 const styles = StyleSheet.create({
   card: {
-    borderLeftWidth: 3,
-    borderRadius: 6,
-    padding: 6,
-    marginBottom: 4,
-    minHeight: 44,
+    borderLeftWidth: 4,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+    minHeight: 95,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 3,
   },
   time: {
-    fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 1,
+    fontWeight: '700',
+    marginBottom: 6,
   },
   familia: {
     color: colors.textPrimary,
-    fontSize: 11,
-    lineHeight: 14,
-    marginBottom: 2,
+    lineHeight: 18,
+    marginBottom: 8,
+    flex: 1,
   },
   typeIcon: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    opacity: 0.7,
+    top: 8,
+    right: 8,
   },
 });

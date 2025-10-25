@@ -15,7 +15,7 @@ import {
 import { colors } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
-const DAY_COLUMN_WIDTH = width / 7;
+const DAY_COLUMN_WIDTH = 120; // Columnas más anchas para swipe horizontal
 
 interface WeekCalendarProps {
   visitas: Visita[];
@@ -57,73 +57,85 @@ export default function WeekCalendar({ visitas, currentWeekStart, onVisitPress }
 
   return (
     <View style={styles.container}>
-      {/* Week days header */}
-      <View style={styles.weekHeader}>
+      {/* Week indicators */}
+      <View style={styles.weekIndicators}>
         {weekDates.map((date, index) => {
-          const dayAbbr = getDayAbbreviation(date);
-          const dayNum = getDayNumber(date);
           const today = isToday(date);
-
           return (
-            <View key={index} style={styles.dayHeader}>
-              <Text
-                variant="labelSmall"
-                style={[styles.dayName, today && styles.todayDayName]}
-              >
-                {dayAbbr.slice(0, 2).toUpperCase()}
-              </Text>
-              <View style={[styles.dayNumberContainer, today && styles.todayDayNumberContainer]}>
-                <Text
-                  variant="bodyMedium"
-                  style={[styles.dayNumber, today && styles.todayDayNumber]}
-                >
-                  {dayNum}
-                </Text>
-              </View>
-            </View>
+            <View
+              key={index}
+              style={[
+                styles.dayIndicator,
+                today && styles.todayIndicator
+              ]}
+            />
           );
         })}
       </View>
 
-      {/* Week content - visitas for each day */}
+      {/* Horizontal scroll for days */}
       <ScrollView
-        style={styles.weekContent}
-        showsVerticalScrollIndicator={false}
+        horizontal
+        pagingEnabled={false}
+        snapToInterval={DAY_COLUMN_WIDTH}
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        style={styles.horizontalScroll}
+        contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.daysContainer}>
-          {weekDates.map((date, index) => {
-            const dateStr = formatDateString(date);
-            const dayVisitas = visitasByDay[dateStr] || [];
-            const today = isToday(date);
+        {weekDates.map((date, index) => {
+          const dayAbbr = getDayAbbreviation(date);
+          const dayNum = getDayNumber(date);
+          const today = isToday(date);
+          const dateStr = formatDateString(date);
+          const dayVisitas = visitasByDay[dateStr] || [];
 
-            return (
-              <View
-                key={index}
-                style={[
-                  styles.dayColumn,
-                  today && styles.todayColumn,
-                  index < 6 && styles.dayColumnBorder
-                ]}
-              >
-                {dayVisitas.length === 0 ? (
-                  <View style={styles.emptyDay}>
-                    <Text variant="bodySmall" style={styles.emptyDayText}>
-                      —
-                    </Text>
-                  </View>
-                ) : (
-                  dayVisitas.map((visita) => (
-                    <CalendarVisitaCard
-                      key={visita.id}
-                      visita={visita}
-                      onPress={() => onVisitPress(visita.id)}
-                    />
-                  ))
-                )}
+          return (
+            <View key={index} style={styles.dayColumn}>
+              {/* Day header */}
+              <View style={styles.dayHeaderInline}>
+                <Text
+                  variant="labelMedium"
+                  style={[styles.dayName, today && styles.todayDayName]}
+                >
+                  {dayAbbr.slice(0, 2).toUpperCase()}
+                </Text>
+                <View style={[styles.dayNumberContainer, today && styles.todayDayNumberContainer]}>
+                  <Text
+                    variant="bodyLarge"
+                    style={[styles.dayNumber, today && styles.todayDayNumber]}
+                  >
+                    {dayNum}
+                  </Text>
+                </View>
               </View>
-            );
-          })}
-        </View>
+
+              {/* Day content */}
+              <ScrollView
+                style={styles.dayContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={[styles.dayContentInner, today && styles.todayColumn]}>
+                  {dayVisitas.length === 0 ? (
+                    <View style={styles.emptyDay}>
+                      <Text variant="bodySmall" style={styles.emptyDayText}>
+                        —
+                      </Text>
+                    </View>
+                  ) : (
+                    dayVisitas.map((visita) => (
+                      <CalendarVisitaCard
+                        key={visita.id}
+                        visita={visita}
+                        onPress={() => onVisitPress(visita.id)}
+                      />
+                    ))
+                  )}
+                </View>
+              </ScrollView>
+            </View>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -134,30 +146,55 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  weekHeader: {
+  weekIndicators: {
     flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: colors.gray200,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
   },
-  dayHeader: {
+  dayIndicator: {
+    width: 24,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.gray300,
+  },
+  todayIndicator: {
+    backgroundColor: colors.primary,
+    width: 28,
+  },
+  horizontalScroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingRight: 20, // Peek del último día
+  },
+  dayColumn: {
     width: DAY_COLUMN_WIDTH,
+  },
+  dayHeaderInline: {
     alignItems: 'center',
-    gap: 4,
+    paddingVertical: 12,
+    gap: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray200,
+    backgroundColor: '#fff',
   },
   dayName: {
     color: colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   todayDayName: {
     color: colors.primary,
   },
   dayNumberContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -172,31 +209,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
   },
-  weekContent: {
+  dayContent: {
     flex: 1,
   },
-  daysContainer: {
-    flexDirection: 'row',
+  dayContentInner: {
+    padding: 8,
     minHeight: 400,
-  },
-  dayColumn: {
-    width: DAY_COLUMN_WIDTH,
-    padding: 6,
-    paddingTop: 12,
   },
   todayColumn: {
     backgroundColor: colors.gray50,
   },
-  dayColumnBorder: {
-    borderRightWidth: 1,
-    borderRightColor: colors.gray200,
-  },
   emptyDay: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 40,
   },
   emptyDayText: {
     color: colors.gray400,
-    fontSize: 18,
+    fontSize: 20,
   },
 });
