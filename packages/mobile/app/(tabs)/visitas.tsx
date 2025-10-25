@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, ScrollView } from 'react-native';
-import { Text, ActivityIndicator, Chip } from 'react-native-paper';
+import { Text, ActivityIndicator, Chip, FAB } from 'react-native-paper';
 import { useQuery } from '@apollo/client/react';
 import { useRouter } from 'expo-router';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -189,6 +189,14 @@ export default function VisitasScreen() {
           contentContainerStyle={styles.listContent}
         />
       )}
+
+      {/* Floating Action Button */}
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        onPress={() => router.push('/nueva-visita')}
+        color="#fff"
+      />
     </View>
   );
 }
@@ -262,5 +270,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#999',
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.primary,
   },
 });
