@@ -238,7 +238,6 @@ export default function VisitaDetalleScreen() {
             {visita.visitadores.map((visitador) => (
               <Text key={visitador.id} variant="bodyLarge" style={styles.info}>
                 • {visitador.nombre}
-                {visitador.email ? ` (${visitador.email})` : ''}
               </Text>
             ))}
           </View>

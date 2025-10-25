@@ -91,12 +91,10 @@ export const VISITA_QUERY = gql`
       creadoPor {
         id
         nombre
-        email
       }
       visitadores {
         id
         nombre
-        email
       }
       createdAt
       updatedAt

@@ -24,12 +24,10 @@ export interface Visita {
   creadoPor: {
     id: string;
     nombre: string;
-    email?: string;
   };
   visitadores: Array<{
     id: string;
     nombre: string;
-    email?: string;
   }>;
   createdAt?: string;
   updatedAt?: string;
