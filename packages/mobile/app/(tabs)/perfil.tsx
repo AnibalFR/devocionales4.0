@@ -80,7 +80,7 @@ export default function PerfilScreen() {
                     Comunidad
                   </Text>
                   <Text variant="bodyLarge" style={styles.infoValue}>
-                    {userData.me.comunidad}
+                    {userData.me.comunidad.nombre}
                   </Text>
                 </View>
               </View>
