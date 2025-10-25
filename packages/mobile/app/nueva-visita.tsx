@@ -210,21 +210,49 @@ export default function NuevaVisitaScreen() {
 
   // DateTimePicker handlers
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
+    if (Platform.OS === 'android' && event.type === 'dismissed') {
+      setShowDatePicker(false);
+      return;
+    }
     if (selectedDate) {
       const dateString = selectedDate.toISOString().split('T')[0];
       updateFormData({ visitDate: dateString });
     }
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
   };
 
   const handleTimeChange = (event: any, selectedTime?: Date) => {
-    setShowTimePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
+    if (Platform.OS === 'android' && event.type === 'dismissed') {
+      setShowTimePicker(false);
+      return;
+    }
     if (selectedTime) {
       const hours = selectedTime.getHours().toString().padStart(2, '0');
       const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
       const timeString = `${hours}:${minutes}`;
       updateFormData({ visitTime: timeString });
     }
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+  };
+
+  const toggleDatePicker = () => {
+    setShowDatePicker(!showDatePicker);
+  };
+
+  const toggleTimePicker = () => {
+    setShowTimePicker(!showTimePicker);
+  };
+
+  const closeDatePicker = () => {
+    setShowDatePicker(false);
+  };
+
+  const closeTimePicker = () => {
+    setShowTimePicker(false);
   };
 
   // Helper to parse date string to Date object
@@ -537,7 +565,7 @@ export default function NuevaVisitaScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.dateTimeButton}
-                onPress={() => setShowDatePicker(true)}
+                onPress={toggleDatePicker}
               >
                 <MaterialIcons name="calendar-today" size={24} color={colors.primary} />
                 <Text variant="bodyLarge" style={styles.dateTimeText}>
@@ -550,8 +578,32 @@ export default function NuevaVisitaScreen() {
                       })
                     : 'Seleccionar fecha'}
                 </Text>
-                <MaterialIcons name="chevron-right" size={24} color={colors.gray400} />
+                <MaterialIcons name={showDatePicker ? "expand-less" : "expand-more"} size={24} color={colors.gray400} />
               </TouchableOpacity>
+
+              {/* DateTimePicker inline para Fecha */}
+              {showDatePicker && (
+                <View style={styles.pickerContainer}>
+                  <DateTimePicker
+                    value={getDateFromString(formData.visitDate)}
+                    mode="date"
+                    display="spinner"
+                    onChange={handleDateChange}
+                    locale="es-MX"
+                    style={styles.picker}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <Button
+                      mode="contained"
+                      onPress={closeDatePicker}
+                      style={styles.pickerDoneButton}
+                      buttonColor={colors.primary}
+                    >
+                      Listo
+                    </Button>
+                  )}
+                </View>
+              )}
             </View>
 
             {/* Hora */}
@@ -561,53 +613,40 @@ export default function NuevaVisitaScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.dateTimeButton}
-                onPress={() => setShowTimePicker(true)}
+                onPress={toggleTimePicker}
               >
                 <MaterialIcons name="access-time" size={24} color={colors.primary} />
                 <Text variant="bodyLarge" style={styles.dateTimeText}>
                   {formData.visitTime || 'Seleccionar hora'}
                 </Text>
-                <MaterialIcons name="chevron-right" size={24} color={colors.gray400} />
+                <MaterialIcons name={showTimePicker ? "expand-less" : "expand-more"} size={24} color={colors.gray400} />
               </TouchableOpacity>
+
+              {/* DateTimePicker inline para Hora */}
+              {showTimePicker && (
+                <View style={styles.pickerContainer}>
+                  <DateTimePicker
+                    value={getTimeFromString(formData.visitTime)}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleTimeChange}
+                    is24Hour={true}
+                    locale="es-MX"
+                    style={styles.picker}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <Button
+                      mode="contained"
+                      onPress={closeTimePicker}
+                      style={styles.pickerDoneButton}
+                      buttonColor={colors.primary}
+                    >
+                      Listo
+                    </Button>
+                  )}
+                </View>
+              )}
             </View>
-
-            {/* DateTimePicker para Fecha */}
-            {showDatePicker && (
-              <DateTimePicker
-                value={getDateFromString(formData.visitDate)}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                locale="es-MX"
-              />
-            )}
-
-            {/* DateTimePicker para Hora */}
-            {showTimePicker && (
-              <DateTimePicker
-                value={getTimeFromString(formData.visitTime)}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleTimeChange}
-                is24Hour={true}
-                locale="es-MX"
-              />
-            )}
-
-            {/* Botón Done para iOS */}
-            {Platform.OS === 'ios' && (showDatePicker || showTimePicker) && (
-              <Button
-                mode="contained"
-                onPress={() => {
-                  setShowDatePicker(false);
-                  setShowTimePicker(false);
-                }}
-                style={styles.doneButton}
-                buttonColor={colors.primary}
-              >
-                Listo
-              </Button>
-            )}
           </View>
         )}
 
@@ -1352,5 +1391,19 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     marginTop: 16,
+  },
+  pickerContainer: {
+    marginTop: 12,
+    backgroundColor: colors.gray50,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+  },
+  picker: {
+    width: '100%',
+  },
+  pickerDoneButton: {
+    marginTop: 12,
   },
 });
