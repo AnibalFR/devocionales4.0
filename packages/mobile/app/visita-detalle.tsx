@@ -2,8 +2,12 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, ActivityIndicator, Divider, Chip, Button } from 'react-native-paper';
 import { useQuery } from '@apollo/client/react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { VISITA_QUERY } from '../src/graphql/visitas';
 import type { VisitaDetalle } from '../src/types/visita';
+import { colors } from '../src/constants/colors';
+import { getVisitTypeLabel, getVisitStatusLabel } from '../src/utils/formatters';
+import { getVisitTypeIcon, getVisitStatusIcon } from '../src/utils/iconHelpers';
 
 export default function VisitaDetalleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,17 +68,21 @@ export default function VisitaDetalleScreen() {
     });
   };
 
+  // Get icon configuration for visit type and status
+  const typeIcon = visita ? getVisitTypeIcon(visita.visitType) : null;
+  const statusIcon = visita ? getVisitStatusIcon(visita.visitStatus) : null;
+
   // Color del chip según tipo de visita
   const getVisitTypeColor = (type: string) => {
     switch (type) {
       case 'primera_visita':
-        return '#2196F3';
+        return colors.info;
       case 'visita_seguimiento':
-        return '#4CAF50';
+        return colors.success;
       case 'no_se_pudo_realizar':
-        return '#F44336';
+        return colors.error;
       default:
-        return '#9E9E9E';
+        return colors.gray400;
     }
   };
 
@@ -82,42 +90,25 @@ export default function VisitaDetalleScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'realizada':
-        return '#4CAF50';
+        return colors.success;
       case 'programada':
-        return '#FF9800';
+        return colors.warning;
       case 'cancelada':
-        return '#F44336';
+        return colors.error;
       default:
-        return '#9E9E9E';
+        return colors.gray400;
     }
   };
 
-  // Texto legible para tipo de visita
-  const getVisitTypeLabel = (type: string) => {
-    switch (type) {
-      case 'primera_visita':
-        return 'Primera Visita';
-      case 'visita_seguimiento':
-        return 'Visita de Seguimiento';
-      case 'no_se_pudo_realizar':
-        return 'No se Pudo Realizar';
-      default:
-        return type;
+  // Render icon component based on family
+  const renderIcon = (iconConfig: { family: string; name: string } | null, size: number, color: string) => {
+    if (!iconConfig) return null;
+    if (iconConfig.family === 'MaterialIcons') {
+      return <MaterialIcons name={iconConfig.name as any} size={size} color={color} />;
+    } else if (iconConfig.family === 'MaterialCommunityIcons') {
+      return <MaterialCommunityIcons name={iconConfig.name as any} size={size} color={color} />;
     }
-  };
-
-  // Texto legible para status
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'realizada':
-        return 'Realizada';
-      case 'programada':
-        return 'Programada';
-      case 'cancelada':
-        return 'Cancelada';
-      default:
-        return status;
-    }
+    return null;
   };
 
   return (
@@ -138,26 +129,38 @@ export default function VisitaDetalleScreen() {
 
       {/* Familia */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          👨‍👩‍👧‍👦 Familia
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <MaterialCommunityIcons name="account-group" size={24} color={colors.primary} />
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Familia
+          </Text>
+        </View>
         <Text variant="headlineSmall" style={styles.familyName}>
           {visita.familia.nombre}
         </Text>
         {visita.familia.direccion && (
-          <Text variant="bodyMedium" style={styles.info}>
-            📍 {visita.familia.direccion}
-          </Text>
+          <View style={styles.infoRow}>
+            <MaterialIcons name="location-on" size={18} color={colors.gray600} />
+            <Text variant="bodyMedium" style={styles.info}>
+              {visita.familia.direccion}
+            </Text>
+          </View>
         )}
         {visita.familia.telefono && (
-          <Text variant="bodyMedium" style={styles.info}>
-            📞 {visita.familia.telefono}
-          </Text>
+          <View style={styles.infoRow}>
+            <MaterialIcons name="phone" size={18} color={colors.gray600} />
+            <Text variant="bodyMedium" style={styles.info}>
+              {visita.familia.telefono}
+            </Text>
+          </View>
         )}
         {visita.familia.email && (
-          <Text variant="bodyMedium" style={styles.info}>
-            ✉️ {visita.familia.email}
-          </Text>
+          <View style={styles.infoRow}>
+            <MaterialIcons name="email" size={18} color={colors.gray600} />
+            <Text variant="bodyMedium" style={styles.info}>
+              {visita.familia.email}
+            </Text>
+          </View>
         )}
       </View>
 
@@ -165,15 +168,24 @@ export default function VisitaDetalleScreen() {
 
       {/* Fecha y Hora */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          📅 Fecha y Hora
-        </Text>
-        <Text variant="bodyLarge" style={styles.info}>
-          {formatDate(visita.visitDate)}
-        </Text>
-        <Text variant="bodyLarge" style={styles.info}>
-          🕐 {visita.visitTime}
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <MaterialIcons name="event" size={24} color={colors.primary} />
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Fecha y Hora
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <MaterialIcons name="calendar-today" size={18} color={colors.gray600} />
+          <Text variant="bodyLarge" style={styles.info}>
+            {formatDate(visita.visitDate)}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <MaterialIcons name="access-time" size={18} color={colors.gray600} />
+          <Text variant="bodyLarge" style={styles.info}>
+            {visita.visitTime}
+          </Text>
+        </View>
       </View>
 
       <Divider />
@@ -182,23 +194,35 @@ export default function VisitaDetalleScreen() {
       {(visita.barrio || visita.nucleo || visita.barrioOtro) && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              📍 Ubicación
-            </Text>
-            {visita.barrio && (
-              <Text variant="bodyLarge" style={styles.info}>
-                Barrio: {visita.barrio.nombre}
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="place" size={24} color={colors.primary} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Ubicación
               </Text>
+            </View>
+            {visita.barrio && (
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons name="home-group" size={18} color={colors.gray600} />
+                <Text variant="bodyLarge" style={styles.info}>
+                  Barrio: {visita.barrio.nombre}
+                </Text>
+              </View>
             )}
             {visita.nucleo && (
-              <Text variant="bodyLarge" style={styles.info}>
-                Núcleo: {visita.nucleo.nombre}
-              </Text>
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons name="map-marker-circle" size={18} color={colors.gray600} />
+                <Text variant="bodyLarge" style={styles.info}>
+                  Núcleo: {visita.nucleo.nombre}
+                </Text>
+              </View>
             )}
             {visita.barrioOtro && (
-              <Text variant="bodyLarge" style={styles.info}>
-                Otro barrio: {visita.barrioOtro}
-              </Text>
+              <View style={styles.infoRow}>
+                <MaterialCommunityIcons name="home-outline" size={18} color={colors.gray600} />
+                <Text variant="bodyLarge" style={styles.info}>
+                  Otro barrio: {visita.barrioOtro}
+                </Text>
+              </View>
             )}
           </View>
           <Divider />
@@ -207,21 +231,26 @@ export default function VisitaDetalleScreen() {
 
       {/* Tipo y Status */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          🏷️ Tipo y Estado
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <MaterialIcons name="label" size={24} color={colors.primary} />
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Tipo y Estado
+          </Text>
+        </View>
         <View style={styles.chips}>
           <Chip
+            icon={() => renderIcon(typeIcon, 16, '#FFF')}
             style={[styles.chip, { backgroundColor: getVisitTypeColor(visita.visitType) }]}
             textStyle={styles.chipText}
           >
             {getVisitTypeLabel(visita.visitType)}
           </Chip>
           <Chip
+            icon={() => renderIcon(statusIcon, 16, '#FFF')}
             style={[styles.chip, { backgroundColor: getStatusColor(visita.visitStatus) }]}
             textStyle={styles.chipText}
           >
-            {getStatusLabel(visita.visitStatus)}
+            {getVisitStatusLabel(visita.visitStatus)}
           </Chip>
         </View>
       </View>
@@ -232,13 +261,19 @@ export default function VisitaDetalleScreen() {
       {visita.visitadores.length > 0 && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              👥 Visitadores
-            </Text>
-            {visita.visitadores.map((visitador) => (
-              <Text key={visitador.id} variant="bodyLarge" style={styles.info}>
-                • {visitador.nombre}
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="people" size={24} color={colors.primary} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Visitadores
               </Text>
+            </View>
+            {visita.visitadores.map((visitador) => (
+              <View key={visitador.id} style={styles.infoRow}>
+                <MaterialIcons name="person" size={18} color={colors.gray600} />
+                <Text variant="bodyLarge" style={styles.info}>
+                  {visitador.nombre}
+                </Text>
+              </View>
             ))}
           </View>
           <Divider />
@@ -249,14 +284,20 @@ export default function VisitaDetalleScreen() {
       {visita.visitType === 'no_se_pudo_realizar' && visita.motivoNoVisita && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              ⚠️ Motivo de No Realización
-            </Text>
-            <Text variant="bodyLarge" style={styles.info}>
-              {visita.motivoNoVisita === 'no_abrieron' && 'No abrieron'}
-              {visita.motivoNoVisita === 'sin_tiempo' && 'Sin tiempo'}
-              {visita.motivoNoVisita === 'otra' && `Otra: ${visita.motivoNoVisitaOtra}`}
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="warning" size={24} color={colors.warning} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Motivo de No Realización
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialIcons name="info" size={18} color={colors.gray600} />
+              <Text variant="bodyLarge" style={styles.info}>
+                {visita.motivoNoVisita === 'no_abrieron' && 'No abrieron'}
+                {visita.motivoNoVisita === 'sin_tiempo' && 'Sin tiempo'}
+                {visita.motivoNoVisita === 'otra' && `Otra: ${visita.motivoNoVisitaOtra}`}
+              </Text>
+            </View>
           </View>
           <Divider />
         </>
@@ -266,9 +307,12 @@ export default function VisitaDetalleScreen() {
       {visita.visitActivities && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              ✅ Actividades Realizadas
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="check-circle" size={24} color={colors.success} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Actividades Realizadas
+              </Text>
+            </View>
             {visita.visitActivities.conversacion_preocupaciones && (
               <Text variant="bodyLarge" style={styles.info}>
                 • Conversación sobre preocupaciones
@@ -309,9 +353,12 @@ export default function VisitaDetalleScreen() {
       {visita.materialDejado && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              📚 Material Dejado
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <MaterialCommunityIcons name="book-open-variant" size={24} color={colors.primary} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Material Dejado
+              </Text>
+            </View>
             {visita.materialDejado.libro_oraciones && (
               <Text variant="bodyLarge" style={styles.info}>
                 • Libro de oraciones
@@ -333,9 +380,12 @@ export default function VisitaDetalleScreen() {
       {visita.seguimientoVisita && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              🔄 Seguimiento
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <MaterialCommunityIcons name="refresh" size={24} color={colors.primary} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Seguimiento
+              </Text>
+            </View>
             {visita.tipoSeguimiento && (
               <Text variant="bodyLarge" style={styles.info}>
                 Tipo: {visita.tipoSeguimiento === 'por_agendar' ? 'Por agendar' : 'Agendado'}
@@ -367,12 +417,18 @@ export default function VisitaDetalleScreen() {
       {visita.additionalNotes && (
         <>
           <View style={styles.section}>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
-              📝 Notas Adicionales
-            </Text>
-            <Text variant="bodyLarge" style={styles.notes}>
-              {visita.additionalNotes}
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <MaterialIcons name="notes" size={24} color={colors.primary} />
+              <Text variant="titleLarge" style={styles.sectionTitle}>
+                Notas Adicionales
+              </Text>
+            </View>
+            <View style={styles.infoRow}>
+              <MaterialIcons name="description" size={18} color={colors.gray600} />
+              <Text variant="bodyLarge" style={styles.notes}>
+                {visita.additionalNotes}
+              </Text>
+            </View>
           </View>
           <Divider />
         </>
@@ -380,9 +436,12 @@ export default function VisitaDetalleScreen() {
 
       {/* Información del Registro */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          ℹ️ Información del Registro
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <MaterialIcons name="info" size={24} color={colors.info} />
+          <Text variant="titleLarge" style={styles.sectionTitle}>
+            Información del Registro
+          </Text>
+        </View>
         <Text variant="bodyMedium" style={styles.info}>
           Creado por: {visita.creadoPor.nombre}
         </Text>
@@ -415,7 +474,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    backgroundColor: '#6200ee',
+    backgroundColor: colors.primary,
     padding: 16,
     paddingTop: 48,
   },
@@ -430,17 +489,29 @@ const styles = StyleSheet.create({
   section: {
     padding: 16,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#6200ee',
+    color: colors.textPrimary,
+    flex: 1,
   },
   familyName: {
     fontWeight: 'bold',
     marginBottom: 8,
   },
-  info: {
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
     marginBottom: 6,
+  },
+  info: {
+    flex: 1,
     lineHeight: 24,
   },
   chips: {
