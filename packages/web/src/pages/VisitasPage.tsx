@@ -3,7 +3,7 @@ import { useQuery, useMutation, gql } from '@apollo/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { VisitaWizard } from '../components/VisitaWizard';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, List, Calendar } from 'lucide-react';
 import { VisitaDetallesModal } from '../components/VisitaDetallesModal';
 import { WeekCalendarWeb } from '../components/WeekCalendarWeb';
 import { getWeekStart, getWeekEnd, formatWeekRange } from '../utils/dateHelpers';
@@ -320,13 +320,15 @@ export function VisitasPage() {
               className={`btn btn-sm ${viewMode === 'list' ? 'btn-active' : 'btn-outline'}`}
               onClick={() => setViewMode('list')}
             >
-              📋 Lista
+              <List className="w-4 h-4 mr-1" />
+              Lista
             </button>
             <button
               className={`btn btn-sm ${viewMode === 'calendar' ? 'btn-active' : 'btn-outline'}`}
               onClick={() => setViewMode('calendar')}
             >
-              📅 Calendario
+              <Calendar className="w-4 h-4 mr-1" />
+              Calendario
             </button>
           </div>
           <button onClick={() => setWizardOpen(true)} className="btn btn-primary">

@@ -1,3 +1,5 @@
+import { Home, RefreshCw, X, ClipboardList } from 'lucide-react';
+
 interface Visita {
   id: string;
   visitDate: string;
@@ -37,15 +39,15 @@ const STATUS_COLORS: Record<string, { border: string; bg: string; text: string }
   },
 };
 
-const TIPO_ICONS: Record<string, string> = {
-  primera_visita: '🏠',
-  visita_seguimiento: '🔄',
-  no_se_pudo_realizar: '❌',
+const TIPO_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  primera_visita: Home,
+  visita_seguimiento: RefreshCw,
+  no_se_pudo_realizar: X,
 };
 
 export function CalendarVisitCard({ visita, onClick }: CalendarVisitCardProps) {
   const colors = STATUS_COLORS[visita.visitStatus] || STATUS_COLORS.programada;
-  const tipoIcon = TIPO_ICONS[visita.visitType] || '📋';
+  const IconComponent = TIPO_ICONS[visita.visitType] || ClipboardList;
 
   // Get initials from visitadores
   const getInitials = (nombre: string) => {
@@ -73,9 +75,9 @@ export function CalendarVisitCard({ visita, onClick }: CalendarVisitCardProps) {
         <span className={`text-sm font-bold ${colors.text}`}>
           {visita.visitTime}
         </span>
-        <span className="text-base" title={visita.visitType}>
-          {tipoIcon}
-        </span>
+        <div title={visita.visitType}>
+          <IconComponent className={`w-4 h-4 ${colors.text}`} />
+        </div>
       </div>
 
       {/* Familia */}
