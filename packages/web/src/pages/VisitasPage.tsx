@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { VisitaWizard } from '../components/VisitaWizard';
 import { Lightbulb } from 'lucide-react';
 import { VisitaDetallesModal } from '../components/VisitaDetallesModal';
+import { WeekCalendarWeb } from '../components/WeekCalendarWeb';
+import { getWeekStart, getWeekEnd, formatWeekRange } from '../utils/dateHelpers';
 
 // Helper para formatear fechas de forma segura
 const formatDate = (dateInput: string | number | null | undefined): string => {
@@ -164,6 +166,10 @@ export function VisitasPage() {
     refetchQueries: [{ query: VISITAS_QUERY }],
   });
 
+  // Vista y Calendario
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getWeekStart(new Date()));
+
   // Filtros y ordenamiento
   const [filterType, setFilterType] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -205,6 +211,38 @@ export function VisitasPage() {
         console.error('Error deleting visita:', error);
         alert('Error al eliminar la visita');
       }
+    }
+  };
+
+  // Week navigation handlers
+  const handlePrevWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() - 7);
+    setCurrentWeekStart(newStart);
+  };
+
+  const handleNextWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() + 7);
+    setCurrentWeekStart(newStart);
+  };
+
+  const handleToday = () => {
+    setCurrentWeekStart(getWeekStart(new Date()));
+  };
+
+  // Week range for display
+  const weekEnd = useMemo(() => getWeekEnd(currentWeekStart), [currentWeekStart]);
+  const weekRangeText = useMemo(
+    () => formatWeekRange(currentWeekStart, weekEnd),
+    [currentWeekStart, weekEnd]
+  );
+
+  // Handler for calendar card click
+  const handleCalendarCardClick = (visitaId: string) => {
+    const visita = data?.visitas.find((v: any) => v.id === visitaId);
+    if (visita) {
+      setSelectedVisita(visita);
     }
   };
 
@@ -275,9 +313,26 @@ export function VisitasPage() {
             Gestión y seguimiento de visitas a familias
           </p>
         </div>
-        <button onClick={() => setWizardOpen(true)} className="btn btn-primary">
-          + Nueva Visita
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Selector de Vista */}
+          <div className="btn-group">
+            <button
+              className={`btn btn-sm ${viewMode === 'list' ? 'btn-active' : 'btn-outline'}`}
+              onClick={() => setViewMode('list')}
+            >
+              📋 Lista
+            </button>
+            <button
+              className={`btn btn-sm ${viewMode === 'calendar' ? 'btn-active' : 'btn-outline'}`}
+              onClick={() => setViewMode('calendar')}
+            >
+              📅 Calendario
+            </button>
+          </div>
+          <button onClick={() => setWizardOpen(true)} className="btn btn-primary">
+            + Nueva Visita
+          </button>
+        </div>
       </div>
 
       <VisitaWizard
@@ -387,8 +442,40 @@ export function VisitasPage() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Week Navigation - Solo visible en modo calendario */}
+      {viewMode === 'calendar' && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handlePrevWeek}
+              className="btn btn-sm btn-outline"
+            >
+              ← Semana Anterior
+            </button>
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">{weekRangeText}</h2>
+              <button
+                onClick={handleToday}
+                className="btn btn-sm btn-ghost"
+              >
+                Hoy
+              </button>
+            </div>
+            <button
+              onClick={handleNextWeek}
+              className="btn btn-sm btn-outline"
+            >
+              Semana Siguiente →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Renderizado condicional: Lista o Calendario */}
+      {viewMode === 'list' ? (
+        <>
+          {/* Table */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -678,6 +765,17 @@ export function VisitasPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
+      ) : (
+        <>
+          {/* Vista de Calendario */}
+          <WeekCalendarWeb
+            visitas={visitas}
+            currentWeekStart={currentWeekStart}
+            onVisitClick={handleCalendarCardClick}
+          />
+        </>
       )}
 
       {/* Help text */}
