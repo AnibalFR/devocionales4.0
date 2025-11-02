@@ -125,6 +125,11 @@ export function useAppVersion(): UseAppVersionReturn {
   }, []);
 
   const refresh = useCallback(() => {
+    // Guardar buildId antes de recargar para evitar que reaparezca el modal
+    if (release?.buildId) {
+      addDismissedBuild(release.buildId);
+    }
+
     // Limpiar cache de Apollo si está disponible
     if (window.apolloClient) {
       window.apolloClient.clearStore().catch(console.error);
@@ -132,7 +137,7 @@ export function useAppVersion(): UseAppVersionReturn {
 
     // Recargar la página
     window.location.reload();
-  }, []);
+  }, [release]);
 
   const dismissUpdate = useCallback(() => {
     setDismissed(true);
