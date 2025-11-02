@@ -17,6 +17,7 @@ interface UseAppVersionReturn {
 const CURRENT_BUILD_ID = import.meta.env.VITE_BUILD_ID || 'development';
 const POLL_INTERVAL = 5 * 60 * 1000; // 5 minutos
 const NOTIFICATION_DELAY = 45 * 1000; // 45 segundos - esperar a que el deploy termine completamente
+const DISMISSED_BUILDS_KEY = 'dismissedBuildIds';
 
 // Construir URL del endpoint de release
 // En desarrollo: http://localhost:4000/api/release
@@ -30,6 +31,32 @@ const getReleaseUrl = () => {
 };
 
 const RELEASE_URL = getReleaseUrl();
+
+// Helper para manejar buildIds descartados en localStorage
+const getDismissedBuilds = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(DISMISSED_BUILDS_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+const addDismissedBuild = (buildId: string): void => {
+  try {
+    const dismissed = getDismissedBuilds();
+    dismissed.add(buildId);
+    // Mantener solo los últimos 10 buildIds para no llenar localStorage
+    const array = Array.from(dismissed).slice(-10);
+    localStorage.setItem(DISMISSED_BUILDS_KEY, JSON.stringify(array));
+  } catch (error) {
+    console.error('Error saving dismissed build:', error);
+  }
+};
+
+const isBuildDismissed = (buildId: string): boolean => {
+  return getDismissedBuilds().has(buildId);
+};
 
 export function useAppVersion(): UseAppVersionReturn {
   const [release, setRelease] = useState<ReleaseInfo | null>(null);
@@ -58,6 +85,12 @@ export function useAppVersion(): UseAppVersionReturn {
       if (data.buildId !== CURRENT_BUILD_ID) {
         setRelease(data);
 
+        // Verificar si este buildId ya fue descartado antes
+        if (isBuildDismissed(data.buildId)) {
+          // No mostrar notificación si el usuario ya la descartó
+          return;
+        }
+
         // Limpiar timeout anterior si existe
         if (notificationTimeoutRef.current) {
           clearTimeout(notificationTimeoutRef.current);
@@ -75,7 +108,8 @@ export function useAppVersion(): UseAppVersionReturn {
           })
             .then(res => res.json())
             .then((latestData: ReleaseInfo) => {
-              if (latestData.buildId !== CURRENT_BUILD_ID) {
+              // Verificar que no fue descartado mientras esperábamos
+              if (latestData.buildId !== CURRENT_BUILD_ID && !isBuildDismissed(latestData.buildId)) {
                 setHasNewVersion(true);
                 setDismissed(false);
               }
@@ -102,7 +136,11 @@ export function useAppVersion(): UseAppVersionReturn {
 
   const dismissUpdate = useCallback(() => {
     setDismissed(true);
-  }, []);
+    // Guardar en localStorage para no volver a mostrar este buildId
+    if (release?.buildId) {
+      addDismissedBuild(release.buildId);
+    }
+  }, [release]);
 
   useEffect(() => {
     // Verificar versión al montar
