@@ -108,6 +108,38 @@ const DELETE_VISITA = gql`
   }
 `;
 
+const UPDATE_VISITA_DATE = gql`
+  mutation UpdateVisitaDate($id: ID!, $input: UpdateVisitaInput!) {
+    updateVisita(id: $id, input: $input) {
+      id
+      visitDate
+      visitTime
+      visitType
+      visitStatus
+      familia {
+        id
+        nombre
+      }
+      barrio {
+        id
+        nombre
+      }
+      barrioOtro
+      nucleo {
+        id
+        nombre
+      }
+      visitadores {
+        id
+        nombre
+      }
+      seguimientoVisita
+      seguimientoFecha
+      additionalNotes
+    }
+  }
+`;
+
 const TIPO_LABELS: Record<string, string> = {
   primera_visita: 'Primera Visita',
   visita_seguimiento: 'Seguimiento',
@@ -163,6 +195,9 @@ export function VisitasPage() {
   const [editingVisita, setEditingVisita] = useState<any | null>(null);
   const { data, loading, error, refetch } = useQuery(VISITAS_QUERY);
   const [deleteVisita] = useMutation(DELETE_VISITA, {
+    refetchQueries: [{ query: VISITAS_QUERY }],
+  });
+  const [updateVisitaDate] = useMutation(UPDATE_VISITA_DATE, {
     refetchQueries: [{ query: VISITAS_QUERY }],
   });
 
@@ -243,6 +278,24 @@ export function VisitasPage() {
     const visita = data?.visitas.find((v: any) => v.id === visitaId);
     if (visita) {
       setSelectedVisita(visita);
+    }
+  };
+
+  // Handler for rescheduling visit via drag & drop
+  const handleRescheduleVisit = async (visitaId: string, newDate: string) => {
+    try {
+      await updateVisitaDate({
+        variables: {
+          id: visitaId,
+          input: {
+            visitDate: newDate,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error rescheduling visit:', error);
+      alert('Error al reprogramar la visita. Por favor intenta de nuevo.');
+      throw error;
     }
   };
 
@@ -776,6 +829,7 @@ export function VisitasPage() {
             visitas={visitas}
             currentWeekStart={currentWeekStart}
             onVisitClick={handleCalendarCardClick}
+            onRescheduleVisit={handleRescheduleVisit}
           />
         </>
       )}
