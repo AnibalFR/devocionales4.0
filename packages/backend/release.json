@@ -1,10 +1,12 @@
 {
   "buildId": "auto-generated-by-deploy-script",
   "notes": [
-    "Nueva Funcionalidad: App Móvil Devocionales 4.0",
-    "App nativa para iOS y Android con React Native",
-    "Login, visualización de visitas y perfil de usuario"
+    "Calendario de Visitas: Tooltips con información completa al hacer hover",
+    "Calendario: Badges de conteo de visitas en cada día",
+    "Indicadores de seguimiento programado y conflictos de horario",
+    "Drag & Drop: Arrastra visitas entre días para reprogramar",
+    "Mejor experiencia visual y productividad en gestión de visitas"
   ],
-  "requiresReload": false,
+  "requiresReload": true,
   "requiresReauth": false
 }
