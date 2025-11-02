@@ -1,5 +1,5 @@
 import { Home, RefreshCw, X, ClipboardList, Calendar, AlertTriangle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface Visita {
   id: string;
@@ -75,6 +75,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function CalendarVisitCard({ visita, onClick, tieneConflicto, onDragStart, isDragging }: CalendarVisitCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
   const colors = STATUS_COLORS[visita.visitStatus] || STATUS_COLORS.programada;
   const IconComponent = TIPO_ICONS[visita.visitType] || ClipboardList;
 
@@ -88,13 +90,44 @@ export function CalendarVisitCard({ visita, onClick, tieneConflicto, onDragStart
       .slice(0, 2);
   };
 
+  // Calculate tooltip position when showing
+  useEffect(() => {
+    if (showTooltip && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const tooltipWidth = 288; // w-72 = 18rem = 288px
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Default: show to the right
+      let left = rect.right + 8; // 8px margin
+      let top = rect.top;
+
+      // If tooltip would go off right edge, show on left instead
+      if (left + tooltipWidth > viewportWidth) {
+        left = rect.left - tooltipWidth - 8;
+      }
+
+      // If tooltip would go off left edge, center it
+      if (left < 8) {
+        left = Math.max(8, (viewportWidth - tooltipWidth) / 2);
+      }
+
+      // Adjust vertical position if too close to bottom
+      const tooltipHeight = 300; // approximate
+      if (top + tooltipHeight > viewportHeight) {
+        top = Math.max(8, viewportHeight - tooltipHeight - 8);
+      }
+
+      setTooltipPosition({ top, left });
+    }
+  }, [showTooltip]);
+
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <>
       <div
+        ref={cardRef}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
         draggable={!!onDragStart}
         onDragStart={onDragStart}
         onClick={onClick}
@@ -165,9 +198,15 @@ export function CalendarVisitCard({ visita, onClick, tieneConflicto, onDragStart
         )}
       </div>
 
-      {/* Tooltip */}
+      {/* Tooltip - Rendered with fixed positioning to escape overflow constraints */}
       {showTooltip && (
-        <div className="absolute z-50 left-full ml-2 top-0 w-72 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none">
+        <div
+          className="fixed z-50 w-72 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none"
+          style={{
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+          }}
+        >
           <div className="space-y-2">
             {/* Familia y Hora */}
             <div className="border-b border-gray-700 pb-2">
@@ -226,11 +265,8 @@ export function CalendarVisitCard({ visita, onClick, tieneConflicto, onDragStart
               </div>
             )}
           </div>
-
-          {/* Arrow */}
-          <div className="absolute right-full top-4 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-r-4 border-r-gray-900"></div>
         </div>
       )}
-    </div>
+    </>
   );
 }
