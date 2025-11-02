@@ -7,6 +7,6 @@
     "Drag & Drop: Arrastra visitas entre días para reprogramar",
     "Mejor experiencia visual y productividad en gestión de visitas"
   ],
-  "requiresReload": true,
+  "requiresReload": false,
   "requiresReauth": false
 }
